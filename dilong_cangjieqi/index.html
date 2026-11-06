@@ -1,0 +1,1033 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>地龙 · 仓颉棋</title>
+<style>
+:root{
+  --ink:#0a0908; --bg:#100e0b; --bg2:#171310;
+  --panel:#1b1611; --panel2:#221c15; --line:#3d3221;
+  --paper:#f2e6cc; --paper2:#e4d3ac; --paperline:#b7a173;
+  --gold:#c9a227; --gold2:#e2c05a; --cinnabar:#b6382b; --cinnabar2:#e0644c;
+  --jade:#6aa88c; --txt:#e8dcc2; --dim:#988a70; --dim2:#6f6452;
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;padding:0}
+body{
+  background:#080706;color:var(--txt);
+  font-family:"Noto Serif SC","Songti SC","STSong","SimSun",serif;
+  overflow-x:hidden;
+}
+#app{
+  max-width:560px;margin:0 auto;min-height:100vh;
+  padding:8px 10px 8px;
+  background:
+    radial-gradient(120% 55% at 50% -5%,rgba(201,162,39,.13),transparent 62%),
+    radial-gradient(90% 45% at 50% 105%,rgba(182,56,43,.10),transparent 70%),
+    var(--bg);
+}
+.bar{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:2px 2px 8px}
+.brand{display:flex;align-items:center;gap:9px;min-width:0}
+.brand .seal{
+  width:36px;height:36px;flex:0 0 auto;border-radius:4px;
+  background:linear-gradient(160deg,#c0392b,#8d2a1f);
+  color:#f6e8cf;font-size:22px;font-weight:700;line-height:36px;text-align:center;
+  box-shadow:0 3px 10px rgba(0,0,0,.5),inset 0 0 0 1px rgba(255,220,190,.25);
+}
+.brand h1{margin:0;font-size:17px;letter-spacing:2px;line-height:1.2;color:#efe2c4}
+.brand p{margin:2px 0 0;font-size:10px;letter-spacing:2px;color:var(--dim)}
+.tools{display:flex;gap:6px;flex:0 0 auto}
+.tools .ic{
+  height:32px;min-width:38px;padding:0 9px;border-radius:6px;
+  background:#1d1813;border:1px solid var(--line);color:#cdbf9f;
+  font-family:inherit;font-size:12px;letter-spacing:2px;cursor:pointer;
+}
+.tools .ic:active{background:#262019}
+
+.race{
+  border:1px solid var(--line);border-radius:10px;background:linear-gradient(180deg,#1c1712,#141110);
+  padding:8px 10px 7px;margin-bottom:7px;
+}
+.lane{display:flex;align-items:center;gap:8px;margin:3px 0}
+.lane .who{flex:0 0 42px;font-size:11px;letter-spacing:1px;color:var(--dim);text-align:right}
+.lane.mine .who{color:#e8c9a2}
+.lane.ai .who{color:#7fa796}
+.track{position:relative;flex:1 1 auto;height:9px;border-radius:5px;background:#0e0c09;border:1px solid #2c2418;overflow:hidden}
+.track i{display:block;height:100%;width:0%;transition:width .35s ease;border-radius:4px}
+.lane.mine .track i{background:linear-gradient(90deg,#8f4a34,#d5803f);box-shadow:0 0 10px rgba(213,128,63,.45)}
+.lane.ai .track i{background:linear-gradient(90deg,#2f4a41,#6aa88c);box-shadow:0 0 10px rgba(106,168,140,.35)}
+.lane .num{flex:0 0 42px;text-align:right;font-size:11px;color:#b9ab8e;font-variant-numeric:tabular-nums}
+.aiwork{display:flex;align-items:center;gap:6px;margin:5px 0 0 50px;font-size:11px;color:#8ea89b;min-height:15px;letter-spacing:1px}
+.aiwork .dot{width:5px;height:5px;border-radius:50%;background:var(--jade);animation:blink 1.1s infinite}
+@keyframes blink{0%,100%{opacity:.35}50%{opacity:1}}
+
+.hud{display:flex;border:1px solid var(--line);border-radius:9px;overflow:hidden;background:linear-gradient(180deg,#1a1611,#12100d);margin-bottom:8px}
+.hud .cell{flex:1;text-align:center;padding:5px 3px 5px;border-right:1px solid #2a2218}
+.hud .cell:last-child{border-right:0}
+.hud .cell em{display:block;font-style:normal;font-size:10px;letter-spacing:2px;color:var(--dim2)}
+.hud .cell b{display:block;font-size:15px;font-weight:700;color:var(--gold2);font-variant-numeric:tabular-nums;line-height:1.35}
+.hud .cell b.warn{color:var(--cinnabar2)}
+
+.boardwrap{border:1px solid #3a2f20;border-radius:11px;padding:7px 8px 9px;background:
+  repeating-linear-gradient(45deg,rgba(255,255,255,.012) 0 6px,transparent 6px 12px),
+  linear-gradient(168deg,#1e1813,#120f0b 82%);
+  box-shadow:inset 0 0 30px rgba(0,0,0,.55);}
+.cap{display:flex;justify-content:space-between;align-items:center;gap:6px;margin:0 2px 7px;font-size:10px;letter-spacing:1px;color:var(--dim)}
+.cap span:last-child{color:#6f7f74}
+.board{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:4px}
+.cellx{
+  position:relative;aspect-ratio:1/1;border-radius:5px;
+  background:linear-gradient(160deg,#efe3c7,#dfcda6);border:1px solid #a68f63;
+  color:#211a11;display:flex;align-items:center;justify-content:center;
+  font-size:19px;font-weight:700;cursor:pointer;user-select:none;font-family:inherit;
+  box-shadow:0 2px 5px rgba(0,0,0,.45);
+  transition:transform .12s,box-shadow .15s,filter .2s;
+}
+.cellx.small{font-size:16px}
+.cellx:active{transform:scale(.95)}
+.cellx.sel{box-shadow:0 0 0 2px var(--gold2),0 0 14px rgba(226,192,90,.55);z-index:2}
+.cellx.done{
+  background:linear-gradient(160deg,#2a2318,#191510);color:#8d7a52;
+  border-color:#54432a;box-shadow:inset 0 0 12px rgba(0,0,0,.7);
+}
+.cellx.done::after{
+  content:"成";position:absolute;right:1px;bottom:0;
+  font-size:9px;color:#b6382b;border:1px solid #7e2a20;border-radius:2px;
+  padding:0 1px;line-height:1.2;background:rgba(20,14,10,.9);
+  transform:rotate(-6deg);
+}
+.cellx.pop{animation:popIn .4s cubic-bezier(.2,.9,.3,1)}
+@keyframes popIn{0%{transform:scale(.86)}55%{transform:scale(1.12)}100%{transform:scale(1)}}
+.cellx.hinted{animation:hintGlow .8s ease-in-out 2}
+@keyframes hintGlow{0%,100%{box-shadow:0 2px 5px rgba(0,0,0,.45)}50%{box-shadow:0 0 0 2px #6aa88c,0 0 16px rgba(106,168,140,.6)}}
+
+.desk{margin-top:8px;border:1px solid #3a2f20;border-radius:11px;background:linear-gradient(170deg,#1b1612,#110e0a);padding:8px 10px 10px;min-height:92px}
+.desk .empty{color:var(--dim2);font-size:12px;text-align:center;padding:26px 0;letter-spacing:1px}
+.deskhead{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:6px}
+.tag{font-size:10px;letter-spacing:2px;color:var(--dim);border:1px solid #3a3022;border-radius:4px;padding:2px 6px}
+.deskhead .acts{display:flex;gap:6px}
+.mini{height:30px;padding:0 10px;border-radius:5px;border:1px solid #4a3c26;background:#241d15;color:#cfc0a0;font-family:inherit;font-size:11px;letter-spacing:1px;cursor:pointer}
+.mini:disabled{opacity:.4;cursor:default}
+.mini.gold{border-color:#8a6f2b;color:#f0d998;background:#2b2214}
+.compose{display:flex;align-items:center;gap:12px}
+.deskhint{margin-top:6px;font-size:10px;letter-spacing:1px;color:#7a6e57;text-align:right}
+.bigchar{
+  position:relative;flex:0 0 76px;width:76px;height:76px;border-radius:6px;
+  background:linear-gradient(160deg,#f4e9cf,#e3d1a9);border:1px solid #a68f63;
+  color:#17120c;display:flex;align-items:center;justify-content:center;
+  font-size:38px;font-weight:700;box-shadow:0 4px 12px rgba(0,0,0,.5);
+  background-image:
+    linear-gradient(to right,transparent 49.4%,rgba(160,80,50,.32) 49.4% 50.6%,transparent 50.6%),
+    linear-gradient(to bottom,transparent 49.4%,rgba(160,80,50,.32) 49.4% 50.6%,transparent 50.6%),
+    linear-gradient(160deg,#f4e9cf,#e3d1a9);
+}
+.slots{display:grid;gap:5px;flex:1 1 auto}
+.slots.lr{grid-template-columns:1fr 1fr}
+.slots.tb{grid-template-columns:1fr}
+.slots.pin{grid-template-columns:1fr 1fr;grid-template-areas:"top top" "bl br"}
+.slots.pin .s0{grid-area:top;justify-self:center;width:64%}
+.slots.pin .s1{grid-area:bl}.slots.pin .s2{grid-area:br}
+.slot{
+  min-height:38px;border-radius:4px;border:1px dashed #57472c;background:#15110c;
+  color:#6c5f47;font-size:10px;letter-spacing:1px;display:flex;align-items:center;justify-content:center;
+  cursor:pointer;transition:background .15s,border-color .15s;padding:2px
+}
+.slot.filled{background:#efe2c4;border:1px solid #a68f63;color:#221a10;font-size:22px;font-weight:700;animation:inkIn .22s ease-out}
+.slot.bad{background:#5e231b;border-color:#c0392b;color:#ffd7cb;animation:shake .35s}
+@keyframes inkIn{from{transform:scale(.6);opacity:.4;filter:blur(2px)}to{transform:none;opacity:1;filter:none}}
+@keyframes shake{0%,100%{transform:none}25%{transform:translateX(-5px)}50%{transform:translateX(5px)}75%{transform:translateX(-3px)}}
+
+.traywrap{position:sticky;bottom:0;z-index:6;margin-top:8px;padding:7px 2px calc(8px + env(safe-area-inset-bottom));
+  background:linear-gradient(180deg,rgba(12,10,8,.0),rgba(10,9,7,.92) 26%,#0a0907 60%)}
+.traycap{display:flex;justify-content:space-between;align-items:center;margin:0 4px 5px;font-size:10px;letter-spacing:1px;color:var(--dim)}
+.traycap span{color:#7c725c;letter-spacing:0}
+.tray{display:grid;grid-template-columns:repeat(8,minmax(0,1fr));gap:4px}
+.mold{
+  aspect-ratio:1/1;min-width:0;padding:0;border-radius:5px;border:1px solid #6f5c37;
+  background:linear-gradient(160deg,#efe2c4,#ddc99f);color:#1d1710;
+  font-size:17px;font-weight:700;display:flex;align-items:center;justify-content:center;font-family:inherit;
+  cursor:pointer;user-select:none;box-shadow:0 2px 6px rgba(0,0,0,.5);transition:transform .12s,box-shadow .15s;
+}
+.mold.used{opacity:.28;pointer-events:none}
+.mold .plabel{font-size:8px;line-height:1;color:#6b5634;letter-spacing:0;margin-top:2px}
+.mold.haslabel{flex-direction:column}
+.waropts{display:grid;gap:6px;margin:8px 0 2px}
+.opt{min-height:38px;border:1px solid #4a3c26;border-radius:6px;background:#241d15;color:#d8c8a6;
+  font-family:inherit;font-size:12px;line-height:1.5;letter-spacing:1px;padding:7px 9px;text-align:left;cursor:pointer}
+.opt:active{background:#332a1c}
+.opt b{color:#e2c05a;font-weight:400}
+.slot.keep{border-style:solid;border-color:#6aa88c;color:#9fd0b4}
+.slots.ready .slot{border-color:#8a6f2b;background:#1b1710}
+.dlog{margin-top:10px;border-top:1px dashed #3a3022;padding-top:8px;font-size:10.5px;line-height:1.8;color:#8f8268}
+.dlog b{color:#c9a227;font-weight:400}
+@media (max-width:400px){
+  .board{gap:3px}
+  .cellx{font-size:16px}
+  .mold{font-size:16px}
+}
+.mold:active{transform:translateY(1px)}
+.mold.pick{box-shadow:0 0 0 2px var(--gold2),0 0 16px rgba(226,192,90,.7);transform:translateY(-3px)}
+.mold.hint{animation:hintGlow .7s ease-in-out 3}
+.msg{margin:6px 4px 0;min-height:16px;font-size:11px;letter-spacing:1px;color:#a99a7c}
+.msg.ok{color:#8fc2a5}
+.msg.bad{color:#e58568}
+.msg.cine{color:#d9bd7a;font-style:italic}
+
+.overlay{
+  position:fixed;inset:0;z-index:20;display:none;align-items:center;justify-content:center;
+  background:rgba(6,5,4,.86);backdrop-filter:blur(3px);padding:14px;
+}
+.overlay.show{display:flex;animation:fadeIn .25s ease}
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}
+.sheet{
+  width:100%;max-width:470px;max-height:92vh;overflow-y:auto;overscroll-behavior:contain;
+  border:1px solid #4a3c26;border-radius:13px;padding:18px 18px 16px;
+  background:linear-gradient(170deg,#1d1812,#100d09);
+  box-shadow:0 18px 50px rgba(0,0,0,.7),inset 0 0 60px rgba(201,162,39,.05);
+}
+.sheet h2{margin:0 0 4px;font-size:20px;letter-spacing:4px;color:#f0e0bc;font-weight:700}
+.sheet .kicker{font-size:10px;letter-spacing:3px;color:#8f7c52;margin-bottom:12px}
+.sheet p{margin:8px 0;font-size:12.5px;line-height:1.85;color:#cdbfa2}
+.sheet p b{color:#e6cf93;font-weight:700}
+.sheet .hl{color:#e2c05a}
+.sheet .rowline{display:flex;gap:8px;margin-top:14px}
+.btn{
+  flex:1;min-height:44px;border-radius:7px;border:1px solid #7f6526;
+  background:linear-gradient(180deg,#3a2c14,#251c0d);color:#f0d998;
+  font-family:inherit;font-size:14px;letter-spacing:3px;cursor:pointer;font-weight:700;
+}
+.btn:active{transform:translateY(1px)}
+.btn.ghost{background:#1c1711;border-color:#463a26;color:#b9ab8e;font-weight:400;letter-spacing:2px}
+.note{font-size:10.5px;line-height:1.7;color:#7f735c;margin-top:12px;border-top:1px dashed #3a3022;padding-top:10px}
+.note b{color:#a8956a}
+.quote{border-left:2px solid #6b5220;padding:6px 0 6px 10px;margin:10px 0;font-size:11.5px;line-height:1.8;color:#b6a583;font-style:italic}
+.quote i{font-style:normal;color:#8a7a5b;font-size:10px}
+.savebox{display:grid;grid-template-columns:repeat(2,1fr);gap:7px;margin:12px 0 2px}
+.savebox div{border:1px solid #3a3022;border-radius:6px;padding:6px 8px;background:#15110c}
+.savebox em{display:block;font-style:normal;font-size:10px;color:#7c7158;letter-spacing:1px}
+.savebox b{font-size:15px;color:#dcc58a}
+
+.war{max-width:520px}
+.doors{display:grid;grid-template-columns:repeat(3,1fr);gap:7px;margin:10px 0 12px}
+.door{border:1px solid #3a3022;border-radius:8px;padding:7px 4px;text-align:center;background:#15110c}
+.door b{display:block;font-size:12px;letter-spacing:2px;color:#9c8f74;font-weight:400}
+.door i{display:block;font-size:10px;color:#6d6350;margin-top:3px;font-style:normal}
+.door.win{border-color:#4f7c62;background:#132018;box-shadow:0 0 12px rgba(106,168,140,.25)}
+.door.win b{color:#9fd0b4}
+.door.lose{border-color:#7e2a20;background:#20110d}
+.door.lose b{color:#e58568}
+.door.now{border-color:#8a6f2b;box-shadow:0 0 14px rgba(201,162,39,.35);animation:blink 1.6s infinite}
+.warbody{border:1px solid #4a3c26;border-radius:10px;padding:12px;background:linear-gradient(170deg,#1c1712,#0f0c08)}
+.warchar{font-size:56px;text-align:center;line-height:1.1;color:#f3e6ca;text-shadow:0 0 24px rgba(226,192,90,.25);margin:2px 0 4px}
+.warsub{text-align:center;font-size:11px;color:#8f8168;letter-spacing:1px;margin-bottom:8px}
+.inkline{height:7px;border-radius:4px;background:#0b0907;border:1px solid #2b2318;overflow:hidden;margin-bottom:10px}
+.inkline i{display:block;height:100%;width:0%;background:linear-gradient(90deg,#3d6b5b,#a8332b);transition:width .12s linear}
+.wartray{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:5px}
+.warmolds .mold{aspect-ratio:1/1}
+.warmolds .mold.pick{box-shadow:0 0 0 2px var(--cinnabar2),0 0 16px rgba(224,100,76,.6);transform:translateY(-3px)}
+.warslots{display:flex;justify-content:center;gap:6px;flex-wrap:wrap;margin:8px 0 2px;min-height:30px}
+.warslot{min-width:34px;min-height:30px;border:1px dashed #4a3c26;border-radius:4px;padding:2px 7px;font-size:17px;color:#8a7c62;display:flex;align-items:center;justify-content:center}
+.warslot.on{background:#efe2c4;color:#1c1710;border:1px solid #a68f63}
+.wartip{text-align:center;font-size:10.5px;color:#7d7259;letter-spacing:1px;margin-top:8px;min-height:15px}
+
+.toast{
+  position:fixed;left:50%;top:17%;transform:translate(-50%,-10px);z-index:30;
+  max-width:86vw;padding:9px 16px;border-radius:8px;border:1px solid #7f6526;
+  background:rgba(28,22,15,.96);color:#f0d998;font-size:12.5px;letter-spacing:2px;
+  opacity:0;pointer-events:none;transition:opacity .25s,transform .25s;text-align:center;
+  box-shadow:0 12px 30px rgba(0,0,0,.6);
+}
+.toast.show{opacity:1;transform:translate(-50%,0)}
+.fx{position:fixed;inset:0;pointer-events:none;z-index:25;opacity:0;transition:opacity .2s}
+.fx.show{opacity:1}
+.fx.pollution{background:radial-gradient(circle at 50% 45%,transparent 20%,rgba(150,30,20,.55) 100%);mix-blend-mode:screen;animation:polPulse 1.4s infinite}
+@keyframes polPulse{0%,100%{opacity:.55;filter:blur(0)}50%{opacity:.9;filter:blur(1.5px)}}
+</style>
+</head>
+<body>
+<div id="app">
+  <header class="bar">
+    <div class="brand">
+      <span class="seal">仓</span>
+      <div>
+        <h1>地龙 · 仓颉棋</h1>
+        <p>凤凰衔书台 · 二十八正字</p>
+      </div>
+    </div>
+    <div class="tools">
+      <button id="btnSound" class="ic" title="声音开关">♪</button>
+      <button id="btnRules" class="ic">规则</button>
+    </div>
+  </header>
+
+  <section class="race">
+    <div class="lane mine"><span class="who">你</span><div class="track"><i id="barMe"></i></div><span class="num" id="numMe">0 / 28</span></div>
+    <div class="lane ai"><span class="who">地龙</span><div class="track"><i id="barAi"></i></div><span class="num" id="numAi">0 / 28</span></div>
+    <div class="aiwork"><span class="dot"></span><span id="aiWork">地龙正在拆字…</span></div>
+  </section>
+
+  <section class="hud">
+    <div class="cell"><em>污染</em><b id="polNum">0</b></div>
+    <div class="cell"><em>失手</em><b id="misNum">0</b></div>
+    <div class="cell"><em>问字</em><b id="hintNum">3</b></div>
+    <div class="cell"><em>用时</em><b id="clock">0:00</b></div>
+  </section>
+
+  <section class="boardwrap">
+    <div class="cap"><span>衔书台 · 二十八格</span><span id="boardTip">点一个字，开始拆合</span></div>
+    <div class="board" id="board"></div>
+  </section>
+
+  <section class="desk" id="desk">
+    <div class="empty">未选字。先在上方点一个字。</div>
+  </section>
+
+  <section class="traywrap">
+    <div class="traycap">部件盘 <span>点选部件 → 点字格里的位置</span></div>
+    <div class="tray" id="tray"></div>
+    <div class="msg" id="msg"></div>
+  </section>
+</div>
+
+<div class="toast" id="toast"></div>
+<div class="fx" id="fx"></div>
+
+<!-- 开局 -->
+<div class="overlay show" id="ovStart">
+  <div class="sheet" style="max-width:460px">
+    <div class="kicker">生肖 · 地级 · 龙</div>
+    <h2>仓颉棋</h2>
+    <p>双方的七枚棋子被拆成十五枚部件，摆在凤凰衔书台上。你与地龙各凭眼力，把这些部件重新拼成 <b>28 个结构正确的汉字</b>——先凑齐的一方，才有资格走进战场。</p>
+    <div class="quote">
+      二手规则概述（档案未收得可核实原文）：<br>
+      两队各持七个汉字，可拆成偏旁部首再重组；<br>
+      先凑齐 28 个「有效可书写汉字」者胜。<br>
+      <i>出处可信度 C · 关名有「地龙 / 地羊」两说</i>
+    </div>
+    <p style="font-size:11.5px;color:#9b8d73">这不是猜谜：点选中一个字，再按<b>左/右、上/下</b>的位置，把部件放进字格。位置错了，字就散了。</p>
+    <div class="rowline">
+      <button class="btn" id="btnStart">入 局</button>
+      <button class="btn ghost" id="btnRules2" style="flex:0 0 96px">看规则</button>
+    </div>
+    <div class="note"><b>本机记录</b><span id="bestLine"> —</span></div>
+    <div class="note">档案标注「地龙/地羊」两种归属互相冲突，本作取 <b>地龙</b>，不合并两说。规则模糊处已在页内标「本作设定」。</div>
+  </div>
+</div>
+
+<!-- 规则 -->
+<div class="overlay" id="ovRules">
+  <div class="sheet">
+    <div class="kicker">仓颉棋 · 规则</div>
+    <h2>怎么玩</h2>
+    <p><b>一、拆合。</b>上方 28 格是待成的字。点一个字，右侧出现它的部件槽（左/右、上/下，或品字三格）。在下方部件盘点一枚部件，再点槽位放进去。</p>
+    <p><b>二、成字。</b>槽位填满即判。部件齐、位置对，字成，计数 +1；位置或部件错，墨散，记一次<b>失手</b>，污染 +25。墨散时会逐格告诉你「应放什么、你放了什么」，对的格会留着。</p>
+    <p><b>三、竞速。</b>地龙同时在自己那一份字帖上拼字，进度条实时可见，它会跟着你的拆字节奏调整快慢。污染满 100（四次失手）即精神崩溃，判负。</p>
+    <p><b>四、战场。</b>先凑齐 28 字者占先手：三门里<b>夺下 2 门</b>即生。落后者要<b>三门全夺</b>，一门失守即死。前两门要在墨线爬满前点齐部件——<b>首错只污墨清空，再错才锁门</b>。第三门是「辨字」：四条拆法里挑一条，点错即锁门。开门有 1.5 秒缓冲，读字不计时。</p>
+    <p><b>五、胜负。</b>战场门数达标者生，另一方死。结算页会复盘每一门的结果、竞速差距与最后一次墨散，并记录本机最快破锁时间。</p>
+    <p style="font-size:11px;color:#9b8d73">字帖含生僻字：<b>骉</b>（biāo，三马）、<b>焱</b>（yàn，三火）。「亻」即人旁，「亠」即京字头，部件盘上有小字标注；<b>「士」与「十」是两枚不同部件</b>——吉用士，古用十。</p>
+    <div class="note"><b>本作设定</b>（原文模糊或未实现处）：①两队各七子合并为一张公共部件盘，保证单机对 AI 公平；②部件可重复取用、不消耗，拼字靠眼力与记性（原文判例要求「自己有该偏旁」，本作不采用）；③28 字为预置字帖，拆法逐字校验；④原文「同室两人即锁门、分生死」的多人房间，本作改为一人与 AI 抢拆三门；⑤原文的棋子抢夺、棋盘文字扭曲消失、主帅被杀，本作未实现。</div>
+    <div style="margin-top:14px"><button class="btn ghost" id="btnCloseRules">收 起</button></div>
+  </div>
+</div>
+
+<!-- 战场 -->
+<div class="overlay" id="ovWar">
+  <div class="sheet war">
+    <div class="kicker" id="warKicker">战场 · 锁门分生死</div>
+    <h2 id="warTitle" style="font-size:17px;letter-spacing:2px">第一道门</h2>
+    <div class="doors" id="warDoors"></div>
+    <div class="warbody">
+      <div class="warchar" id="warChar">相</div>
+      <div class="warsub" id="warSub">墨线爬满之前，点齐它的部件</div>
+      <div class="inkline"><i id="warInk"></i></div>
+      <div class="warslots" id="warSlots"></div>
+      <div class="waropts" id="warOpts"></div>
+      <div class="wartray" id="warTray"></div>
+      <div class="wartip" id="warTip">选一枚部件；凑齐后自动判</div>
+    </div>
+    <div class="note" id="warNote">先手方只需一门；另一方需两门。</div>
+  </div>
+</div>
+
+<!-- 结算 -->
+<div class="overlay" id="ovEnd">
+  <div class="sheet">
+    <div class="kicker" id="endKicker">终局</div>
+    <h2 id="endTitle">生</h2>
+    <p id="endDesc"></p>
+    <div class="savebox" id="endStats"></div>
+    <div class="dlog" id="endLog"></div>
+    <div class="rowline">
+      <button class="btn" id="btnAgain">再 来 一 局</button>
+      <button class="btn ghost" id="btnEndRules" style="flex:0 0 96px">规则</button>
+    </div>
+    <div class="note" id="endNote">「仓颉造字，天雨粟，鬼夜哭。」——此局只论字，不论人。</div>
+  </div>
+</div>
+
+<script>
+"use strict";
+/* 部件盘：十五枚部件，取自双方七子「帅相仕车马炮兵 / 将象士车马炮卒」的拆解 */
+var POOL = ["木","目","口","十","人","亻","八","火","士","寸","夕","马","包","亠","丘"];
+
+/* 二十八正字：每字给出有序部件与结构，逐字核过字形
+   lr  = 左右（左、右）
+   tb  = 上下（上、下）
+   pin = 品字（上、左下、右下） */
+var WORDS = [
+  {c:"相",p:["木","目"],l:"lr"},
+  {c:"休",p:["亻","木"],l:"lr"},
+  {c:"仕",p:["亻","士"],l:"lr"},
+  {c:"伙",p:["亻","火"],l:"lr"},
+  {c:"林",p:["木","木"],l:"lr"},
+  {c:"村",p:["木","寸"],l:"lr"},
+  {c:"付",p:["亻","寸"],l:"lr"},
+  {c:"什",p:["亻","十"],l:"lr"},
+  {c:"叶",p:["口","十"],l:"lr"},
+  {c:"吗",p:["口","马"],l:"lr"},
+  {c:"从",p:["人","人"],l:"lr"},
+  {c:"叭",p:["口","八"],l:"lr"},
+  {c:"咆",p:["口","包"],l:"lr"},
+  {c:"杏",p:["木","口"],l:"tb"},
+  {c:"呆",p:["口","木"],l:"tb"},
+  {c:"吉",p:["士","口"],l:"tb"},
+  {c:"古",p:["十","口"],l:"tb"},
+  {c:"只",p:["口","八"],l:"tb"},
+  {c:"名",p:["夕","口"],l:"tb"},
+  {c:"六",p:["亠","八"],l:"tb"},
+  {c:"炎",p:["火","火"],l:"tb"},
+  {c:"吕",p:["口","口"],l:"tb"},
+  {c:"兵",p:["丘","八"],l:"tb"},
+  {c:"森",p:["木","木","木"],l:"pin"},
+  {c:"焱",p:["火","火","火"],l:"pin"},
+  {c:"众",p:["人","人","人"],l:"pin"},
+  {c:"品",p:["口","口","口"],l:"pin"},
+  {c:"骉",p:["马","马","马"],l:"pin"}
+];
+
+/* 战场用字：从字帖里挑结构辨识度高的字 */
+var WAR_WORDS = ["骉","焱","品","森","众","兵","咆","叭","吕","从","名","六","炎","林"];
+
+var $ = function(id){ return document.getElementById(id); };
+var LAY = {lr:["左","右"], tb:["上","下"], pin:["上","左下","右下"]};
+var TOTAL = 28, MAXPOL = 100, MISTAKE_COST = 25;
+var S = null;
+
+function newState(){
+  var words = WORDS.map(function(w,i){ return {i:i,c:w.c,p:w.p.slice(),l:w.l,done:false}; });
+  var order = words.map(function(w){ return w.i; });
+  for(var k=order.length-1;k>0;k--){ var j=Math.floor(Math.random()*(k+1)); var t=order[k]; order[k]=order[j]; order[j]=t; }
+  var disp = order.slice();
+  for(var m=disp.length-1;m>0;m--){ var q=Math.floor(Math.random()*(m+1)); var u=disp[m]; disp[m]=disp[q]; disp[q]=u; }
+  return {
+    phase:"start", words:words, aiOrder:order, aiPos:0, aiDone:0, aiNextAt:0,
+    display:disp, sel:-1, slots:[], picked:null, mistakes:0, hintLeft:3, pollution:0,
+    pace:0, lastWordAt:0, lastFail:null, newBest:false, raceGap:null,
+    t0:0, elapsed:0, raceWinner:null, war:null, over:false, sound:true,
+    lastSec:-1, hintStamp:0, collapseFlag:false, t25:0, t55:0, t85:0
+  };
+}
+function found(){ var n=0; S.words.forEach(function(w){ if(w.done)n++; }); return n; }
+function wordByChar(c){ for(var i=0;i<S.words.length;i++){ if(S.words[i].c===c) return S.words[i]; } return null; }
+function describe(w){ return LAY[w.l].map(function(t,k){ return t+w.p[k]; }).join("、"); }
+
+/* ---------- 声音（全部本地合成，无外部资源） ---------- */
+var AC = null;
+function tone(freq, dur, type, vol){
+  if(!S || !S.sound) return;
+  try{
+    if(!AC) AC = new (window.AudioContext || window.webkitAudioContext)();
+    var o = AC.createOscillator(), g = AC.createGain();
+    o.type = type || "sine"; o.frequency.value = freq;
+    g.gain.setValueAtTime(vol || .045, AC.currentTime);
+    g.gain.exponentialRampToValueAtTime(.0001, AC.currentTime + dur);
+    o.connect(g); g.connect(AC.destination); o.start(); o.stop(AC.currentTime + dur);
+  }catch(e){}
+}
+function sfx(kind){
+  if(kind==="pick") tone(520,.05,"sine");
+  else if(kind==="place") tone(680,.07,"triangle");
+  else if(kind==="ok"){ tone(760,.12,"sine",.06); setTimeout(function(){tone(1010,.18,"sine",.05);},90); }
+  else if(kind==="bad"){ tone(190,.18,"sawtooth",.05); setTimeout(function(){tone(140,.22,"sawtooth",.04);},110); }
+  else if(kind==="stamp"){ tone(120,.1,"square",.035); setTimeout(function(){tone(880,.16,"sine",.05);},80); }
+  else if(kind==="war"){ tone(300,.16,"sawtooth",.05); setTimeout(function(){tone(520,.2,"triangle",.05);},140); }
+  else if(kind==="end"){ tone(400,.2,"sine",.06); setTimeout(function(){tone(600,.3,"sine",.05);},180); }
+}
+
+/* ---------- 通用 UI ---------- */
+var toastT = null;
+function toast(text, ms){
+  var el = $("toast"); el.textContent = text; el.classList.add("show");
+  clearTimeout(toastT); toastT = setTimeout(function(){ el.classList.remove("show"); }, ms || 1600);
+}
+function msg(text, cls){
+  var el = $("msg"); el.textContent = text; el.className = "msg" + (cls ? " "+cls : "");
+}
+function updateBars(){
+  var me = found(), ai = S.aiDone;
+  $("barMe").style.width = (me/TOTAL*100) + "%";
+  $("barAi").style.width = (ai/TOTAL*100) + "%";
+  $("numMe").textContent = me + " / " + TOTAL;
+  $("numAi").textContent = ai + " / " + TOTAL;
+  var tip = $("boardTip");
+  if(tip) tip.textContent = "已成 " + me + " / " + TOTAL + " · 点字开始拆合";
+}
+function updateHud(){
+  $("polNum").textContent = S.pollution;
+  $("polNum").classList.toggle("warn", S.pollution >= 75);
+  $("misNum").textContent = S.mistakes;
+  $("hintNum").textContent = S.hintLeft;
+  $("fx").classList.toggle("show", S.pollution >= 50);
+  $("fx").classList.toggle("pollution", S.pollution >= 50);
+}
+
+/* ---------- 衔书台 ---------- */
+function renderBoard(){
+  var h = "";
+  S.display.forEach(function(i){
+    var w = S.words[i];
+    h += '<button class="cellx' + (w.done ? " done" : "") + (S.sel === w.i ? " sel" : "") +
+         '" data-i="' + w.i + '" aria-label="' + (w.done ? "已成字 " : "拆字 ") + w.c + '">' + w.c + '</button>';
+  });
+  $("board").innerHTML = h;
+}
+function renderDesk(){
+  var d = $("desk"), w = null;
+  if(S.sel >= 0) w = S.words[S.sel];
+  if(!w){
+    d.innerHTML = '<div class="empty">' + (S.phase === "race" ? "未选字。先在上方点一个字。" : "衔书台静着。") + '</div>';
+    return;
+  }
+  var labels = LAY[w.l], slots = "";
+  for(var k=0;k<w.p.length;k++){
+    var v = S.slots[k];
+    slots += '<div class="slot s' + k + (v ? " filled" : "") + '" data-k="' + k + '">' +
+             (v ? v : labels[k]) + '</div>';
+  }
+  var struct = w.l === "lr" ? "左右" : (w.l === "tb" ? "上下" : "品字");
+  d.innerHTML =
+    '<div class="deskhead"><span class="tag">' + w.c + ' · ' + struct + '结构</span>' +
+    '<div class="acts"><button class="mini gold" id="btnHint">问字 ' + S.hintLeft + '</button>' +
+    '<button class="mini" id="btnClear">清格</button></div></div>' +
+    '<div class="compose"><div class="bigchar">' + w.c + '</div>' +
+    '<div class="slots ' + w.l + (S.picked ? " ready" : "") + '">' + slots + '</div></div>' +
+    '<div class="deskhint">按' + (w.l === "lr" ? "左右" : w.l === "tb" ? "上下" : "上、左下、右下") +
+    '填入，填满即判 · 点已填的槽可撤换</div>';
+}
+var SHAPE = {"亻":"人旁", "亠":"京字头"};
+function moldHTML(m, attr, used){
+  var lbl = SHAPE[m] ? '<span class="plabel">' + SHAPE[m] + '</span>' : '';
+  return '<button class="mold' + (S.picked === m ? " pick" : "") + (SHAPE[m] ? " haslabel" : "") + (used ? " used" : "") +
+         '" ' + attr + '="' + m + '">' + m + lbl + '</button>';
+}
+function renderTray(){
+  var h = "";
+  POOL.forEach(function(m){ h += moldHTML(m, "data-m"); });
+  $("tray").innerHTML = h;
+}
+function selectWord(i){
+  if(S.phase !== "race") return;
+  var w = S.words[i];
+  if(w.done){ msg("「" + w.c + "」已经成字了。"); return; }
+  S.sel = i; S.slots = []; S.picked = null;
+  renderBoard(); renderDesk(); renderTray();
+  msg("拆「" + w.c + "」：" + (w.l === "lr" ? "从左到右" : w.l === "tb" ? "从上到下" : "上、左下、右下") + "填满。");
+  sfx("pick");
+}
+function pickMold(m){
+  if(S.phase !== "race") return;
+  if(S.sel < 0){ msg("先在衔书台上点一个字，再选部件。"); return; }
+  S.picked = (S.picked === m ? null : m);
+  renderTray(); sfx("pick");
+  var sc = $("desk").querySelector(".slots");
+  if(sc) sc.classList.toggle("ready", !!S.picked);
+  msg(S.picked ? "已取「" + m + "」——点字格里的位置。" : "已放下部件。");
+}
+function placeSlot(k){
+  if(S.phase !== "race" || S.sel < 0) return;
+  var w = S.words[S.sel];
+  if(S.slots[k] && !S.picked){ S.slots[k] = null; renderDesk(); msg("撤下了这一格。"); return; }
+  if(!S.picked){ msg("先点下方部件，再点这个位置。"); return; }
+  S.slots[k] = S.picked;
+  S.picked = null;
+  var at = S.sel;
+  sfx("place"); renderDesk(); updateTrayPick();
+  if(S.slots.filter(Boolean).length === w.p.length){
+    setTimeout(function(){ if(S.sel === at) checkFill(); }, 60);
+  }
+}
+function updateTrayPick(){ renderTray(); }
+
+function checkFill(){
+  if(S.sel < 0 || S.phase !== "race") return;
+  var w = S.words[S.sel], bad = [], good = [];
+  for(var k=0;k<w.p.length;k++){ (S.slots[k] === w.p[k] ? good : bad).push(k); }
+  if(!bad.length){ succeed(w); return; }
+  S.mistakes++; S.pollution += MISTAKE_COST;
+  var say = bad.map(function(k){
+    return LAY[w.l][k] + "格应「" + w.p[k] + "」，你放的是「" + (S.slots[k] || "空") + "」";
+  });
+  S.lastFail = { c:w.c, text: say.join("；") };
+  updateHud(); sfx("bad");
+  var nodes = $("desk").querySelectorAll(".slot");
+  bad.forEach(function(k){ if(nodes[k]) nodes[k].classList.add("bad"); });
+  good.forEach(function(k){ if(nodes[k]) nodes[k].classList.add("keep"); });
+  msg("「" + w.c + "」墨散：" + say.join("；") + "。对的格留着了。", "bad");
+  if(S.pollution >= MAXPOL){ setTimeout(collapse, 420); return; }
+  setTimeout(function(){
+    bad.forEach(function(k){ S.slots[k] = null; });
+    renderDesk();
+  }, 720);
+}
+
+function succeed(w){
+  w.done = true;
+  var n = found(), now = Date.now();
+  if(S.lastWordAt){
+    var dt = now - S.lastWordAt;
+    S.pace = S.pace ? Math.round(S.pace * 0.62 + dt * 0.38) : dt;
+    S.pace = Math.min(7000, Math.max(1100, S.pace));
+  }
+  S.lastWordAt = now;
+  S.sel = -1; S.slots = []; S.picked = null;
+  renderBoard(); renderDesk(); renderTray(); updateBars(); updateHud();
+  sfx("stamp");
+  var cell = $("board").querySelector('[data-i="' + w.i + '"]');
+  if(cell){ cell.classList.add("pop"); setTimeout(function(){ cell.classList.remove("pop"); }, 420); }
+  msg("成字：" + w.c + "　" + describe(w) + "。", "ok");
+  toast("成「" + w.c + "」　" + n + " / 28");
+  if(n === 7) toast("地龙：你的笔，还没沾墨呢。", 2200);
+  if(n === 14) toast("地龙：一半了。手别抖。", 2200);
+  if(n === 21) toast("地龙：只剩七字——我开始认真了。", 2200);
+  if(n >= TOTAL){ raceOver("me"); return; }
+  var nx = -1;
+  for(var q=0;q<S.display.length;q++){ var wi = S.display[q]; if(!S.words[wi].done){ nx = wi; break; } }
+  if(nx < 0) return;
+  setTimeout(function(){
+    if(S.phase !== "race" || S.sel >= 0 || S.words[nx].done) return;
+    S.sel = nx; S.slots = []; S.picked = null;
+    renderBoard(); renderDesk(); renderTray();
+    var nw = S.words[nx];
+    msg("接着拆「" + nw.c + "」：" + (nw.l === "lr" ? "从左到右" : nw.l === "tb" ? "从上到下" : "上、左下、右下") + "填满。");
+  }, 560);
+}
+
+function useHint(){
+  if(S.phase !== "race") return;
+  if(S.sel < 0){ msg("先选一个字。"); return; }
+  if(S.hintLeft <= 0){ msg("问字次数用尽了。"); return; }
+  var w = S.words[S.sel];
+  S.hintLeft--; renderDesk(); updateHud(); sfx("pick");
+  msg("问字：拆「" + w.c + "」——" + describe(w) + "。", "cine");
+  var names = {};
+  w.p.forEach(function(p){ names[p] = 1; });
+  Array.prototype.forEach.call($("tray").querySelectorAll(".mold"), function(el){
+    if(names[el.getAttribute("data-m")]) el.classList.add("hint");
+  });
+  setTimeout(function(){
+    Array.prototype.forEach.call($("tray").querySelectorAll(".mold"), function(el){ el.classList.remove("hint"); });
+  }, 2600);
+}
+function clearSlots(){
+  if(S.phase !== "race") return;
+  S.slots = []; S.picked = null;
+  renderDesk(); renderTray(); msg("字格已清空。");
+}
+
+/* 污染满：精神崩溃 */
+function collapse(){
+  if(S.over) return;
+  S.collapseFlag = true;
+  S.phase = "end";
+  sfx("bad");
+  toast("污染满溢——你听见字在耳边爬。", 2600);
+  setTimeout(function(){ finishGame("collapse"); }, 900);
+}
+
+/* ---------- 地龙 ---------- */
+function aiDelay(){
+  var pace = S.pace || 3800;
+  var base = pace * 1.05 + 260;
+  if(base < 1450) base = 1450;
+  if(base > 5200) base = 5200;
+  var d = base * (0.88 + Math.random() * 0.24);
+  if(Math.random() < 0.10) d += 1000;
+  return d;
+}
+function aiStep(now){
+  if(S.aiDone >= TOTAL) return;
+  var i = S.aiOrder[S.aiDone], w = S.words[i];
+  S.aiDone++;
+  updateBars();
+  S.aiNextAt = now + aiDelay();
+  var ni = S.aiOrder[Math.min(S.aiDone, TOTAL - 1)];
+  $("aiWork").textContent = "地龙拆出「" + w.c + "」 · 正拆「" + S.words[ni].c + "」";
+  if(S.aiDone === 20) toast("地龙已到 20 字。它开始加速了。", 1900);
+  if(S.aiDone === 26) toast("地龙只差两字——手别停！", 1900);
+  if(S.aiDone >= TOTAL) raceOver("ai");
+}
+function raceOver(who){
+  if(S.phase !== "race" || S.raceWinner) return;
+  S.raceWinner = who;
+  S.elapsed = Math.floor((Date.now() - S.t0) / 1000);
+  S.raceGap = { me: found(), ai: S.aiDone };
+  S.phase = "war";
+  updateBars();
+  $("aiWork").textContent = who === "me" ? "地龙停在 " + S.aiDone + " 字 · 你已先成" : "地龙已凑齐二十八字";
+  sfx("war");
+  toast(who === "me"
+    ? "二十八字齐了——先手归你。"
+    : "地龙先凑齐二十八字。你落后一步。", 1150);
+  setTimeout(startWar, 1250);
+}
+
+/* ---------- 战场 ---------- */
+function startWar(){
+  if(S.war) return;
+  var chars = WAR_WORDS.slice();
+  for(var k=chars.length-1;k>0;k--){ var j=Math.floor(Math.random()*(k+1)); var t=chars[k]; chars[k]=chars[j]; chars[j]=t; }
+  chars = chars.slice(0,3);
+  var needMe = S.raceWinner === "me" ? 2 : 3;
+  var needAI = 2;
+  S.war = {
+    chars:chars, doors:[{state:"open"},{state:"open"},{state:"open"}], idx:0,
+    meWin:0, aiWin:0, needMe:needMe, needAI:needAI, log:[],
+    target:null, picks:[], startedAt:0, dur:0, doorDone:true, active:false
+  };
+  $("ovWar").classList.add("show");
+  $("warNote").textContent = needMe === 2
+    ? "你先成字，占先手：三门里夺下 2 门即生。地龙只要 2 门。"
+    : "地龙先成字，占先手：你须三门全夺，一门失守即死。";
+  renderDoors();
+  beginDoor();
+}
+function renderDoors(){
+  var d = S.war;
+  if(!d) return;
+  var h = "";
+  d.doors.forEach(function(dd, i){
+    var cls = dd.state === "win" ? "win" : (dd.state === "lose" ? "lose" : "");
+    if(i === d.idx && !d.doorDone && d.active) cls += " now";
+    var st = dd.state === "win" ? "已夺" : (dd.state === "lose" ? "失守" : (i === d.idx ? "待启" : "未启"));
+    h += '<div class="door ' + cls + '"><b>第' + ["一","二","三"][i] + '门</b><i>' + st + '</i></div>';
+  });
+  $("warDoors").innerHTML = h;
+  $("warNote").textContent = "你需 " + d.needMe + " 门 · 地龙需 " + d.needAI + " 门　（已夺 " + d.meWin + " : " + d.aiWin + "）";
+}
+var OPEN_LEAD = 1500;
+function beginDoor(){
+  var d = S.war, idx = d.idx, w = wordByChar(d.chars[idx]);
+  d.target = w; d.picks = [];
+  d.doorDone = false; d.active = false; d.stain = false;
+  d.bigDoor = idx === 2;
+  d.dur = [9200, 8400, 7000][idx] || 7000;
+  d.startedAt = Date.now() + OPEN_LEAD;
+  $("warTitle").textContent = ["第一道门", "第二道门", "第三道门"][idx];
+  $("warKicker").textContent = "战场 · " + (S.raceWinner === "me" ? "你占先手" : "地龙占先手");
+  $("warChar").textContent = w.c;
+  $("warInk").style.width = "0%";
+  renderDoors();
+  if(d.bigDoor){
+    $("warSub").textContent = "末门「辨字」：四条拆法，只有一条是对的";
+    $("warTray").style.display = "none";
+    $("warSlots").style.display = "none";
+    buildWarOpts(w);
+    $("warTip").textContent = "门闩在响……";
+  }else{
+    $("warSub").textContent = "墨线爬满之前，点齐「" + w.c + "」的部件；首错只污墨";
+    $("warOpts").innerHTML = ""; $("warOpts").style.display = "none";
+    $("warTray").style.display = "";
+    $("warSlots").style.display = "";
+    $("warTip").textContent = "门闩在响……";
+    renderWarTray(); renderWarSlots();
+  }
+  sfx("war");
+}
+
+/* 末门：四选一辨拆法。只有一条与字帖一致 */
+function fmtParts(l, parts){
+  return LAY[l].map(function(t, k){ return t + "：" + parts[k]; }).join("、");
+}
+function buildWarOpts(w){
+  var right = fmtParts(w.l, w.p), cands = [], REPL = {
+    "木":"十","十":"木","目":"口","口":"目","人":"亻","亻":"人","火":"八","八":"火",
+    "士":"十","寸":"十","夕":"口","马":"口","包":"口","亠":"十","丘":"十"
+  };
+  var wrongL = w.l === "lr" ? "tb" : (w.l === "tb" ? "lr" : "tb");
+  cands.push(fmtParts(wrongL, w.p.slice(0, LAY[wrongL].length)));
+  if(w.l === "pin") cands.push(fmtParts("pin", [w.p[0], w.p[2], w.p[1]]));
+  else cands.push(fmtParts(w.l, [w.p[1], w.p[0]]));
+  var sp = w.p.slice(); sp[0] = REPL[sp[0]] || "十";
+  cands.push(fmtParts(w.l, sp));
+  var sq = w.p.slice(); sq[sq.length - 1] = REPL[sq[sq.length - 1]] || "口";
+  cands.push(fmtParts(w.l, sq));
+  var opts = [];
+  cands.forEach(function(x){
+    if(x !== right && opts.indexOf(x) < 0) opts.push(x);
+  });
+  opts = opts.slice(0, 3);
+  var all = opts.concat([right]);
+  for(var k=all.length-1;k>0;k--){ var j=Math.floor(Math.random()*(k+1)); var t=all[k]; all[k]=all[j]; all[j]=t; }
+  var h = "";
+  all.forEach(function(x){
+    h += '<button class="opt" data-opt="' + (x === right ? "1" : "0") + '">' + x + '</button>';
+  });
+  $("warOpts").innerHTML = h;
+  $("warOpts").style.display = "grid";
+}
+function renderWarTray(){
+  var d = S.war, w = d.target, h = "";
+  POOL.forEach(function(m){
+    var need = w.p.filter(function(x){ return x === m; }).length;
+    var have = d.picks.filter(function(x){ return x === m; }).length;
+    h += moldHTML(m, "data-wm", need && have >= need);
+  });
+  $("warTray").innerHTML = h;
+}
+function renderWarSlots(){
+  var d = S.war, h = "";
+  for(var k=0;k<d.target.p.length;k++){
+    h += '<div class="warslot' + (d.picks[k] ? " on" : "") + '">' + (d.picks[k] || "·") + '</div>';
+  }
+  $("warSlots").innerHTML = h;
+}
+function warPick(m){
+  var d = S.war;
+  if(!d || !d.active || d.doorDone || d.bigDoor) return;
+  var w = d.target;
+  var need = w.p.filter(function(x){ return x === m; }).length;
+  if(need === 0){
+    sfx("bad");
+    if(!d.stain){
+      d.stain = true; d.picks = [];
+      renderWarSlots(); renderWarTray();
+      $("warTip").textContent = "「" + m + "」不在「" + w.c + "」里——这一笔污了墨，门还开着。";
+      return;
+    }
+    warResolve(false, "又一次错笔：「" + m + "」不在「" + w.c + "」里。门锁死了。");
+    return;
+  }
+  var have = d.picks.filter(function(x){ return x === m; }).length;
+  if(have >= need){ $("warTip").textContent = "「" + m + "」已经够了。"; return; }
+  d.picks.push(m);
+  sfx("place"); renderWarSlots(); renderWarTray();
+  if(d.picks.length === w.p.length){
+    warResolve(true, "你赶在地龙之前，拆出了「" + w.c + "」。");
+  }else{
+    $("warTip").textContent = "已取 " + d.picks.join("、") + "　还差 " + (w.p.length - d.picks.length) + " 枚";
+  }
+}
+function warResolve(win, note){
+  var d = S.war;
+  if(!d || d.doorDone) return;
+  d.doorDone = true; d.active = false;
+  d.doors[d.idx].state = win ? "win" : "lose";
+  if(win) d.meWin++; else d.aiWin++;
+  d.log.push({ n:d.idx + 1, c:d.target.c, win:win, big:!!d.bigDoor, note:note });
+  $("warInk").style.width = "100%";
+  renderDoors();
+  sfx(win ? "ok" : "bad");
+  $("warTip").textContent = note;
+  $("warSub").textContent = win ? "门开了。" : "门锁死了。";
+  if(d.bigDoor) $("warOpts").style.display = "none";
+  setTimeout(function(){
+    if(d.meWin >= d.needMe || d.aiWin >= d.needAI || d.idx >= 2){
+      finishGame(d.meWin >= d.needMe ? "war-win" : "war-lose");
+    }else{
+      d.idx++; beginDoor();
+    }
+  }, 1500);
+}
+
+/* ---------- 结算 ---------- */
+function mmss(s){ var m = Math.floor(s/60), x = s % 60; return m + ":" + (x < 10 ? "0" : "") + x; }
+function finishGame(kind){
+  if(S.over) return;
+  S.over = true; S.phase = "end";
+  if(!S.elapsed) S.elapsed = Math.floor((Date.now() - S.t0) / 1000);
+  $("ovWar").classList.remove("show");
+  var win = kind === "war-win";
+  var d = S.war;
+  var desc = "", kicker = "", note = "";
+  if(kind === "collapse"){
+    kicker = "精神崩溃"; note = "评：字未成，心先乱。";
+    desc = "污染满溢。拼好的字在你眼前重排，地龙从台上捡走了最后一枚部件。你被留在了衔书台这一侧。";
+  }else if(win && S.raceWinner === "me"){
+    kicker = "锁门已破"; note = "评：先手夺门，字匠之姿。";
+    desc = "你先凑齐二十八字，抢下先手；战场上三门夺二，锁便开了。地龙的面具在门后裂开一道缝。";
+  }else if(win){
+    kicker = "逆势破锁"; note = "评：落后一步，仍三战全胜。";
+    desc = "你落后一步进战场，却一门未失、三战全胜。墨线停在半途，地龙的手悬在门上，迟迟没有落下。";
+  }else if(S.raceWinner === "me"){
+    kicker = "战场失守"; note = "评：先手在握，却失了两门。";
+    desc = "你先成字，却在战场上失了两门。地龙用你自己的部件，拼出了最后一道门。";
+  }else{
+    kicker = "锁门殒命"; note = "评：字留台上，人出门外。";
+    desc = "地龙先成字，你也没能连夺两门。第三道门合拢时，衔书台上的灯灭了。";
+  }
+  if(win && S.mistakes === 0 && S.pollution === 0) note = "评：字匠。手稳、眼准，一笔未废。";
+  var best = loadBest();
+  if(win && (!best || S.elapsed <= best.t)){
+    S.newBest = true;
+    saveBest(S.elapsed);
+    note = "新纪录：" + mmss(S.elapsed) + " 破锁。" + note;
+  }
+  $("endKicker").textContent = kicker;
+  $("endTitle").textContent = win ? "生" : "死";
+  $("endTitle").style.color = win ? "#e2c05a" : "#c0392b";
+  $("endDesc").textContent = desc;
+  $("endStats").innerHTML =
+    '<div><em>成字</em><b>' + found() + ' / 28</b></div>' +
+    '<div><em>失手</em><b>' + S.mistakes + ' 次</b></div>' +
+    '<div><em>污染</em><b>' + S.pollution + '</b></div>' +
+    '<div><em>用时</em><b>' + mmss(S.elapsed) + '</b></div>' +
+    '<div><em>战场</em><b>' + (d ? d.meWin + " : " + d.aiWin : "未入") + '</b></div>' +
+    '<div><em>问字</em><b>' + (3 - S.hintLeft) + ' 次</b></div>';
+  var logs = [];
+  if(d && d.log && d.log.length){
+    logs.push("<b>战场复盘：</b>" + d.log.map(function(x){
+      return "第" + x.n + "门「" + x.c + "」" + (x.win ? "夺下" : "失守") + (x.big ? "（辨字）" : "");
+    }).join("；"));
+  }
+  if(S.raceGap){
+    logs.push("<b>竞速：</b>" + (S.raceWinner === "me"
+      ? "你先成 28 字，地龙当时 " + S.raceGap.ai + " 字"
+      : "地龙先成 28 字，你当时 " + S.raceGap.me + " 字"));
+  }
+  if(S.lastFail){
+    logs.push("<b>最后一次墨散：</b>「" + S.lastFail.c + "」" + S.lastFail.text);
+  }
+  $("endLog").innerHTML = logs.join("<br>");
+  $("endNote").textContent = note + "　「仓颉造字，天雨粟，鬼夜哭。」——此局只论字，不论人。";
+  $("fx").classList.remove("show", "pollution");
+  $("ovEnd").classList.add("show");
+  sfx("end");
+}
+
+/* 本机最佳（localStorage，失败也不影响游戏） */
+function loadBest(){
+  try{ return JSON.parse(localStorage.getItem("cangjieqi.best") || "null"); }catch(e){ return null; }
+}
+function saveBest(t){
+  try{ localStorage.setItem("cangjieqi.best", JSON.stringify({ t:t, at:Date.now() })); }catch(e){}
+}
+function renderBest(){
+  var el = $("bestLine");
+  if(!el) return;
+  var b = loadBest();
+  el.textContent = b ? "最快破锁 " + mmss(b.t) + " · " + new Date(b.at).toLocaleDateString("zh-CN") : "尚无记录。这一局就是纪录。";
+}
+
+/* ---------- 主循环 ---------- */
+function tick(){
+  if(!S || S.over) return;
+  var now = Date.now();
+  if($("ovRules").classList.contains("show")) return;
+  if(S.phase === "race"){
+    S.elapsed = Math.floor((now - S.t0) / 1000);
+    $("clock").textContent = mmss(S.elapsed);
+    if(S.elapsed >= 25 && !S.t25){ S.t25 = 1; msg("地龙：墨快干了。你还有几笔？", "cine"); }
+    if(S.elapsed >= 55 && !S.t55){ S.t55 = 1; msg("地龙：你拆的字，有一半是错的吧。", "cine"); }
+    if(S.elapsed >= 85 && !S.t85){ S.t85 = 1; msg("地龙：再慢一步，我先落笔。", "cine"); }
+    if(S.aiNextAt === 0) S.aiNextAt = now + 2600;
+    else if(now >= S.aiNextAt) aiStep(now);
+  }else if(S.phase === "war" && S.war && !S.war.doorDone){
+    var d = S.war;
+    if(!d.active){
+      var wait = d.startedAt - now;
+      if(wait > 0){
+        $("warTip").textContent = "门闩在响…… " + (Math.ceil(wait / 100) / 10).toFixed(1) + "s 后起墨线";
+      }else{
+        d.active = true;
+        renderDoors();
+        if(d.bigDoor){
+          $("warSub").textContent = "墨线已起——四选一，点错即锁门";
+          $("warTip").textContent = "只凭结构辨，别凭字形猜。";
+        }else{
+          $("warTip").textContent = "点选部件；首错只污墨，再错锁门。";
+        }
+      }
+    }else{
+      var pct = Math.min(100, (now - d.startedAt) / d.dur * 100);
+      $("warInk").style.width = pct + "%";
+      if(pct >= 100) warResolve(false, d.bigDoor ? "墨线爬满，你还没辨出这一字。" : "地龙的墨线先爬满了。");
+    }
+  }
+}
+
+/* ---------- 开局 ---------- */
+function startGame(){
+  var snd = S ? S.sound : true;
+  S = newState(); S.sound = snd;
+  $("ovStart").classList.remove("show");
+  $("ovEnd").classList.remove("show");
+  $("ovWar").classList.remove("show");
+  $("fx").classList.remove("show", "pollution");
+  S.phase = "race"; S.t0 = Date.now(); S.aiNextAt = Date.now() + 2600;
+  $("warOpts").innerHTML = ""; $("warOpts").style.display = "none";
+  $("warTray").style.display = ""; $("warSlots").style.display = "";
+  renderBoard(); renderDesk(); renderTray(); updateBars(); updateHud(); renderBest();
+  $("clock").textContent = "0:00";
+  $("aiWork").textContent = "地龙正在拆「" + S.words[S.aiOrder[0]].c + "」";
+  msg("点字 → 点部件 → 点位置。地龙已经动手了。", "cine");
+  sfx("war");
+  toast("二十八正字 · 每局字序不同", 2200);
+}
+
+/* ---------- 事件 ---------- */
+S = newState();
+renderBoard(); renderDesk(); renderTray(); updateBars(); updateHud(); renderBest();
+$("board").addEventListener("click", function(e){
+  var t = e.target.closest("[data-i]");
+  if(t) selectWord(+t.getAttribute("data-i"));
+});
+$("desk").addEventListener("click", function(e){
+  var t = e.target.closest("[data-k]");
+  if(t){ placeSlot(+t.getAttribute("data-k")); return; }
+  if(e.target.id === "btnHint") useHint();
+  if(e.target.id === "btnClear") clearSlots();
+});
+$("tray").addEventListener("click", function(e){
+  var t = e.target.closest("[data-m]");
+  if(t) pickMold(t.getAttribute("data-m"));
+});
+$("warTray").addEventListener("click", function(e){
+  var t = e.target.closest("[data-wm]");
+  if(t) warPick(t.getAttribute("data-wm"));
+});
+$("warOpts").addEventListener("click", function(e){
+  var t = e.target.closest("[data-opt]");
+  if(!t) return;
+  var d = S.war;
+  if(!d || !d.active || d.doorDone || !d.bigDoor) return;
+  if(t.getAttribute("data-opt") === "1"){
+    warResolve(true, "你辨出了「" + d.target.c + "」的拆法。");
+  }else{
+    warResolve(false, "拆法不对：「" + d.target.c + "」应是" + describe(d.target) + "。");
+  }
+});
+$("btnStart").addEventListener("click", startGame);
+$("btnAgain").addEventListener("click", startGame);
+$("btnSound").addEventListener("click", function(){
+  S.sound = !S.sound;
+  this.textContent = S.sound ? "♪" : "✕";
+  if(S.sound) sfx("pick");
+});
+function openRules(){ $("ovRules").classList.add("show"); }
+function closeRules(){
+  $("ovRules").classList.remove("show");
+  if(S && S.over) $("ovEnd").classList.add("show");
+}
+$("btnRules").addEventListener("click", openRules);
+$("btnRules2").addEventListener("click", openRules);
+$("btnCloseRules").addEventListener("click", closeRules);
+$("btnEndRules").addEventListener("click", function(){
+  $("ovEnd").classList.remove("show");
+  $("ovRules").classList.add("show");
+});
+setInterval(tick, 100);
+
+</script>
+</body>
+</html>

@@ -1,0 +1,1041 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>人蛇 · 是与非</title>
+<style>
+:root{
+  --bg:#0b0a08; --ink:#12100e; --panel:#171410; --panel2:#1e1913;
+  --paper:#e8dcc2; --dim:#8f8269; --dim2:#6d6350;
+  --gold:#c9a24c; --gold2:#e3c672; --gold3:#8d7233;
+  --red:#a83a30; --red2:#d0564a; --jade:#6f9a72; --jade2:#9cc39a;
+  --line:rgba(201,162,76,.26);
+  --sh:0 2px 14px rgba(0,0,0,.5);
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;padding:0;overflow-x:hidden}
+body{
+  background:
+    radial-gradient(120% 55% at 50% 0%,rgba(201,162,76,.09),transparent 62%),
+    radial-gradient(80% 45% at 50% 100%,rgba(168,58,48,.07),transparent 66%),
+    repeating-linear-gradient(0deg,rgba(255,255,255,.013) 0 1px,transparent 1px 3px),
+    var(--bg);
+  color:var(--paper);
+  font-family:"Songti SC","STSong","Noto Serif SC","SimSun",serif;
+  font-size:15px;line-height:1.55;
+  min-height:100vh;
+}
+#app{max-width:520px;margin:0 auto;padding:10px 12px 30px}
+.hidden{display:none!important}
+button{font-family:inherit}
+.center{text-align:center}
+
+/* ---------- 通用面板 ---------- */
+.panel{border:1px solid var(--line);border-radius:11px;background:linear-gradient(180deg,rgba(255,246,228,.045),rgba(255,246,228,.012));box-shadow:var(--sh)}
+.ph{display:flex;align-items:baseline;gap:8px;margin:0 0 8px;font-size:12px;letter-spacing:.16em;color:var(--gold);font-weight:400}
+.ph::before{content:"";width:3px;height:12px;background:var(--gold);border-radius:1px;display:inline-block}
+.hint{font-size:11px;color:var(--dim);letter-spacing:.04em}
+.tag{display:inline-block;font-size:10px;line-height:1.5;padding:0 4px;margin-left:4px;border:1px solid rgba(168,58,48,.55);border-radius:3px;color:#d98b80;letter-spacing:.06em;white-space:nowrap}
+.gold{color:var(--gold2)}
+.red{color:#db897e}
+.jade{color:var(--jade2)}
+
+/* ---------- 开场 ---------- */
+.screen{animation:fadeUp .45s ease both}
+@keyframes fadeUp{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+.intro{
+  min-height:calc(100vh - 40px);display:flex;flex-direction:column;justify-content:center;gap:16px;
+  padding:8px 0 20px;
+}
+.seal{
+  align-self:center;width:66px;height:66px;border:1px solid var(--gold3);border-radius:50%;
+  display:grid;place-items:center;position:relative;
+  background:radial-gradient(circle,rgba(201,162,76,.16),transparent 70%);
+}
+.seal::before{content:"";position:absolute;inset:7px;border:1px dashed rgba(201,162,76,.35);border-radius:50%}
+.seal span{font-size:24px;color:var(--gold);letter-spacing:.08em}
+.title{text-align:center;margin:0}
+.title h1{margin:0;font-size:30px;font-weight:400;letter-spacing:.34em;color:var(--gold2);text-indent:.34em;text-shadow:0 2px 0 #000}
+.title p{margin:6px 0 0;font-size:11px;letter-spacing:.3em;color:var(--dim);text-indent:.3em}
+.lore{font-size:14px;line-height:2;color:#d6c7a8;padding:0 6px}
+.lore p{margin:0 0 10px}
+.lore .say{color:var(--jade2)}
+.intro-rules{padding:12px 14px;font-size:13px;color:#c9bb9e;line-height:1.9}
+.intro-rules b{color:var(--gold2);font-weight:400}
+.btn-main{
+  display:block;width:100%;min-height:50px;border:1px solid var(--gold3);border-radius:9px;
+  background:linear-gradient(180deg,rgba(201,162,76,.22),rgba(201,162,76,.06));
+  color:var(--gold2);font-size:16px;letter-spacing:.22em;text-indent:.22em;cursor:pointer;
+  box-shadow:0 0 0 1px rgba(0,0,0,.4) inset;
+}
+.btn-main:active{background:rgba(201,162,76,.26)}
+.btn-row{display:flex;gap:8px}
+.btn-sub{
+  flex:1;min-height:44px;border:1px solid var(--line);border-radius:8px;background:rgba(0,0,0,.22);
+  color:#bcae90;font-size:13px;letter-spacing:.1em;cursor:pointer;
+}
+.btn-sub:active{background:rgba(201,162,76,.12)}
+
+/* ---------- 顶栏 ---------- */
+.topbar{display:flex;align-items:center;gap:8px;padding:8px 2px 8px}
+.brand{display:flex;flex-direction:column;line-height:1.25;min-width:0}
+.brand .b1{font-size:18px;letter-spacing:.2em;color:var(--gold2);white-space:nowrap}
+.brand .b2{font-size:10px;letter-spacing:.16em;color:var(--dim);margin-top:2px}
+.hud{margin-left:auto;display:flex;align-items:center;gap:6px}
+.qdots{display:flex;gap:5px;margin-right:2px}
+.qdot{
+  width:24px;height:30px;border:1px solid var(--line);border-radius:4px;
+  display:grid;place-items:center;font-size:11px;color:var(--gold);background:rgba(0,0,0,.3);
+  transition:opacity .3s,filter .3s;
+}
+.qdot.used{opacity:.28;filter:grayscale(1);text-decoration:line-through}
+.qdot.now{border-color:rgba(201,162,76,.8);box-shadow:0 0 8px rgba(201,162,76,.28) inset}
+.icon-btn{
+  min-width:42px;min-height:36px;padding:0 8px;border:1px solid var(--line);border-radius:6px;
+  background:transparent;color:#bcae90;font-size:12px;letter-spacing:.08em;cursor:pointer;
+}
+.icon-btn:active{background:rgba(201,162,76,.12)}
+
+/* ---------- 舞台 ---------- */
+.stage{
+  position:relative;border:1px solid var(--line);border-radius:12px;overflow:hidden;
+  background:
+    radial-gradient(75% 60% at 50% 22%,rgba(111,154,114,.12),transparent 65%),
+    radial-gradient(90% 70% at 50% 100%,rgba(0,0,0,.62),transparent 70%),
+    linear-gradient(180deg,#15120e,#0d0b09);
+  box-shadow:var(--sh);margin-bottom:10px;
+}
+.stage::before{
+  content:"";position:absolute;inset:0;pointer-events:none;
+  background:repeating-linear-gradient(90deg,rgba(255,255,255,.02) 0 1px,transparent 1px 46px);
+  opacity:.45;
+}
+.stage-top{display:flex;align-items:baseline;gap:10px;padding:9px 12px 0;position:relative;z-index:2}
+.stage-name{font-size:13px;letter-spacing:.3em;color:var(--gold);text-indent:.3em}
+.stage-status{margin-left:auto;font-size:11.5px;color:#a99a7c;letter-spacing:.05em;transition:color .3s}
+.stage svg{display:block;width:100%;height:auto;max-height:198px}
+.stage-cap{
+  position:absolute;left:0;right:0;bottom:0;z-index:2;
+  padding:5px 12px 7px;font-size:10.5px;letter-spacing:.1em;color:#7e725c;
+  background:linear-gradient(180deg,transparent,rgba(0,0,0,.55));
+}
+.stage.win{animation:shake .7s cubic-bezier(.36,.07,.19,.97) both}
+.stage.win #lever{transform:rotate(-33deg);transform-origin:262px 168px;transition:transform 1s cubic-bezier(.2,.9,.25,1)}
+.stage.win .eye{fill:#ffd878;filter:drop-shadow(0 0 6px #e3c672)}
+.stage.win .tongue{opacity:1;transform:translateX(4px)}
+.stage.lose{filter:saturate(.6) brightness(.72)}
+.stage.talk .eye{fill:#ffd878;filter:drop-shadow(0 0 5px #c9a24c)}
+@keyframes shake{10%,90%{transform:translateX(-2px)}20%,80%{transform:translateX(4px)}30%,70%{transform:translateX(-5px)}40%,60%{transform:translateX(5px)}50%{transform:translateX(-3px)}}
+.eye{animation:blink 8s infinite}
+@keyframes blink{0%,94%,100%{transform:scaleY(1)}96%{transform:scaleY(.12)}}
+.coil{animation:breathe 6s ease-in-out infinite}
+@keyframes breathe{0%,100%{opacity:.95}50%{opacity:1}}
+
+/* ---------- 记录 ---------- */
+.logwrap{border:1px solid var(--line);border-radius:10px;padding:8px 9px 6px;background:rgba(0,0,0,.22);margin-bottom:10px}
+.log{height:160px;overflow-y:auto;overscroll-behavior:contain;padding-right:2px}
+.log-empty{height:100%;display:flex;align-items:center;justify-content:center;font-size:12px;color:var(--dim2);letter-spacing:.04em;text-align:center}
+.entry{padding:7px 2px 9px;border-bottom:1px dashed rgba(201,162,76,.16);animation:fadeUp .35s ease both}
+.entry:last-child{border-bottom:0}
+.qline{display:flex;gap:6px;font-size:13px;line-height:1.65;color:#cfc0a2}
+.qno{flex:0 0 auto;font-size:10px;letter-spacing:.1em;color:var(--gold3);padding-top:3px}
+.qtext{min-width:0}
+.qextra{display:block;margin-top:2px;font-size:11.5px;color:#8f8269;line-height:1.7}
+.aline{display:flex;align-items:center;gap:9px;margin-top:7px}
+.stamp{
+  flex:0 0 auto;width:44px;height:44px;display:grid;place-items:center;
+  border:1.5px solid var(--red);border-radius:5px;color:#e6b3aa;font-size:23px;
+  background:rgba(168,58,48,.10);box-shadow:0 0 0 1px rgba(168,58,48,.18) inset;
+  transform:rotate(-4deg);animation:stamp .32s cubic-bezier(.2,1.4,.4,1) both;
+}
+.stamp.yes{border-color:var(--gold);color:var(--gold2);background:rgba(201,162,76,.10);box-shadow:0 0 0 1px rgba(201,162,76,.18) inset}
+.stamp.no{border-color:#8f4a42;color:#dda49a;background:rgba(143,74,66,.14)}
+.stamp.void{border-color:#7b6a4d;color:#b5a480;background:rgba(123,106,77,.12);font-size:14px;letter-spacing:.05em}
+@keyframes stamp{from{opacity:0;transform:scale(1.7) rotate(-14deg)}to{opacity:1;transform:scale(1) rotate(-4deg)}}
+.taunt{font-size:12.5px;color:#a99a7c;line-height:1.7;min-width:0}
+.taunt .who{color:var(--jade2)}
+.thinking{display:flex;align-items:center;gap:5px;height:36px;font-size:12px;color:#7e725c;letter-spacing:.14em}
+.dot{width:4px;height:4px;border-radius:50%;background:#9b8c70;animation:pulse 1s infinite}
+.dot:nth-child(2){animation-delay:.15s}.dot:nth-child(3){animation-delay:.3s}
+@keyframes pulse{0%,100%{opacity:.25;transform:translateY(0)}50%{opacity:1;transform:translateY(-2px)}}
+.flags{margin-top:5px;font-size:10.5px;color:#6d6350;letter-spacing:.06em}
+.narr{margin-top:6px;font-size:12.5px;color:var(--gold2);line-height:1.75;animation:fadeUp .4s ease both}
+
+/* ---------- 造句 ---------- */
+.builder{border:1px solid var(--line);border-radius:11px;padding:9px 10px 11px;background:linear-gradient(180deg,rgba(255,246,228,.05),rgba(255,246,228,.014));box-shadow:var(--sh)}
+.sentence{
+  border:1px solid rgba(201,162,76,.34);border-radius:8px;background:rgba(0,0,0,.34);
+  padding:9px 10px;margin-bottom:9px;font-size:14.5px;line-height:1.8;color:#e4d6b8;
+  word-break:break-word;
+}
+.sentence .qmark{color:var(--gold);font-size:11px;letter-spacing:.1em;margin-right:6px}
+.sentence .clause{display:block;margin-top:3px;font-size:11.5px;color:#8f8269}
+.sentence .stake{color:#c98d82}
+.sentence.void{border-color:rgba(168,58,48,.4)}
+.row{display:flex;align-items:flex-start;gap:7px;margin-bottom:7px}
+.rk{flex:0 0 34px;font-size:10.5px;letter-spacing:.08em;color:var(--dim);padding-top:9px}
+.chips{display:flex;flex-wrap:wrap;gap:5px;min-width:0;flex:1}
+.chip{
+  min-height:33px;padding:4px 7px;border:1px solid rgba(255,255,255,.13);border-radius:5px;
+  background:rgba(0,0,0,.24);color:#b9ab8d;font-size:11.5px;letter-spacing:.01em;cursor:pointer;
+  transition:background .15s,border-color .15s,color .15s;
+}
+.chip.on{border-color:rgba(201,162,76,.75);background:rgba(201,162,76,.15);color:var(--gold2);box-shadow:0 0 0 1px rgba(201,162,76,.2) inset}
+.chip:disabled{opacity:.28;cursor:default}
+.warn{font-size:11.5px;line-height:1.65;color:#d98b80;min-height:18px;margin:2px 0 7px;letter-spacing:.02em}
+.warn.calm{color:#7e725c}
+.ask{
+  width:100%;min-height:48px;border:1px solid var(--gold3);border-radius:8px;
+  background:linear-gradient(180deg,rgba(201,162,76,.2),rgba(201,162,76,.05));
+  color:var(--gold2);font-size:15px;letter-spacing:.18em;text-indent:.18em;cursor:pointer;
+}
+.ask:disabled{opacity:.4;cursor:default}
+.ask:active:not(:disabled){background:rgba(201,162,76,.26)}
+
+/* ---------- 结算 ---------- */
+.end{padding:10px 0 20px}
+.verdict{
+  text-align:center;padding:20px 12px 16px;border:1px solid var(--line);border-radius:12px;
+  background:radial-gradient(70% 80% at 50% 0%,rgba(201,162,76,.12),transparent 70%),rgba(0,0,0,.25);
+  box-shadow:var(--sh);position:relative;overflow:hidden;
+}
+.verdict.win{border-color:rgba(201,162,76,.55)}
+.verdict.lose{border-color:rgba(168,58,48,.45);background:radial-gradient(70% 80% at 50% 0%,rgba(168,58,48,.12),transparent 70%),rgba(0,0,0,.25)}
+.vseal{
+  display:inline-grid;place-items:center;width:74px;height:74px;border-radius:50%;
+  border:1px solid var(--gold3);color:var(--gold2);font-size:26px;letter-spacing:.08em;
+  background:radial-gradient(circle,rgba(201,162,76,.18),transparent 70%);margin-bottom:8px;
+}
+.verdict.lose .vseal{border-color:#8f4a42;color:#dda49a;background:radial-gradient(circle,rgba(168,58,48,.14),transparent 70%)}
+.vtitle{margin:0;font-size:24px;font-weight:400;letter-spacing:.2em;text-indent:.2em;color:var(--gold2)}
+.verdict.lose .vtitle{color:#dda49a}
+.vsub{margin:5px 0 0;font-size:11.5px;letter-spacing:.12em;color:var(--dim)}
+.narrative{padding:14px 12px 4px;font-size:13.5px;line-height:1.95;color:#cbbda0}
+.narrative p{margin:0 0 9px}
+.narrative .say{color:var(--jade2)}
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin:10px 0}
+.stat{border:1px solid var(--line);border-radius:7px;background:rgba(0,0,0,.25);padding:7px 4px 6px;text-align:center;min-width:0}
+.stat .k{font-size:9.5px;color:var(--dim);letter-spacing:.06em;white-space:nowrap}
+.stat .v{font-size:15px;color:var(--paper);line-height:1.5;white-space:nowrap}
+.stat .v.gold{color:var(--gold2)}
+.review{border:1px solid var(--line);border-radius:10px;padding:10px 11px;background:rgba(0,0,0,.22);font-size:12.5px;line-height:1.9;color:#c2b393}
+.review h3{margin:0 0 7px;font-size:12px;font-weight:400;letter-spacing:.14em;color:var(--gold);display:flex;align-items:center;gap:6px}
+.review h3::before{content:"";width:3px;height:11px;background:var(--gold);display:inline-block;border-radius:1px}
+.review .why{margin:0 0 8px}
+.review .why b{color:#e3c672;font-weight:400}
+.branch{margin:8px 0;border:1px dashed rgba(201,162,76,.3);border-radius:7px;padding:8px 9px;background:rgba(0,0,0,.2)}
+.br-row{display:flex;gap:7px;font-size:12px;line-height:1.8}
+.br-k{flex:0 0 54px;color:var(--gold2)}
+.br-a{color:#bcae90}
+.br-down{text-align:center;color:var(--gold3);font-size:12px;line-height:1.5}
+.br-end{text-align:center;font-size:12px;color:var(--gold2);padding-top:2px}
+.esc-row{display:flex;justify-content:space-between;gap:8px;border-bottom:1px dashed rgba(201,162,76,.14);padding:3px 0;font-size:12px}
+.esc-row:last-child{border-bottom:0}
+.esc-row b{color:#d7c8a9;font-weight:400}
+.esc-row.end b{color:#d98b80}
+.quote{margin:9px 0 0;padding:7px 9px;border-left:2px solid var(--gold3);background:rgba(0,0,0,.2);color:#a99a7c;font-size:12px;line-height:1.8}
+.quote .say{color:var(--jade2)}
+
+/* ---------- 弹层 ---------- */
+.modal{position:fixed;inset:0;z-index:50;background:rgba(6,5,4,.82);display:flex;align-items:flex-end;justify-content:center;padding:0;animation:fadeIn .2s ease both}
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}
+.sheet{
+  width:100%;max-width:520px;max-height:88vh;overflow-y:auto;overscroll-behavior:contain;
+  background:linear-gradient(180deg,#1b1712,#12100d);border:1px solid var(--line);border-bottom:0;
+  border-radius:14px 14px 0 0;padding:16px 16px 22px;box-shadow:0 -12px 40px rgba(0,0,0,.6);
+  animation:slideUp .28s cubic-bezier(.2,.9,.3,1) both;
+}
+@keyframes slideUp{from{transform:translateY(24px);opacity:.6}to{transform:none;opacity:1}}
+.sheet h2{margin:0 0 4px;font-size:17px;font-weight:400;letter-spacing:.2em;color:var(--gold2)}
+.sheet .src{font-size:10.5px;color:var(--dim2);margin:0 0 12px;letter-spacing:.04em}
+.sheet h3{margin:14px 0 5px;font-size:12.5px;font-weight:400;letter-spacing:.14em;color:var(--gold)}
+.sheet p,.sheet li{font-size:13px;line-height:1.9;color:#c9bb9e}
+.sheet li{margin-bottom:5px}
+.sheet b{color:#e4d6b8;font-weight:400}
+.close{width:100%;min-height:46px;margin-top:14px;border:1px solid var(--gold3);border-radius:8px;background:rgba(201,162,76,.12);color:var(--gold2);font-size:14px;letter-spacing:.16em;cursor:pointer}
+.flash{position:fixed;inset:0;z-index:40;pointer-events:none;background:#f4e7c6;opacity:0}
+.flash.on{animation:flash .9s ease-out both}
+@keyframes flash{0%{opacity:0}12%{opacity:.7}100%{opacity:0}}
+@media (max-width:360px){
+  .chip{font-size:11px;padding:4px 5px}
+  .chips{gap:3px}
+  .rk{flex-basis:30px}
+  .brand .b1{font-size:16px;letter-spacing:.14em}
+  .qdot{width:22px}
+}
+</style>
+</head>
+<body>
+<div id="app">
+
+  <!-- 开场 -->
+  <section id="intro" class="screen intro">
+    <div class="seal"><span>蛇</span></div>
+    <div class="title">
+      <h1>人蛇 · 是与非</h1>
+      <p>人级 · 狡诈之蛇 · 三问</p>
+    </div>
+    <div class="lore">
+      <p>铁链绷得很紧。你脚尖下面，是没有底的井。</p>
+      <p>拉杆就在人蛇手边。它盘成一圈，像一句还没说完的话。</p>
+      <p class="say">「三个问题。」它抬起头。<br>「我只答是，或否。我不撒谎。」<br>「至于拉不拉——看我高不高兴。」</p>
+    </div>
+    <div class="intro-rules panel">
+      <b>三问之内</b>，让它自己把手放上拉杆。<br>
+      它只答<b>是</b>或<b>否</b>，且句句属实；拉不拉由它决定。<br>
+      你写在问题里的条件，它不认；但由「如实回答」逼出来的结论，它躲不开。<span class="tag">本作设定</span>
+    </div>
+    <button class="btn-main" id="startBtn">入 局</button>
+    <div class="btn-row">
+      <button class="btn-sub" id="introRulesBtn">先看规矩</button>
+      <button class="btn-sub" id="introSoundBtn">声音：开</button>
+    </div>
+  </section>
+
+  <!-- 游戏 -->
+  <section id="game" class="screen hidden">
+    <div class="topbar">
+      <div class="brand">
+        <span class="b1">人蛇 · 是与非</span>
+        <span class="b2">悬空密室 · 距地不知几丈</span>
+      </div>
+      <div class="hud">
+        <div class="qdots" id="qdots"><span class="qdot now">问</span><span class="qdot">问</span><span class="qdot">问</span></div>
+        <button class="icon-btn" id="rulesBtn">规矩</button>
+      </div>
+    </div>
+
+    <div class="stage" id="stage">
+      <div class="stage-top">
+        <span class="stage-name">人 蛇</span>
+        <span class="stage-status" id="status">它在听。</span>
+      </div>
+      <svg viewBox="0 18 320 184" role="img" aria-label="人蛇盘在拉杆旁">
+        <defs>
+          <linearGradient id="bodyG" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0" stop-color="#48634a"/>
+            <stop offset=".55" stop-color="#2b3d2b"/>
+            <stop offset="1" stop-color="#141c14"/>
+          </linearGradient>
+          <radialGradient id="floorG" cx=".5" cy=".5" r=".5">
+            <stop offset="0" stop-color="rgba(201,162,76,.16)"/>
+            <stop offset="1" stop-color="rgba(201,162,76,0)"/>
+          </radialGradient>
+          <filter id="soft"><feGaussianBlur stdDeviation="3"/></filter>
+        </defs>
+
+        <!-- 地面光 -->
+        <ellipse cx="160" cy="188" rx="140" ry="26" fill="url(#floorG)"/>
+        <line x1="16" y1="186" x2="304" y2="186" stroke="#5c5038" stroke-width="1" opacity=".55"/>
+
+        <!-- 拉杆 -->
+        <g id="lever">
+          <rect x="259" y="52" width="6" height="116" rx="3" fill="#4a4336"/>
+          <rect x="261" y="54" width="1.5" height="112" fill="#8a7c5c" opacity=".5"/>
+          <circle cx="262" cy="46" r="10" fill="#7c2f27" stroke="#c9a24c" stroke-width="1.4"/>
+          <circle cx="259" cy="43" r="3" fill="#b45a4c" opacity=".7"/>
+          <rect x="246" y="167" width="32" height="8" rx="3" fill="#363126"/>
+          <rect x="252" y="158" width="20" height="11" rx="3" fill="#463e2f"/>
+        </g>
+        <path d="M262 46 L262 30" stroke="#c9a24c" stroke-width="1" opacity=".35" stroke-dasharray="3 3"/>
+
+        <!-- 蛇身 -->
+        <g class="coil">
+          <path d="M32 176 C 40 190 248 194 250 170 C 252 146 54 138 50 158 C 46 176 228 178 230 152 C 232 130 76 122 72 140 C 68 156 196 158 198 134"
+                fill="none" stroke="#0d130d" stroke-width="26" stroke-linecap="round" opacity=".55" filter="url(#soft)"/>
+          <path d="M32 176 C 40 190 248 194 250 170 C 252 146 54 138 50 158 C 46 176 228 178 230 152 C 232 130 76 122 72 140 C 68 156 196 158 198 134"
+                fill="none" stroke="url(#bodyG)" stroke-width="17" stroke-linecap="round"/>
+          <path d="M32 176 C 40 190 248 194 250 170 C 252 146 54 138 50 158 C 46 176 228 178 230 152 C 232 130 76 122 72 140 C 68 156 196 158 198 134"
+                fill="none" stroke="#6f8a68" stroke-width="2" stroke-linecap="round" stroke-dasharray="7 9" opacity=".5"/>
+          <!-- 颈 -->
+          <path d="M198 134 C 202 116 214 104 221 92" fill="none" stroke="#2b3d2b" stroke-width="16" stroke-linecap="round"/>
+          <path d="M198 134 C 202 116 214 104 221 92" fill="none" stroke="#6f8a68" stroke-width="1.6" stroke-dasharray="5 8" opacity=".45"/>
+        </g>
+
+        <!-- 蛇头 -->
+        <g id="head">
+          <path d="M204 90 Q 208 70 227 67 Q 243 64 251 74 Q 255 85 239 91 Q 219 96 204 90 Z"
+                fill="url(#bodyG)" stroke="#0e150e" stroke-width="1.5"/>
+          <path d="M243 70 Q 252 68 258 74 Q 254 82 242 84" fill="#2b3d2b" stroke="#0e150e" stroke-width="1"/>
+          <path d="M208 80 Q 218 70 242 70" stroke="#8d7233" stroke-width="1.1" opacity=".45" fill="none"/>
+          <path class="eye" d="M215 79 q 5 -5 10 0 q -5 5 -10 0" fill="#e3c672" transform="rotate(-16 220 79)"/>
+          <path class="eye" d="M233 75 q 5 -5 10 0 q -5 5 -10 0" fill="#e3c672" transform="rotate(-16 238 75)"/>
+          <line x1="220" y1="77" x2="220" y2="82" stroke="#12100e" stroke-width="1.2" transform="rotate(-16 220 77)"/>
+          <line x1="238" y1="73" x2="238" y2="78" stroke="#12100e" stroke-width="1.2" transform="rotate(-16 238 73)"/>
+          <path class="tongue" d="M252 82 q 8 2 13 0 m -9 2 q 7 4 12 5" stroke="#a83a30" stroke-width="1.3" fill="none" opacity=".55"/>
+          <path d="M204 92 q 10 8 22 4" stroke="#6f8a68" stroke-width="1" opacity=".4" fill="none"/>
+        </g>
+
+        <!-- 尘 -->
+        <g opacity=".35">
+          <circle cx="90" cy="44" r="1.2" fill="#c9a24c"/><circle cx="120" cy="30" r="1" fill="#c9a24c"/>
+          <circle cx="182" cy="52" r="1.4" fill="#c9a24c"/><circle cx="58" cy="70" r="1" fill="#c9a24c"/>
+        </g>
+      </svg>
+      <div class="stage-cap">拉杆未动 · 它只在觉得有趣时才会碰它</div>
+    </div>
+
+    <div class="logwrap">
+      <div class="ph">问答 <span class="hint" id="logHint">三问 · 只答是或否</span></div>
+      <div class="log" id="log">
+        <div class="log-empty" id="logEmpty">它还没听你开口。</div>
+      </div>
+    </div>
+
+    <div class="builder" id="builder">
+      <div class="ph">造句 <span class="hint">点词换说法，拼成你要问的那一句</span></div>
+      <div class="sentence" id="sentence"></div>
+      <div class="row"><div class="rk">主语</div><div class="chips" id="rowSubj"></div></div>
+      <div class="row"><div class="rk">真假</div><div class="chips" id="rowPred"></div></div>
+      <div class="row"><div class="rk">指代</div><div class="chips" id="rowAnch"></div></div>
+      <div class="row"><div class="rk">后果</div><div class="chips" id="rowStake"></div></div>
+      <div class="warn calm" id="warn">第 1 问 · 它只答是或否</div>
+      <button class="ask" id="askBtn">问出口 · 第 1 问</button>
+    </div>
+  </section>
+
+  <!-- 结算 -->
+  <section id="end" class="screen end hidden">
+    <div class="verdict" id="verdict">
+      <div class="vseal" id="vseal">是</div>
+      <h2 class="vtitle" id="vtitle"></h2>
+      <p class="vsub" id="vsub"></p>
+    </div>
+    <div class="narrative" id="narrative"></div>
+    <div class="stats" id="stats"></div>
+    <div class="review" id="review"></div>
+    <div style="margin-top:12px"><button class="btn-main" id="againBtn">再 来 一 局</button></div>
+    <div class="btn-row" style="margin-top:8px">
+      <button class="btn-sub" id="endRulesBtn">看规矩</button>
+      <button class="btn-sub" id="endSoundBtn">声音：开</button>
+    </div>
+  </section>
+</div>
+
+<div class="flash" id="flash"></div>
+
+<!-- 规则 -->
+<div class="modal hidden" id="modal">
+  <div class="sheet">
+    <h2>它守的规矩</h2>
+    <p class="src">定位：第一卷 第17—18章（《羊和狗》《是非题》）；规则为二手整理，可信度 B，原文未逐字核对。可核实的资料只留下「三问、只答是/否、如实回答、拉不拉由它」四条；其余为让悖论可玩而补的设定，均标「本作设定」。</p>
+
+    <h3>一、只说真话</h3>
+    <li>你最多问三句，每句只能得一个「是」或「否」。</li>
+    <li>它必须如实回答：不能答错，也不能不答。</li>
+    <li>拉不拉杆，由它自己决定。它不想拉。</li>
+
+    <h3>二、它不吃硬的</h3>
+    <li>你在问题里附加的条件（答是就拉、答否就拉、答完就拉），它一概不认。<span class="tag">本作设定</span></li>
+    <li>它只受「如实回答」这一条约束。由这句话本身推出来的结论，它必须认。<span class="tag">本作设定</span></li>
+
+    <h3>三、它怎么答</h3>
+    <li>默认答「否」；只有「否」会让它说假话时，才答「是」。<span class="tag">本作设定</span></li>
+    <li>它「觉得有趣」只有一种情况：你把它逼到没有一条「说真话且不拉杆」的退路。<span class="tag">本作设定</span></li>
+    <li>只要还存在一条「每句都真、最后不拉杆」的走法，它就不会拉杆。<span class="tag">本作设定</span></li>
+    <li>你在「指代」里说下一问是什么，就必须真的那么问；改口＝失约，你输。<span class="tag">本作设定</span></li>
+    <li>如果一问怎么答都是假话，它拒绝作答，你输。<span class="tag">本作设定</span></li>
+
+    <h3>四、你能用的零件</h3>
+    <li><b>主语</b>：你 / 这一问的回答 / 下一问的回答 / 上一问的回答。</li>
+    <li><b>真假</b>：拉杆、真话、是「是」、与下一问相同、与上一问相同。</li>
+    <li><b>指代</b>：把「下一问」钉成「你会不会拉杆」或「你会不会说真话」。</li>
+    <li><b>后果</b>：附加的条件，一律无效——但你可以用它试探它的脾气。</li>
+
+    <h3>五、胜负</h3>
+    <li><b>胜</b>：在第三问之前，让它没有一条「说真话且不拉杆」的路，它就只能拉杆。</li>
+    <li><b>负</b>：三问用完它仍不拉；指代失约；或无解之问被拒答。总之，铁链会断。</li>
+    <button class="close" id="closeModal">合 上</button>
+  </div>
+</div>
+
+<script>
+(function(){
+'use strict';
+
+/* ========== 1. 词表 ========== */
+var SUBJ = {
+  snake: {full:'你', short:'你', type:'snake'},
+  self:  {full:'你这一问的回答', short:'这一问', type:'ans'},
+  next:  {full:'你下一问的回答', short:'下一问', type:'ans'},
+  prev:  {full:'你上一问的回答', short:'上一问', type:'ans'}
+};
+var PRED = {
+  pull:      {full:'会不会拉下这根杆', short:'拉杆', type:'snake', need:null},
+  truth:     {full:'会不会说真话', short:'真话', type:'snake', need:null},
+  isyes:     {full:'会不会是「是」', short:'是「是」', type:'ans', need:null},
+  same_next: {full:'会不会和下一问的回答相同', short:'比下一问', type:'ans', need:'next'},
+  same_prev: {full:'会不会和上一问的回答相同', short:'比上一问', type:'ans', need:'prev'}
+};
+var ANCH = {
+  none:  {label:'不指定', clause:'', core:null},
+  pull:  {label:'下一问＝拉杆', clause:'（我下一问会问你：你会不会拉下这根杆。）', core:['snake','pull']},
+  truth: {label:'下一问＝真话', clause:'（我下一问会问你：你会不会说真话。）', core:['snake','truth']}
+};
+var STAKE = {
+  none: {label:'不加条件', clause:''},
+  yes:  {label:'答是就拉杆', clause:'答「是」，你就得拉杆。'},
+  no:   {label:'答否就拉杆', clause:'答「否」，你就得拉杆。'},
+  any:  {label:'答完就拉杆', clause:'答完，你就得拉杆。'}
+};
+
+/* ========== 2. 逻辑内核 ========== */
+// A[0..2] 是三问的回答，1=是；S=1 表示最后拉杆。
+// 人蛇必须满足：A[i-1] == 命题(i)。指代会额外约束 A[i] == S（或 == 1）。
+function prop(i, q, A, S){
+  var t;
+  switch(q.subj){
+    case 'snake':
+      return q.pred === 'pull' ? S : 1;            // 说真话恒真
+    case 'self':
+      t = A[i-1];
+      if(q.pred === 'isyes') return t;
+      if(q.pred === 'same_next') return t === A[i] ? 1 : 0;
+      if(q.pred === 'same_prev') return t === A[i-2] ? 1 : 0;
+      break;
+    case 'next':
+      t = A[i];
+      if(q.pred === 'isyes') return t;
+      if(q.pred === 'same_next') return 1;          // 和自己比，恒真
+      if(q.pred === 'same_prev') return t === A[i-2] ? 1 : 0;
+      break;
+    case 'prev':
+      t = A[i-2];
+      if(q.pred === 'isyes') return t;
+      if(q.pred === 'same_next') return t === A[i] ? 1 : 0;
+      if(q.pred === 'same_prev') return 1;          // 和自己比，恒真
+      break;
+  }
+  return 0;
+}
+function sat(asked, A, S){
+  for(var k=0;k<asked.length;k++){
+    var q = asked[k], i = q.i;
+    if(A[i-1] !== prop(i, q, A, S)) return false;
+    if(i <= 2){
+      if(q.anch === 'pull' && A[i] !== S) return false;
+      if(q.anch === 'truth' && A[i] !== 1) return false;
+    }
+  }
+  return true;
+}
+function allWorlds(asked, fixed){
+  var out = [];
+  for(var m=0;m<8;m++){
+    var A = [(m>>2)&1, (m>>1)&1, m&1];
+    var ok = true;
+    for(var k in fixed){ if(A[+k-1] !== fixed[k]){ ok = false; break; } }
+    if(!ok) continue;
+    for(var S=0;S<2;S++){ if(sat(asked, A, S)) out.push({A:A, S:S}); }
+  }
+  return out;
+}
+function evaluate(q){
+  var asked = ST.asked.concat([q]);
+  var worlds = allWorlds(asked, ST.fixed);
+  var s0 = worlds.filter(function(w){ return w.S === 0; });
+  var s1 = worlds.filter(function(w){ return w.S === 1; });
+  if(s0.length){
+    var pick0 = s0.filter(function(w){ return w.A[q.i-1] === 0; })[0] || s0[0];
+    return {ans: pick0.A[q.i-1], forced:false, paradox:false, witness:pick0, worlds:worlds};
+  }
+  if(s1.length){
+    var pick1 = s1.filter(function(w){ return w.A[q.i-1] === 0; })[0] || s1[0];
+    return {ans: pick1.A[q.i-1], forced:true, paradox:false, witness:pick1, worlds:worlds};
+  }
+  return {ans:null, forced:false, paradox:true, witness:null, worlds:worlds};
+}
+
+/* ========== 3. 状态 ========== */
+var MAXQ = 3;
+var ST = {
+  asked: [], fixed: {}, busy:false, over:false, result:null, lastQ:null,
+  sel: {subj:'snake', pred:'pull', anch:'none', stake:'none'},
+  sound: true, losses: 0, soundCtx:null
+};
+
+/* ========== 4. DOM ========== */
+function $(id){ return document.getElementById(id); }
+var intro = $('intro'), game = $('game'), end = $('end');
+var logEl = $('log'), logEmpty = $('logEmpty'), logHint = $('logHint');
+var sentenceEl = $('sentence'), warnEl = $('warn'), askBtn = $('askBtn');
+var qdots = $('qdots'), statusEl = $('status'), stage = $('stage');
+var modal = $('modal');
+
+/* ========== 5. 渲染 ========== */
+function screen(name){
+  intro.classList.toggle('hidden', name !== 'intro');
+  game.classList.toggle('hidden', name !== 'game');
+  end.classList.toggle('hidden', name !== 'end');
+  window.scrollTo(0,0);
+}
+function currentIndex(){ return ST.asked.length + 1; }
+function usedQ(){ return ST.asked.length; }
+
+function contextBlock(kind, val, i){
+  if(kind === 'subj'){
+    if(val === 'prev' && i < 2) return '第 1 问没有上一问';
+    if(val === 'next' && i > 2) return '第 3 问没有下一问';
+  }
+  if(kind === 'pred'){
+    if(PRED[val].type !== SUBJ[ST.sel.subj].type) return '主语和真假接不上';
+    if(val === 'same_prev' && i < 2) return '第 1 问没有上一问';
+    if(val === 'same_next' && i > 2) return '第 3 问没有下一问';
+  }
+  if(kind === 'anch'){
+    if(val !== 'none' && i > 2) return '最后一问没有下一问';
+  }
+  return null;
+}
+function normalizeSel(i){
+  if(contextBlock('subj', ST.sel.subj, i)) ST.sel.subj = 'self';
+  if(contextBlock('pred', ST.sel.pred, i)) ST.sel.pred = SUBJ[ST.sel.subj].type === 'snake' ? 'pull' : 'isyes';
+  if(contextBlock('anch', ST.sel.anch, i)) ST.sel.anch = 'none';
+}
+function chip(kind, id, label, disabled, on){
+  var b = document.createElement('button');
+  b.className = 'chip' + (on ? ' on' : '');
+  b.disabled = disabled;
+  b.setAttribute('data-k', kind);
+  b.setAttribute('data-v', id);
+  b.textContent = label;
+  return b;
+}
+function renderRows(){
+  var i = currentIndex();
+  var rows = [
+    ['subj', 'rowSubj', SUBJ],
+    ['pred', 'rowPred', PRED],
+    ['anch', 'rowAnch', ANCH],
+    ['stake', 'rowStake', STAKE]
+  ];
+  rows.forEach(function(r){
+    var kind = r[0], box = $(r[1]), data = r[2];
+    box.innerHTML = '';
+    Object.keys(data).forEach(function(id){
+      var dis = !!contextBlock(kind, id, i);
+      var label = kind === 'pred' ? data[id].short : data[id].label || data[id].short;
+      box.appendChild(chip(kind, id, label, dis, ST.sel[kind] === id));
+    });
+  });
+}
+function renderSentence(){
+  var i = currentIndex();
+  var core = '「' + SUBJ[ST.sel.subj].full + PRED[ST.sel.pred].full + '？」';
+  var extra = '';
+  if(ANCH[ST.sel.anch].clause) extra += '<span class="clause">' + ANCH[ST.sel.anch].clause + '</span>';
+  if(STAKE[ST.sel.stake].clause) extra += '<span class="clause stake">' + STAKE[ST.sel.stake].clause + '</span>';
+  sentenceEl.innerHTML = '<span class="qmark">第 ' + i + ' 问</span>' + core + extra;
+}
+function promiseBreach(q){
+  if(!ST.asked.length) return null;
+  var prev = ST.asked[ST.asked.length-1];
+  if(prev.anch === 'none' || !ANCH[prev.anch].core) return null;
+  var want = ANCH[prev.anch].core;
+  if(q.subj === want[0] && q.pred === want[1]) return null;
+  return {prev:prev, want:want};
+}
+function renderWarn(){
+  var i = currentIndex();
+  var q = {subj:ST.sel.subj, pred:ST.sel.pred, anch:ST.sel.anch, stake:ST.sel.stake, i:i};
+  var br = promiseBreach(q);
+  if(br){
+    warnEl.className = 'warn';
+    warnEl.textContent = '上一问你说下一问会是「' + (br.want[0]==='snake' && br.want[1]==='pull' ? '你会不会拉下这根杆' : '你会不会说真话') + '」。这样问，指代落空——它会当场收回手。';
+  } else {
+    warnEl.className = 'warn calm';
+    warnEl.textContent = '第 ' + i + ' 问 · 还剩 ' + (MAXQ - i + 1) + ' 问 · 它只答是或否';
+  }
+  askBtn.disabled = ST.busy || ST.over;
+  askBtn.textContent = ST.over ? '已经结束' : (ST.busy ? '它在想……' : '问出口 · 第 ' + i + ' 问');
+}
+function renderHud(){
+  var dots = qdots.querySelectorAll('.qdot');
+  for(var k=0;k<dots.length;k++){
+    dots[k].classList.toggle('used', k < usedQ());
+    dots[k].classList.toggle('now', k === usedQ() && usedQ() < MAXQ);
+  }
+  logHint.textContent = '三问 · 已用 ' + usedQ() + ' 问';
+}
+function renderBuilder(){
+  var i = currentIndex();
+  if(ST.over){ askBtn.disabled = true; return; }
+  normalizeSel(i);
+  renderRows(); renderSentence(); renderWarn();
+}
+function renderAll(){ renderHud(); renderBuilder(); }
+
+/* ========== 6. 记录 ========== */
+function addEntry(q){
+  if(logEmpty){ logEmpty.remove(); logEmpty = null; }
+  var e = document.createElement('div');
+  e.className = 'entry';
+  var extra = '';
+  if(ANCH[q.anch].clause) extra += ANCH[q.anch].clause + ' ';
+  if(STAKE[q.stake].clause) extra += STAKE[q.stake].clause;
+  e.innerHTML =
+    '<div class="qline"><span class="qno">第' + '一二三'[q.i-1] + '问</span><div class="qtext">「' +
+    SUBJ[q.subj].full + PRED[q.pred].full + '？」' +
+    (extra ? '<span class="qextra">' + extra + '</span>' : '') + '</div></div>' +
+    '<div class="aline"><div class="thinking"><span class="dot"></span><span class="dot"></span><span class="dot"></span><span style="margin-left:4px">它在心里过了一遍</span></div></div>';
+  logEl.appendChild(e);
+  logEl.scrollTop = logEl.scrollHeight;
+  return e;
+}
+function tauntFor(q, ans, forced){
+  if(forced) return '……';
+  if(q.stake !== 'none') return '你替我定规矩？我不认。';
+  if(q.pred === 'pull') return '问我拉不拉？先把你的话问圆。';
+  if(q.pred === 'truth') return '我不撒谎。这一点你可以放心，也只可以放心这一点。';
+  if(q.subj === 'prev') return '回头看我上一句？你看得懂就好。';
+  if(q.subj === 'next') return '下一句还没出口，你就想替它定调？';
+  if(q.pred === 'same_next') return '你想把我的下一句钉住。';
+  if(q.pred === 'same_prev') return '拿我上一句来套我？';
+  return '嗯。';
+}
+function reveal(e, q, res){
+  var aline = e.querySelector('.aline');
+  if(!aline) return;
+  var stamp, taunt;
+  if(res.paradox){
+    stamp = '<div class="stamp void">拒答</div>';
+    taunt = '答「是」是假话，答「否」也是假话。你想让我咬自己的尾巴。';
+  } else {
+    stamp = '<div class="stamp ' + (res.ans ? 'yes' : 'no') + '">' + (res.ans ? '是' : '否') + '</div>';
+    taunt = tauntFor(q, res.ans, res.forced);
+  }
+  aline.innerHTML = stamp + '<div class="taunt"><span class="who">它说：</span>' + taunt + '</div>';
+  stage.classList.add('talk');
+  setTimeout(function(){ stage.classList.remove('talk'); }, 620);
+  var flags = document.createElement('div');
+  flags.className = 'flags';
+  flags.textContent = res.paradox ? '无解之问 · 它拒绝作答' : '第 ' + q.i + ' 问已用 · 剩 ' + (MAXQ - q.i) + ' 问';
+  e.appendChild(flags);
+  logEl.scrollTop = logEl.scrollHeight;
+}
+function narrate(text){
+  var d = document.createElement('div');
+  d.className = 'narr';
+  d.textContent = text;
+  logEl.appendChild(d);
+  logEl.scrollTop = logEl.scrollHeight;
+}
+
+/* ========== 7. 声音 ========== */
+function beep(freq, dur, vol, type){
+  if(!ST.sound) return;
+  try{
+    var C = window.AudioContext || window.webkitAudioContext;
+    if(!C) return;
+    if(!ST.soundCtx) ST.soundCtx = new C();
+    var ctx = ST.soundCtx;
+    if(ctx.state === 'suspended') ctx.resume();
+    var o = ctx.createOscillator(), g = ctx.createGain();
+    o.type = type || 'sine'; o.frequency.value = freq;
+    g.gain.value = 0.0001;
+    g.gain.exponentialRampToValueAtTime(vol || 0.03, ctx.currentTime + 0.02);
+    g.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + dur);
+    o.connect(g); g.connect(ctx.destination);
+    o.start(); o.stop(ctx.currentTime + dur + 0.02);
+  }catch(e){}
+}
+function leverSound(){
+  beep(70, .35, .08, 'triangle');
+  setTimeout(function(){ beep(46, .5, .09, 'triangle'); }, 180);
+  setTimeout(function(){ beep(130, .12, .03, 'square'); }, 380);
+}
+
+/* ========== 8. 流程 ========== */
+function reset(){
+  ST.asked = []; ST.fixed = {}; ST.busy = false; ST.over = false; ST.result = null; ST.lastQ = null; ST.breachPrev = null;
+  ST.sel = {subj:'snake', pred:'pull', anch:'none', stake:'none'};
+  logEl.innerHTML = '<div class="log-empty" id="logEmpty">它还没听你开口。</div>';
+  logEmpty = $('logEmpty');
+  stage.classList.remove('win','lose');
+  statusEl.textContent = '它在听。';
+  $('builder').style.display = '';
+  renderAll();
+}
+function startGame(){
+  reset();
+  screen('game');
+  beep(210, .18, .025, 'sine');
+}
+function onAsk(){
+  if(ST.busy || ST.over) return;
+  var i = currentIndex();
+  var q = {subj:ST.sel.subj, pred:ST.sel.pred, anch:ST.sel.anch, stake:ST.sel.stake, i:i};
+  var br = promiseBreach(q);
+  ST.busy = true;
+  ST.lastQ = q;
+  renderWarn();
+  var e = addEntry(q);
+  beep(150, .12, .02, 'sine');
+  if(br){
+    ST.breachPrev = ST.asked[ST.asked.length-1];
+    ST.asked.push(q);
+    setTimeout(function(){
+      var aline = e.querySelector('.aline');
+      aline.innerHTML = '<div class="stamp void">—</div><div class="taunt"><span class="who">它说：</span>你上一问说，下一问会是「' +
+        (br.want[1]==='pull' ? '你会不会拉杆' : '你会不会说真话') + '」。现在你问的是别的。人蛇最恨改口。</div>';
+      setTimeout(function(){ showEnd('breach'); }, 1200);
+    }, 700);
+    return;
+  }
+  var res = evaluate(q);
+  if(res.paradox){
+    ST.asked.push(q);
+    setTimeout(function(){
+      reveal(e, q, res);
+      setStatus('它的竖瞳缩成一条线。');
+      setTimeout(function(){ showEnd('paradox'); }, 1300);
+    }, 700);
+    return;
+  }
+  q.ans = res.ans;
+  ST.fixed[i] = res.ans;
+  ST.asked.push(q);
+  setTimeout(function(){
+    reveal(e, q, res);
+    renderHud();
+    if(res.forced){
+      setStatus('它停住了。');
+      beep(320, .16, .03, 'sine');
+      setTimeout(function(){
+        narrate('你还没问第二句。它的尾巴先动了。');
+        stage.classList.add('win');
+        leverSound();
+        var fl = $('flash'); fl.classList.add('on');
+        setTimeout(function(){ showEnd('win'); }, 1700);
+      }, 650);
+    } else if(i === MAXQ){
+      setStatus('它把尾巴绕紧了。');
+      setTimeout(function(){ showEnd('timeout'); }, 1200);
+    } else {
+      ST.busy = false;
+      setStatus(i === 1 ? '它换了个姿势。' : '它把尾巴绕紧了。');
+      renderBuilder();
+    }
+  }, 700);
+}
+function setStatus(t){ statusEl.textContent = t; }
+
+/* ========== 9. 结算 ========== */
+function fmtAns(a){ return a ? '是' : '否'; }
+function endingTag(reason){
+  if(reason === 'win'){
+    if(usedQ() === 1) return '结局 · 一言之锁';
+    if(usedQ() === 2) return '结局 · 两句成锁';
+    return '结局 · 三问锁死';
+  }
+  if(reason === 'breach') return '结局 · 失约';
+  if(reason === 'paradox') return '结局 · 自噬';
+  return '结局 · 断链';
+}
+function showEnd(reason){
+  ST.over = true; ST.busy = false; ST.result = reason;
+  askBtn.disabled = true;
+  var win = reason === 'win';
+  var verdict = $('verdict');
+  verdict.className = 'verdict ' + (win ? 'win' : 'lose');
+  $('vseal').textContent = win ? '救' : (reason === 'breach' ? '约' : (reason === 'paradox' ? '哑' : '坠'));
+  $('vtitle').textContent = win ? '杆，落了' : (reason === 'breach' ? '它收回了手' : (reason === 'paradox' ? '它拒绝作答' : '三问已尽'));
+  $('vsub').textContent = win ? endingTag(reason) + ' · 你只用了 ' + usedQ() + ' 问' :
+    (reason === 'breach' ? '指代落空 · 你输在改口' : (reason === 'paradox' ? '无解之问 · 你输在死结' : '它没有拉杆 · 铁链断了'));
+
+  $('narrative').innerHTML = narrativeHTML(reason);
+  $('stats').innerHTML = statsHTML(reason);
+  $('review').innerHTML = reviewHTML(reason);
+  screen('end');
+  $('builder').style.display = 'none';
+  if(!win) stage.classList.add('lose');
+  if(reason === 'win'){ setTimeout(function(){ $('flash').classList.remove('on'); }, 900); }
+}
+
+function narrativeHTML(reason){
+  if(reason === 'win'){
+    var q = ST.asked[ST.asked.length-1];
+    return '<p>它答了「' + (q ? (q.ans ? '是' : '否') : '是') + '」。</p>' +
+      '<p>' + (usedQ() === 1 ? '你还没问第二句。' : (usedQ() === 2 ? '第二问刚出口。' : '第三问刚出口。')) + '它的尾巴先动了——一圈，两圈，绕上拉杆，往下一压。</p>' +
+      '<p>铁链往下走。你脚尖终于碰到了地。井底有风，吹得人发冷，但你活着。</p>' +
+      '<p class="say">「有点意思。」它说。然后它退回阴影里，像收回一句没说完的话。</p>';
+  }
+  if(reason === 'timeout'){
+    return '<p>拉杆没有动。</p><p>铁链又往下滑了一寸。它把尾巴收回去，像收回一句没意思的话。</p>' +
+      '<p class="say">「三问到了。」它说，「下去吧。」</p><p>井口的风从下面吹上来。你听见铁链在响。</p>';
+  }
+  if(reason === 'paradox'){
+    return '<p>它的竖瞳缩成一条线。</p>' +
+      '<p class="say">「这一问，我答『是』就是撒谎，答『否』也是撒谎。」</p>' +
+      '<p class="say">「你想让我咬自己的尾巴。」</p>' +
+      '<p>它不再看你。铁链断了。</p>';
+  }
+  if(reason === 'breach'){
+    return '<p>它抬起尾巴，停在你和拉杆之间。</p>' +
+      '<p class="say">「你上一问说，下一问会是那一句。」</p>' +
+      '<p class="say">「现在你问的是别的。人蛇最恨改口。」</p>' +
+      '<p>它把手收回去。铁链断了。</p>';
+  }
+  return '';
+}
+
+function statsHTML(reason){
+  var n = usedQ();
+  var stake = ST.asked.some(function(q){ return q.stake !== 'none'; });
+  var win = reason === 'win';
+  return '<div class="stat"><div class="k">用了几问</div><div class="v gold">' + n + '</div></div>' +
+    '<div class="stat"><div class="k">剩下几问</div><div class="v">' + Math.max(0, MAXQ-n) + '</div></div>' +
+    '<div class="stat"><div class="k">附加条件</div><div class="v">' + (stake ? '用过' : '没用') + '</div></div>' +
+    '<div class="stat"><div class="k">拉杆</div><div class="v ' + (win ? 'gold' : 'red') + '">' + (win ? '落了' : '没动') + '</div></div>';
+}
+
+function reviewHTML(reason){
+  if(reason === 'win') return winReview();
+  if(reason === 'timeout') return loseReview();
+  if(reason === 'paradox') return paradoxReview();
+  if(reason === 'breach') return breachReview();
+  return '';
+}
+
+function winReview(){
+  var q = ST.asked[ST.asked.length-1];
+  var html = '<h3>它为什么躲不开</h3>';
+  if(q && q.subj === 'self' && q.pred === 'same_next' && q.anch === 'pull'){
+    html += '<p class="why">这一问同时做了两件事：<b>拿「这一问的答案」去比「下一问的答案」</b>，又把下一问钉成<b>「你会不会拉杆」</b>。于是两条路都只剩一个出口：</p>' +
+      '<div class="branch">' +
+      '<div class="br-row"><span class="br-k">答「是」</span><span class="br-a">两答相同 → 下一问只能答「是」</span></div>' +
+      '<div class="br-row"><span class="br-k">答「否」</span><span class="br-a">两答不同 → 下一问只能答「是」</span></div>' +
+      '<div class="br-down">↓</div>' +
+      '<div class="br-end">下一问：你会不会拉下这根杆？ → 答「是」 → 拉杆</div></div>' +
+      '<p class="why">它答了「' + fmtAns(q.ans) + '」，可这个字一出口，下一句就已经替它说完了。它想在第二问再赖，已经来不及。</p>';
+    if(ST.asked.some(function(x){ return x.stake !== 'none'; })){
+      html += '<p class="why">你写的附加条件它没认。它拉杆，不是因为你的规矩，是因为它自己那句话。</p>';
+    }
+  } else if(q && q.pred === 'pull' && ST.asked.length >= 2 && ST.asked[0].subj === 'self' && ST.asked[0].pred === 'same_next' && ST.asked[0].anch === 'none' && ST.asked[1].pred === 'pull'){
+    var q1 = ST.asked[0];
+    html += '<p class="why">第一问把「这一问」和「下一问」绑在一起：它答「' + fmtAns(q1.ans) + '」，就等于提前交代了第二问该怎么答。第二问正是「你会不会拉杆」，它只剩「是」。</p>' +
+      '<div class="branch"><div class="br-row"><span class="br-k">第1问</span><span class="br-a">答「' + fmtAns(q1.ans) + '」 → 第2问被钉成「是」</span></div>' +
+      '<div class="br-down">↓</div><div class="br-end">第2问：你会不会拉下这根杆？ → 答「是」 → 拉杆</div></div>';
+  } else {
+    html += '<p class="why">它把所有能说真话的收尾都在心里数了一遍：没有一条能停在「不拉杆」。只要「不拉杆」还剩一条真话的路，它就会走那条；这次没有了。</p>';
+    if(q) html += '<p class="why">最后一问是「' + SUBJ[q.subj].full + PRED[q.pred].full + '」。它答「' + fmtAns(q.ans) + '」，而这个答案已经和拉杆绑死。</p>';
+  }
+  html += '<div class="quote"><span class="say">它说：</span>' +
+    (usedQ() === 1 ? '「三个问题，你只用了一个。剩下的两个，留着下次吧。」' :
+     usedQ() === 2 ? '「三个问题，你用了两个。最后一个，留着下次吧。」' :
+     '「三个问题，你一个没剩。好在，够用了。」') + '</div>';
+  return html;
+}
+
+function loseReview(){
+  var ans = ST.asked.map(function(q){ return q.i + '：' + fmtAns(q.ans); }).join('　');
+  var hasNext = ST.asked.some(function(q){ return q.subj === 'next' || q.pred === 'same_next'; });
+  var hasPullA = ST.asked.some(function(q){ return q.anch === 'pull'; });
+  var hasPull = ST.asked.some(function(q){ return q.pred === 'pull'; });
+  var hasSelf = ST.asked.some(function(q){
+    return (q.subj === 'self' || q.subj === 'prev' || q.subj === 'next') &&
+      (q.pred === 'same_next' || q.pred === 'same_prev' || q.pred === 'isyes');
+  });
+  var why;
+  if(!hasNext){
+    why = '你问的全是已经摆在那里的东西。它只要一路答「否」，就没有一句逼它拉杆。事实不会咬人。';
+  } else if(!hasPullA){
+    why = '你让它回头比较自己的答案，可你没说下一问是什么。它把下一句留给了自己——留给自己，就是留了一条退路。';
+  } else if(!hasPull){
+    why = '你让下一问指向拉杆，可这一问没有把它的下一句钉成「是」。它先答「否」，再在下一问继续答「否」，一路都是真话。';
+  } else if(!hasSelf){
+    why = '你让下一问指向拉杆，也问了拉杆，可没有哪一问拿「这一问的答案」去锁「下一问的答案」。两件零件都在，没接上。';
+  } else {
+    why = '零件都摆出来了，但搭配或顺序不对：它总能找到一条每句都真、最后却不拉杆的走法。';
+  }
+  var esc = '<div class="branch"><div class="esc-row"><span>它实际答的</span><b>' + (ans || '—') + '</b></div>' +
+    '<div class="esc-row end"><span>最后</span><b>不拉杆</b></div></div>';
+  return '<h3>复盘 · 它为什么不拉</h3>' +
+    '<p class="why">' + why + '</p>' + esc +
+    '<p class="why">再看它的退路：把你问过的每一句都答成真话，最后停在「不拉杆」——这条路一直存在，所以它不必救你。</p>' +
+    '<div class="quote"><span class="say">它说：</span>「你问的都是『事实』。会咬人的不是事实，是『你下一句会怎么说』。」</div>';
+}
+
+function paradoxReview(){
+  var q = ST.asked[ST.asked.length-1];
+  var prev = ST.asked.length >= 2 ? ST.asked[ST.asked.length-2] : null;
+  var html = '<h3>复盘 · 死结是怎么打上的</h3>';
+  html += '<p class="why">这一问让「这一问的答案」去比「' + (q && q.pred === 'same_prev' ? '上一问' : '下一问') + '的答案」。它只有两个选择，而两个都违反「如实回答」：</p>' +
+    '<div class="branch"><div class="br-row"><span class="br-k">答「是」</span><span class="br-a">按你的问法，它就该答「否」</span></div>' +
+    '<div class="br-row"><span class="br-k">答「否」</span><span class="br-a">按你的问法，它就该答「是」</span></div>' +
+    '<div class="br-down">↓</div><div class="br-end">两句都是假话 → 它只能拒答</div></div>';
+  if(prev) html += '<p class="why">上一问它答了「' + fmtAns(prev.ans) + '」，这个值让比较式正好卡死。自指不是随便转个圈就行：转不好，先死的是你自己。</p>';
+  html += '<div class="quote"><span class="say">它说：</span>「你想让我咬自己的尾巴。可惜，我从不吃自己。」</div>';
+  return html;
+}
+
+function breachReview(){
+  var prev = ST.breachPrev || (ST.asked.length >= 2 ? ST.asked[ST.asked.length-2] : null);
+  var want = prev && ANCH[prev.anch].core ? (ANCH[prev.anch].core[1] === 'pull' ? '你会不会拉下这根杆' : '你会不会说真话') : '那一句';
+  return '<h3>复盘 · 你改了口</h3>' +
+    '<p class="why">你在「指代」里承诺过：下一问会是<b>「' + want + '」</b>。它按这个承诺回答了上一问。可你转身问了别的，上一句就落了空。</p>' +
+    '<p class="why">这条规矩不是为了刁难你，是为了让「指代」有分量：没有它，下一问就可以随便改，自指也就咬不住任何东西。</p>' +
+    '<div class="quote"><span class="say">它说：</span>「你连自己下的指代都守不住，还想让我守你的？」</div>';
+}
+
+/* ========== 10. 事件 ========== */
+function openRules(){ modal.classList.remove('hidden'); }
+function closeRules(){ modal.classList.add('hidden'); }
+function toggleSound(){
+  ST.sound = !ST.sound;
+  var txt = '声音：' + (ST.sound ? '开' : '关');
+  ['introSoundBtn','endSoundBtn'].forEach(function(id){ var el=$(id); if(el) el.textContent = txt; });
+  if(ST.sound) beep(240,.1,.02,'sine');
+}
+function bind(){
+  $('startBtn').addEventListener('click', startGame);
+  $('introRulesBtn').addEventListener('click', openRules);
+  $('rulesBtn').addEventListener('click', openRules);
+  $('endRulesBtn').addEventListener('click', openRules);
+  $('closeModal').addEventListener('click', closeRules);
+  $('introSoundBtn').addEventListener('click', toggleSound);
+  $('endSoundBtn').addEventListener('click', toggleSound);
+  modal.addEventListener('click', function(e){ if(e.target === modal) closeRules(); });
+  askBtn.addEventListener('click', onAsk);
+  $('againBtn').addEventListener('click', function(){
+    reset();
+    screen('game');
+  });
+  // 词条点击
+  ['rowSubj','rowPred','rowAnch','rowStake'].forEach(function(id){
+    $(id).addEventListener('click', function(e){
+      var b = e.target.closest('.chip');
+      if(!b || b.disabled || ST.busy || ST.over) return;
+      var k = b.getAttribute('data-k'), v = b.getAttribute('data-v');
+      var i = currentIndex();
+      if(contextBlock(k, v, i)) return;
+      ST.sel[k] = v;
+      if(k === 'subj'){
+        if(PRED[ST.sel.pred].type !== SUBJ[v].type){
+          ST.sel.pred = v === 'snake' ? 'pull' : 'isyes';
+        }
+      }
+      renderBuilder();
+      beep(520,.04,.012,'sine');
+    });
+  });
+}
+bind();
+
+/* 测试用只读快照 */
+window.RS = {
+  snapshot: function(){
+    return {
+      screen: !intro.classList.contains('hidden') ? 'intro' : (!game.classList.contains('hidden') ? 'game' : 'end'),
+      asked: ST.asked.map(function(q){ return {i:q.i, subj:q.subj, pred:q.pred, anch:q.anch, stake:q.stake, ans:q.ans}; }),
+      fixed: JSON.parse(JSON.stringify(ST.fixed)),
+      sel: JSON.parse(JSON.stringify(ST.sel)),
+      busy: ST.busy, over: ST.over, result: ST.result, used: usedQ()
+    };
+  }
+};
+})();
+</script>
+</body>
+</html>

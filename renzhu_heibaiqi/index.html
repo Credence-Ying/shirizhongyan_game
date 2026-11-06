@@ -1,0 +1,1365 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#0a0908">
+<title>人猪 · 黑白棋｜十日终焉</title>
+<style>
+:root{
+  --ink:#0a0908; --panel:#15110f; --panel2:#1e1815; --line:#3b3126;
+  --gold:#c9a227; --gold2:#e8c96b; --red:#a8332b; --red2:#d2685c;
+  --txt:#e7dcc6; --dim:#93856f;
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;padding:0;background:#080706}
+body{
+  font-family:"Noto Serif SC","Source Han Serif SC","Songti SC","STSong","SimSun",serif;
+  color:var(--txt);overflow-x:hidden;-webkit-font-smoothing:antialiased;
+}
+button{font-family:inherit}
+#app{
+  max-width:540px;margin:0 auto;min-height:100vh;padding:10px 14px 172px;position:relative;
+  background:
+    radial-gradient(130% 55% at 50% -4%,rgba(201,162,39,.15),transparent 62%),
+    radial-gradient(100% 45% at 50% 104%,rgba(168,51,43,.12),transparent 65%),
+    linear-gradient(180deg,#0b0908,#070606 62%);
+}
+
+/* ---------- top ---------- */
+.top{display:flex;align-items:center;gap:10px;padding:2px 2px 10px}
+.seal{
+  width:40px;height:40px;flex:0 0 auto;border-radius:50%;display:grid;place-items:center;
+  background:radial-gradient(circle at 32% 26%,#2b2119,#120e0b);
+  border:1px solid #7a5f2a;color:var(--gold2);font-size:19px;
+  box-shadow:inset 0 0 14px rgba(201,162,39,.18),0 3px 10px rgba(0,0,0,.6);
+}
+.ttl{flex:1 1 auto;min-width:0}
+.ttl h1{margin:0;font-size:17px;font-weight:700;letter-spacing:2px;color:#efe2c6}
+.ttl .sub{font-size:10px;letter-spacing:2px;color:var(--dim);margin-top:3px}
+.dao{flex:0 0 auto;text-align:right;position:relative}
+.sbtn{
+  flex:0 0 auto;width:25px;height:25px;border-radius:50%;border:1px solid #45392a;
+  background:transparent;color:#7d705a;font-size:12px;line-height:1;padding:0;cursor:pointer;
+}
+.sbtn:active{color:#d8b95c}
+.dao b{font-size:22px;color:var(--gold2);font-variant-numeric:tabular-nums;line-height:1;transition:transform .2s}
+.dao b.bump{animation:bump .4s ease-out}
+@keyframes bump{0%{transform:scale(1)}35%{transform:scale(1.28);color:#fff0c2}100%{transform:scale(1)}}
+.dao span{font-size:10px;color:var(--dim);margin-left:2px;letter-spacing:1px}
+.fly{
+  position:absolute;right:0;top:-4px;font-size:14px;font-weight:700;pointer-events:none;
+  animation:flyUp .9s ease-out forwards;
+}
+@keyframes flyUp{
+  0%{opacity:0;transform:translateY(4px)}
+  22%{opacity:1}
+  100%{opacity:0;transform:translateY(-22px)}
+}
+
+/* ---------- hud ---------- */
+.hud{display:flex;border:1px solid var(--line);border-radius:10px;overflow:hidden;background:linear-gradient(180deg,#1a1512,#110e0c)}
+.hud>div{flex:1;padding:6px 4px;text-align:center;border-right:1px solid #2a2318}
+.hud>div:last-child{border-right:0}
+.hud .k{display:block;font-size:9px;color:var(--dim);letter-spacing:1.5px}
+.hud .v{display:block;font-size:15px;font-weight:700;color:#e9d9b2;line-height:1.45;font-variant-numeric:tabular-nums}
+
+.pips{display:flex;gap:6px;align-items:center;margin:8px 2px 9px}
+.pip{flex:1;height:5px;border-radius:3px;background:#332b20;transition:background .3s,box-shadow .3s}
+.pip.now{background:var(--gold);box-shadow:0 0 9px rgba(201,162,39,.65)}
+.pip.win{background:#7d6524}
+.pip.lose{background:#6a2a24}
+
+/* ---------- round strip ---------- */
+.strip{
+  padding:9px 11px;border:1px solid var(--line);border-left:3px solid var(--gold);
+  border-radius:8px;background:linear-gradient(180deg,#1a1512,#12100d);margin-bottom:11px;
+}
+.strip .sh{display:flex;align-items:center;gap:8px}
+.strip .sn{font-size:13px;color:var(--gold2);letter-spacing:1px;font-weight:700}
+.strip .sb{font-size:9px;padding:1px 5px;border-radius:3px;background:#33260f;color:#c9a227;border:1px solid #5a4526;letter-spacing:1px}
+.strip .sd{font-size:11.5px;color:#b5a78d;line-height:1.65;margin-top:5px}
+.strip .sq{font-size:11px;color:#867757;font-style:italic;line-height:1.5;margin-top:4px}
+.strip .qlab{font-style:normal;font-size:9px;letter-spacing:1px;padding:0 4px;margin-right:5px;border:1px solid #3a3123;border-radius:3px;color:#6f6350}
+
+/* ---------- trays ---------- */
+.trays{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:6px}
+.col{min-width:0}
+.tray{
+  position:relative;aspect-ratio:1/1;border-radius:50%;
+  background:radial-gradient(circle at 50% 28%,#1b1512,#0c0a08 72%);
+  border:2px solid #46381f;
+  box-shadow:inset 0 10px 26px rgba(0,0,0,.85),0 8px 18px rgba(0,0,0,.5);
+  transition:border-color .3s,box-shadow .3s;
+}
+.tray::after{
+  content:'';position:absolute;inset:5px;border-radius:50%;
+  border:1px dashed rgba(201,162,39,.10);pointer-events:none;
+}
+.dots{position:absolute;inset:0;transition:opacity .25s}
+.dot{
+  position:absolute;left:50%;top:50%;width:7px;height:7px;border-radius:50%;
+}
+.dot.b{background:radial-gradient(circle at 34% 27%,#6e6e82,#16161f 70%);box-shadow:0 0 0 1px rgba(206,190,150,.32),0 2px 3px rgba(0,0,0,.9)}
+.dot.w{background:radial-gradient(circle at 32% 28%,#fffdf3,#c6bda4 78%);box-shadow:0 0 0 1px rgba(0,0,0,.35),0 1px 2px rgba(0,0,0,.6)}
+.tray.covered .dots{opacity:0}
+.lid{
+  position:absolute;inset:-3px;border-radius:50%;opacity:0;transform:scale(.92);
+  background:
+    repeating-linear-gradient(45deg,rgba(201,162,39,.06) 0 4px,transparent 4px 9px),
+    radial-gradient(circle at 42% 28%,#3d3023,#17120e 74%);
+  border:2px solid #6b5329;
+  box-shadow:inset 0 0 24px rgba(0,0,0,.7),0 8px 20px rgba(0,0,0,.5);
+  transition:opacity .35s,transform .35s;pointer-events:none;
+  display:grid;place-items:center;
+}
+.lid .lseal{font-size:12px;letter-spacing:3px;color:#8d7339;opacity:.75}
+.tray.covered .lid{opacity:1;transform:none}
+.tray.shake{animation:shakeIt .11s linear 5}
+@keyframes shakeIt{
+  0%{transform:translate(0,0) rotate(0)}
+  25%{transform:translate(-2px,1px) rotate(-1deg)}
+  50%{transform:translate(2px,-1px) rotate(1deg)}
+  75%{transform:translate(-1px,-2px) rotate(-.6deg)}
+  100%{transform:translate(0,0) rotate(0)}
+}
+.tray.covered{cursor:pointer}
+.tray.covered:active{transform:scale(.985)}
+.tray.picked{border-color:var(--gold);box-shadow:inset 0 10px 26px rgba(0,0,0,.85),0 0 0 1px rgba(201,162,39,.5),0 0 24px rgba(201,162,39,.35)}
+.meta{
+  display:flex;align-items:center;justify-content:center;gap:5px;
+  font-size:10.5px;color:var(--dim);margin-top:7px;letter-spacing:.5px;font-variant-numeric:tabular-nums;
+}
+.meta .mname{color:#cbb68c;font-size:11px;letter-spacing:1px}
+.meta .mb{color:#c8c8d2}
+.meta .mw{color:#efe9d8}
+
+/* ---------- decomposition ---------- */
+.decomp{border:1px solid var(--line);border-radius:9px;padding:9px 11px 10px;background:#12100d;margin:10px 0}
+.drow{display:flex;align-items:center;gap:8px;font-size:11px;color:var(--dim);margin:4px 0}
+.drow .dn{flex:0 0 28px;letter-spacing:1px}
+.dbar{flex:1 1 auto;height:7px;border-radius:3px;background:#2b2318;overflow:hidden}
+.dbar i{display:block;height:100%;width:0;background:linear-gradient(90deg,#9a7a22,#f0d57e);transition:width .18s}
+.dbar.full i{background:linear-gradient(90deg,#c9a227,#f2db8e)}
+.drow .dv{flex:0 0 50px;text-align:right;color:#e3cf9e;font-variant-numeric:tabular-nums}
+.dsum{
+  margin-top:8px;padding-top:8px;border-top:1px dashed #332a1d;font-size:11px;color:#a99a80;
+  display:flex;justify-content:space-between;align-items:baseline;gap:8px;flex-wrap:wrap;line-height:1.5;
+}
+.dsum .fml{flex:1 1 auto;min-width:0}
+.dsum b{font-size:18px;color:var(--gold2);font-variant-numeric:tabular-nums}
+.dnote{font-size:10px;color:#6f6350;margin-top:5px;line-height:1.55}
+.dnote em{font-style:normal;color:#b09558}
+.dhint{font-size:10.5px;color:#d8b95c;margin-top:7px;line-height:1.6;padding:5px 8px;background:rgba(201,162,39,.07);border-radius:4px;border-left:2px solid #6b5320}
+.dhint[hidden]{display:none}
+
+/* 摸碗阶段收起分配控件 */
+#app[data-phase="pick"] .ctl,#app[data-phase="shuffle"] .ctl,
+#app[data-phase="pick"] .simbox,#app[data-phase="shuffle"] .simbox{display:none}
+
+/* ---------- chart ---------- */
+.paper{border:1px solid var(--line);border-radius:9px;padding:8px 9px 5px;background:#100e0b;margin:10px 0}
+.paper h4{margin:0 0 3px;font-size:10px;font-weight:400;letter-spacing:2px;color:var(--dim);display:flex;justify-content:space-between;gap:6px}
+.paper h4 span{letter-spacing:0;color:#6f6350}
+.paper .lock{font-size:11px;color:#6f6350;padding:16px 8px 17px;text-align:center;line-height:1.7}
+#chart{width:100%;height:auto;display:block}
+
+/* ---------- controls ---------- */
+.ctl{border:1px solid var(--line);border-radius:9px;padding:7px 11px 2px;background:#12100d;margin:9px 0}
+.ctl-h{display:flex;align-items:center;gap:8px;font-size:11px;color:#b8a98e;letter-spacing:1px}
+.ctl-h .cn{margin-left:auto;font-size:15px;color:var(--gold2);font-variant-numeric:tabular-nums;letter-spacing:0}
+.ctl-h .cn small{color:#6f6350;font-size:10px}
+.nudge{display:flex;gap:5px;margin-left:8px}
+.nudge button{
+  width:32px;height:32px;border-radius:7px;border:1px solid #45392a;background:#1b1512;
+  color:#cbb994;font-size:16px;line-height:1;padding:0;cursor:pointer;
+}
+.nudge button:active{background:#2a2116}
+input[type=range]{
+  -webkit-appearance:none;appearance:none;width:100%;height:28px;background:transparent;margin:0;display:block;
+}
+input[type=range]::-webkit-slider-runnable-track{height:5px;border-radius:3px;background:linear-gradient(90deg,#3d3223,#221c14)}
+input[type=range]::-webkit-slider-thumb{
+  -webkit-appearance:none;width:22px;height:22px;margin-top:-8.5px;border-radius:50%;
+  background:radial-gradient(circle at 34% 28%,#f4dc90,#a8841d);border:1px solid #ecd68a;
+  box-shadow:0 2px 6px rgba(0,0,0,.6);cursor:pointer;
+}
+input[type=range]::-moz-range-track{height:5px;border-radius:3px;background:#2a2318}
+input[type=range]::-moz-range-thumb{width:20px;height:20px;border-radius:50%;background:#d9b64a;border:1px solid #ecd68a}
+input[type=range]:disabled{opacity:.32}
+.ctl.lock{opacity:.85}
+.ctl .locknote{font-size:10px;color:#8a6d3f;letter-spacing:.5px}
+.bad{color:var(--red2)!important}
+
+/* ---------- sim ---------- */
+.simbox{margin:9px 0 0;font-size:11px;color:#9c8e75;line-height:1.6}
+.simbar{height:4px;border-radius:2px;background:#241d14;overflow:hidden;margin-top:5px}
+.simbar i{display:block;height:100%;width:0;background:linear-gradient(90deg,#6f5a1c,#c9a227)}
+.simbox b{color:var(--gold2);font-variant-numeric:tabular-nums}
+
+/* ---------- bottom bar ---------- */
+.bar{
+  position:fixed;left:0;right:0;bottom:0;z-index:9;
+  background:linear-gradient(180deg,rgba(8,7,6,.62),#080706 46%);
+  border-top:1px solid #332a1d;padding:8px 14px calc(9px + env(safe-area-inset-bottom));
+}
+.bar-in{max-width:512px;margin:0 auto}
+.stake{display:flex;align-items:center;gap:8px;margin-bottom:7px}
+.stake .sl{font-size:11px;color:var(--dim);letter-spacing:2px}
+.stake .sv{font-size:15px;color:var(--gold2);font-variant-numeric:tabular-nums;min-width:46px;text-align:center}
+.stake button{
+  width:34px;height:34px;border-radius:8px;border:1px solid #45392a;background:#1b1512;
+  color:#cbb994;font-size:17px;line-height:1;padding:0;cursor:pointer;
+}
+.stake .sn{margin-left:auto;font-size:10px;color:#867757;text-align:right;line-height:1.4}
+.stake .sn em{font-style:normal;color:#a9906a}
+.stake .sn em.risk{color:#c98a6a}
+.brow{display:flex;gap:8px}
+.btn{
+  flex:1 1 auto;min-height:46px;padding:8px 12px;border-radius:9px;cursor:pointer;
+  font-size:14.5px;letter-spacing:1px;
+  border:1px solid #4a3f2c;background:linear-gradient(180deg,#211b15,#161210);color:var(--txt);
+  transition:transform .1s,filter .15s;
+}
+.btn:active{transform:translateY(1px)}
+.btn.primary{background:linear-gradient(180deg,#e0bd55,#ab8520);border-color:#f0d780;color:#15100a;font-weight:700}
+.btn.ghost{flex:0 0 auto;background:transparent;color:#a4967c;border-color:#3d3325;font-size:13px;padding:8px 14px}
+.btn:disabled{opacity:.4;filter:grayscale(.4);cursor:not-allowed}
+.btn.fixmode{background:linear-gradient(180deg,#3a3024,#241d16);border-color:#5a4526;color:#d8b95c;font-weight:400}
+.hintline{font-size:11.5px;color:#a3957c;text-align:center;line-height:1.6;padding:4px 0 2px}
+.hintline b{color:var(--gold2);font-weight:700}
+
+/* ---------- toast / flash ---------- */
+.toast{
+  position:fixed;left:50%;top:12px;z-index:20;pointer-events:none;
+  transform:translate(-50%,-14px);opacity:0;transition:opacity .3s,transform .3s;
+  background:rgba(30,23,17,.97);border:1px solid #6b5329;border-radius:9px;
+  padding:9px 16px;font-size:12px;letter-spacing:1px;color:#e8c96b;text-align:center;
+  max-width:calc(100vw - 32px);line-height:1.5;box-shadow:0 12px 30px rgba(0,0,0,.7);
+}
+.toast.on{opacity:1;transform:translate(-50%,0)}
+.toast b{color:#fff0c2}
+.flash{position:fixed;inset:0;z-index:25;pointer-events:none;opacity:0;background:radial-gradient(circle at 50% 45%,rgba(201,162,39,.5),transparent 62%)}
+.flash.go{animation:fl .75s ease-out}
+.flash.red{background:radial-gradient(circle at 50% 45%,rgba(168,51,43,.55),transparent 62%)}
+@keyframes fl{0%{opacity:0}18%{opacity:1}100%{opacity:0}}
+#app[data-phase="pick"] .trays{filter:brightness(.72) saturate(.65)}
+
+/* ---------- overlays ---------- */
+.ov{
+  position:fixed;inset:0;z-index:30;display:none;padding:16px;
+  background:rgba(6,5,4,.9);backdrop-filter:blur(3px);overflow-y:auto;
+}
+.ov.show{display:flex;align-items:center;justify-content:center}
+.sheet{
+  width:100%;max-width:420px;max-height:94vh;overflow-y:auto;position:relative;
+  background:linear-gradient(172deg,#1c1713,#100d0b);
+  border:1px solid #463a27;border-radius:14px;padding:20px 17px 18px;
+  box-shadow:0 24px 70px rgba(0,0,0,.8),inset 0 0 40px rgba(201,162,39,.04);
+  animation:sheetIn .32s ease-out;
+}
+@keyframes sheetIn{from{opacity:0;transform:translateY(14px) scale(.985)}to{opacity:1;transform:none}}
+.sheet h2{margin:0 0 4px;font-size:22px;letter-spacing:3px;color:#f0e2c4;font-weight:700}
+.sheet .kick{font-size:10px;letter-spacing:3px;color:#9a7c3c;margin-bottom:10px}
+.sheet .lead{font-size:12.5px;line-height:1.85;color:#c3b598;margin:0 0 10px}
+.sheet .lead b{color:var(--gold2);font-weight:700}
+.sheet .src{font-size:10px;color:#6f6350;line-height:1.7;margin:12px 0 14px}
+.memline{font-size:11px;color:#a48c56;line-height:1.6;margin:-6px 0 14px;padding:7px 10px;border:1px dashed #45392a;border-radius:6px;text-align:center;letter-spacing:.5px}
+.memline b{color:#e8c96b;font-weight:700}
+.memline[hidden]{display:none}
+.sheet .row2{display:flex;gap:8px;margin-top:12px}
+.sheet .row2 .btn{min-height:44px}
+.close{position:absolute;right:10px;top:8px;width:32px;height:32px;border:0;background:transparent;color:#8a7c63;font-size:20px;cursor:pointer;line-height:1}
+
+.facts{list-style:none;padding:0;margin:0 0 12px}
+.facts li{position:relative;font-size:11.5px;line-height:1.7;color:#b9ab8e;padding-left:14px;margin:5px 0}
+.facts li::before{content:'';position:absolute;left:2px;top:8px;width:5px;height:5px;border-radius:50%;background:#8a6d2a}
+.facts li em{font-style:normal;color:#9d8c6b;font-size:10px}
+
+/* ---------- reveal ---------- */
+.rv{text-align:center;padding-top:26px}
+.rv-cap{font-size:11px;letter-spacing:2px;color:#9c8e75;line-height:1.7}
+.rv-cap b{color:#d9c69a;font-weight:400}
+.hold{margin:16px 0 4px;display:grid;place-items:center;min-height:110px}
+.bstone{
+  width:96px;height:96px;border-radius:50%;display:grid;place-items:center;position:relative;
+  background:radial-gradient(circle at 34% 28%,#2e2e36,#0a0a0d 72%);
+  border:1px solid #4d4d57;
+  box-shadow:0 12px 28px rgba(0,0,0,.75),inset 0 0 22px rgba(255,255,255,.05);
+  transition:background .3s,border-color .3s,box-shadow .3s;
+}
+.bstone .qm{font-size:26px;color:#5f5f6b;letter-spacing:2px;transition:color .3s}
+.bstone.flip{animation:flipc .56s ease-in-out}
+@keyframes flipc{
+  0%{transform:rotateY(0) scale(1)}
+  48%{transform:rotateY(88deg) scale(1.04)}
+  100%{transform:rotateY(0) scale(1)}
+}
+.bstone.black{box-shadow:0 0 0 1px rgba(201,162,39,.35),0 0 34px rgba(201,162,39,.3),inset 0 0 22px rgba(255,255,255,.05)}
+.bstone.black .qm{color:var(--gold2)}
+.bstone.white{background:radial-gradient(circle at 34% 28%,#fffef7,#cdc4aa 76%);border-color:#f2ebd6}
+.bstone.white .qm{color:#8b805f}
+.rv-title{font-size:30px;letter-spacing:8px;color:var(--gold2);margin:6px 0 0;opacity:0;transform:translateY(6px);transition:.4s;font-weight:700}
+.rv-title.on{opacity:1;transform:none}
+.rv-title.bad{color:var(--red2)}
+.rv-sub{font-size:11.5px;color:#a2947a;margin-top:6px;letter-spacing:1px}
+.rv-body{
+  text-align:left;margin-top:14px;padding-top:13px;border-top:1px dashed #392f20;
+  opacity:0;transform:translateY(8px);transition:.35s;
+}
+.rv-body.on{opacity:1;transform:none}
+.rv-body .bl{display:flex;justify-content:space-between;gap:10px;font-size:11.5px;color:#a3957c;line-height:1.9}
+.rv-body .bl b{color:#e2d0a4;font-variant-numeric:tabular-nums;font-weight:400}
+.rv-body .bl.hi b{color:var(--gold2)}
+.rv-body .bt{margin-top:9px;padding-top:9px;border-top:1px dashed #392f20;font-size:11px;color:#9a8c72;line-height:1.75}
+.rv-body .bt b{color:#cfb87e;font-weight:400}
+.rv-body .bt .gd{color:var(--gold2)}
+.rv-body .bt .bd{color:var(--red2)}
+.rv-acts{margin-top:14px;display:flex;gap:8px}
+.rv-acts .btn{min-height:46px}
+
+/* ---------- end ---------- */
+.tier{font-size:26px;letter-spacing:5px;color:var(--gold2);font-weight:700;margin:2px 0 6px;text-align:center}
+.tier.bad{color:var(--red2)}
+.eq{font-size:12px;color:#b0a081;line-height:1.85;text-align:center;margin:0 0 14px}
+.egrid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:1px;background:#352c1e;border:1px solid #352c1e;border-radius:8px;overflow:hidden;margin-bottom:14px}
+.egrid>div{background:#141110;padding:9px 4px;text-align:center}
+.egrid span{display:block;font-size:9.5px;color:var(--dim);letter-spacing:1px}
+.egrid b{display:block;font-size:16px;color:var(--gold2);font-variant-numeric:tabular-nums;margin-top:3px;letter-spacing:0}
+.egrid b small{font-size:10px;color:#8d8068}
+.rectab{width:100%;border-collapse:collapse;font-size:10.5px;color:#a3957c;margin-bottom:12px}
+.rectab th{font-weight:400;color:#6f6350;font-size:9.5px;letter-spacing:1px;padding:4px 2px;border-bottom:1px solid #2e2719;text-align:left}
+.rectab td{padding:5px 2px;border-bottom:1px solid #221c15;font-variant-numeric:tabular-nums}
+.rectab td.w{color:var(--gold2)}
+.rectab td.l{color:var(--red2)}
+.endnote{font-size:11px;color:#8b7d64;line-height:1.85;margin:0 0 14px;padding:10px 12px;border-left:2px solid #5a4526;background:#12100d;border-radius:0 6px 6px 0}
+.endnote b{color:var(--gold2);font-weight:400}
+
+/* ---------- rules ---------- */
+.rtab{width:100%;border-collapse:collapse;font-size:11px;color:#b3a486;margin:6px 0 14px}
+.rtab td{padding:6px 4px;border-bottom:1px solid #241e15;line-height:1.6;vertical-align:top}
+.rtab td:first-child{color:#8d7c5f;width:88px;font-size:10.5px;letter-spacing:1px}
+.rh{font-size:11px;letter-spacing:2px;color:var(--gold);margin:14px 0 4px;padding-left:8px;border-left:2px solid #6b5329}
+.tag2{font-size:9px;padding:1px 4px;border-radius:3px;background:#33260f;color:#c9a227;vertical-align:2px;margin-left:4px}
+
+@media (max-width:360px){
+  .dot{width:6px;height:6px}
+  .ttl h1{font-size:15.5px}
+  .rv-title{font-size:26px}
+}
+</style>
+</head>
+<body>
+<div id="app" data-phase="intro">
+
+  <div class="top">
+    <div class="seal">猪</div>
+    <div class="ttl">
+      <h1>人猪 · 黑白棋</h1>
+      <div class="sub">十日终焉 · 人级生肖局</div>
+    </div>
+    <button type="button" class="sbtn" id="btnRulesTop" aria-label="规则">?</button>
+    <div class="dao"><b id="dao">12</b><span>道</span></div>
+  </div>
+
+  <div class="hud">
+    <div><span class="k">局数</span><span class="v" id="hudRound">1 / 5</span></div>
+    <div><span class="k">押注</span><span class="v" id="hudStake">2 道</span></div>
+    <div><span class="k">本局胜率</span><span class="v" id="hudP">—</span></div>
+  </div>
+
+  <div class="pips" id="pips"></div>
+
+  <div class="strip">
+    <div class="sh">
+      <span class="sn" id="stripName">第一局 · 空碗</span>
+      <span class="sb" id="stripBadge">原文规则</span>
+    </div>
+    <div class="sd" id="stripDesc"></div>
+    <div class="sq" id="stripQuote"></div>
+  </div>
+
+  <div class="trays">
+    <div class="col">
+      <div class="tray" id="trayA" data-bowl="A"><div class="dots" id="dotsA"></div><div class="lid"><span class="lseal">甲</span></div></div>
+      <div class="meta" id="metaA"><span class="mname">甲</span><span class="mb">25 黑</span><span class="mw">25 白</span></div>
+    </div>
+    <div class="col">
+      <div class="tray" id="trayB" data-bowl="B"><div class="dots" id="dotsB"></div><div class="lid"><span class="lseal">乙</span></div></div>
+      <div class="meta" id="metaB"><span class="mname">乙</span><span class="mb">25 黑</span><span class="mw">25 白</span></div>
+    </div>
+  </div>
+
+  <div class="ctl" id="ctlB">
+    <div class="ctl-h">
+      <span>黑棋 · 放进甲碗</span>
+      <span class="nudge"><button type="button" id="bMinus">−</button><button type="button" id="bPlus">+</button></span>
+      <span class="cn"><span id="bVal">25</span><small> / 50</small></span>
+    </div>
+    <input type="range" id="rangeB" min="0" max="50" value="25" step="1" aria-label="黑子分配给甲碗的数量">
+    <div class="bad" id="bBad" hidden style="font-size:10px;padding-bottom:4px"></div>
+  </div>
+
+  <div class="ctl" id="ctlW">
+    <div class="ctl-h">
+      <span>白棋 · 放进甲碗</span>
+      <span class="nudge"><button type="button" id="wMinus">−</button><button type="button" id="wPlus">+</button></span>
+      <span class="cn"><span id="wVal">25</span><small> / 50</small></span>
+    </div>
+    <input type="range" id="rangeW" min="0" max="50" value="25" step="1" aria-label="白子分配给甲碗的数量">
+    <div class="locknote" id="wLock" hidden>本局裁判锁死：白子必须与黑子等量，才能凑出两只等重的碗。</div>
+    <div class="bad" id="wBad" hidden style="font-size:10px;padding-bottom:4px"></div>
+  </div>
+
+  <div class="decomp">
+    <div class="drow">
+      <span class="dn">甲碗</span>
+      <div class="dbar" id="barA"><i></i></div>
+      <span class="dv" id="pA">50.0%</span>
+    </div>
+    <div class="drow">
+      <span class="dn">乙碗</span>
+      <div class="dbar" id="barB"><i></i></div>
+      <span class="dv" id="pB">50.0%</span>
+    </div>
+    <div class="dsum">
+      <span class="fml">½ × <span id="fA">50.0%</span> + ½ × <span id="fB">50.0%</span> =</span>
+      <b id="pTot">50.0%</b>
+    </div>
+    <div class="dhint" id="dHint"></div>
+    <div class="dnote">蒙眼之后两只碗会被<em>换位扣住</em>，你只能二选一 —— 所以两只碗各占一半权重。</div>
+  </div>
+
+  <div class="paper">
+    <h4><span>赌桌算纸 · 黑子摆在哪儿</span><span id="paperTip"></span></h4>
+    <div id="chartBox"></div>
+  </div>
+
+  <div class="simbox" id="simBox" hidden>
+    <div id="simLine">—</div>
+    <div class="simbar"><i id="simFill"></i></div>
+  </div>
+
+  <div class="bar">
+    <div class="bar-in" id="barAlloc">
+      <div class="stake">
+        <span class="sl">押注</span>
+        <button type="button" id="stMinus">−</button>
+        <span class="sv" id="stVal">2 道</span>
+        <button type="button" id="stPlus">+</button>
+        <span class="sn" id="stNote">赢 +2 · 输 −2</span>
+      </div>
+      <div class="brow">
+        <button type="button" class="btn ghost" id="btnSim">试摸 1000 次</button>
+        <button type="button" class="btn primary" id="btnConfirm">确认分配</button>
+      </div>
+    </div>
+    <div class="bar-in" id="barPick" hidden>
+      <div class="hintline">两只碗已经扣住并换过位置。<br><b>点一只碗，把手伸进去。</b></div>
+    </div>
+  </div>
+
+</div>
+
+<!-- ================= overlay 辅助 ================= -->
+<div class="toast" id="toast"></div>
+<div class="flash" id="flash"></div>
+
+<!-- ================= intro ================= -->
+<div class="ov" id="ovIntro">
+  <div class="sheet">
+    <div class="kick">生肖 · 人级 · 猪</div>
+    <h2>人猪 · 黑白棋</h2>
+    <p class="lead">五十颗黑，五十颗白，两只碗。<br>蒙上眼，任选一只，摸出一颗。</p>
+    <p class="lead"><b>摸到黑，你拿走门票；摸到白，你把自己留下。</b></p>
+    <ul class="facts">
+      <li>100 颗棋子要全部用完，一颗都不能剩 <em>（原文）</em></li>
+      <li>两只碗里都必须有棋子，但没说必须一样多 <em>（原文的缝隙）</em></li>
+      <li>摆完之后碗被扣住、换位，你只能挑碗，不能挑棋子</li>
+      <li>五局定生死，每局押 1—5 道，赢了拿回两倍门票</li>
+    </ul>
+    <div class="src">据《十日终焉·囚笼》第 7 关「人猪·黑白棋」设计（档案可信度 A）。规则写不清的地方，游戏里都标了「本作设定」。</div>
+    <div class="memline" id="memLine" hidden></div>
+    <div class="row2">
+      <button type="button" class="btn ghost" id="btnRules">先读规则</button>
+      <button type="button" class="btn primary" id="btnEnter">入局</button>
+    </div>
+  </div>
+</div>
+
+<!-- ================= rules ================= -->
+<div class="ov" id="ovRules">
+  <div class="sheet">
+    <button type="button" class="close" id="btnRulesClose">×</button>
+    <div class="kick">规则</div>
+    <h2>怎么摆，怎么摸</h2>
+
+    <div class="rh">一、原文口径</div>
+    <table class="rtab">
+      <tr><td>道具</td><td>黑棋 50 颗、白棋 50 颗、两只碗、眼罩</td></tr>
+      <tr><td>分配</td><td>自行把 100 颗分进两只碗，两只碗都必须有棋子（没要求数量相等）</td></tr>
+      <tr><td>摸子</td><td>摇匀、戴眼罩，任选一只碗摸出一颗</td></tr>
+      <tr><td>判定</td><td>摸到黑子即胜；摸到白子即负</td></tr>
+      <tr><td>门票</td><td>1—5 颗道，赢了翻倍</td></tr>
+      <tr><td>原文摘录</td><td>档案标注「未找到可核实原文片段」。本作不虚构原文：页面内标「台词」的裁判话都是本作撰写，不作为原文引用</td></tr>
+    </table>
+
+    <div class="rh">二、本作设定<span class="tag2">原文未写或写不清</span></div>
+    <table class="rtab">
+      <tr><td>五局制</td><td>一轮赌局打五局，每局一条「裁判加码」，条件在第 2—5 局逐局变紧</td></tr>
+      <tr><td>押注</td><td>每局自行押 1—5 道，上限不超过手上的道；赢 +押注，输 −押注（即「门票翻倍」= 净赚一份门票）</td></tr>
+      <tr><td>押大加码</td><td>押到 4 道：裁判先手，每只碗先压 1 颗白子；押到 5 道：两只碗还必须各自装够 30 颗 —— 押得狠，规矩就紧，天花板随之下降</td></tr>
+      <tr><td>起始</td><td>12 道。道归零则留在终焉之地，五局未归零则按净输赢结算</td></tr>
+      <tr><td>换位</td><td>摇匀后两只碗会随机调换位置，所以哪一只是甲、哪一只是乙，你摸的时候不知道</td></tr>
+      <tr><td>试摸</td><td>每局开赌前可以免费试摸 1000 次，只统计、不动道</td></tr>
+      <tr><td>算纸</td><td>第一局不给曲线图，赌完一局之后才翻出来，写明「固定白子、只动黑子」时胜率怎么变</td></tr>
+      <tr><td>赌命版</td><td>原文的一真一假两位证人未实装，本作只做概率局</td></tr>
+    </table>
+
+    <div class="rh">三、概率怎么算</div>
+    <table class="rtab">
+      <tr><td>单碗</td><td>甲碗黑子比例 = 甲碗黑子数 ÷ 甲碗总子数</td></tr>
+      <tr><td>总概率</td><td>P = ½ × 甲碗黑子比例 + ½ × 乙碗黑子比例（½ 来自蒙眼二选一）</td></tr>
+      <tr><td>天花板</td><td>把甲碗只放 1 颗黑子、乙碗放 49 黑 50 白：P = ½ × 100% + ½ × 49.5% ≈ 74.7%</td></tr>
+      <tr><td>为什么不是 50%</td><td>规则只要求「两碗都有棋子」，没要求两碗等重 —— 这就是那个缝</td></tr>
+    </table>
+
+    <div class="row2">
+      <button type="button" class="btn primary" id="btnRulesOk">知道了</button>
+    </div>
+  </div>
+</div>
+
+<!-- ================= reveal ================= -->
+<div class="ov" id="ovReveal">
+  <div class="sheet rv">
+    <div class="rv-cap" id="rvCap"></div>
+    <div class="hold"><div class="bstone" id="bigStone"><span class="qm">?</span></div></div>
+    <div class="rv-title" id="rvTitle"></div>
+    <div class="rv-sub" id="rvSub"></div>
+    <div class="rv-body" id="rvBody"></div>
+    <div class="rv-acts" id="rvActs"></div>
+  </div>
+</div>
+
+<!-- ================= end ================= -->
+<div class="ov" id="ovEnd">
+  <div class="sheet" id="endSheet"></div>
+</div>
+
+<script>
+(function(){
+'use strict';
+
+/* ============ 常量与轮次 ============ */
+var TOTAL_B = 50, TOTAL_W = 50;
+
+var ROUNDS = [
+  { key:'free', name:'空碗', badge:'原文规则',
+    desc:'两碗都有棋子，100 颗全部用上，其余随便摆。',
+    quote:'「随便摆。摆完，我看不见你，你也看不见我。」',
+    bMin:0,bMax:50,wMin:0,wMax:50,wLock:false },
+  { key:'equal', name:'等重', badge:'本作设定',
+    desc:'两只碗的棋子总数必须相等 —— 每只碗恰好 50 颗。',
+    quote:'「两只碗，一样重。」',
+    bMin:0,bMax:50,wMin:0,wMax:50,wLock:true },
+  { key:'white3', name:'留白', badge:'本作设定',
+    desc:'每只碗至少 3 颗白子。',
+    quote:'「每只碗里，都得留三颗白的。」',
+    bMin:0,bMax:50,wMin:3,wMax:47,wLock:false },
+  { key:'floor10', name:'厚底', badge:'本作设定',
+    desc:'每只碗至少 10 颗棋子。',
+    quote:'「每只碗，不许少于十颗。」',
+    bMin:0,bMax:50,wMin:0,wMax:50,wLock:false },
+  { key:'both', name:'见色', badge:'本作设定',
+    desc:'每只碗至少 1 颗黑子、1 颗白子。',
+    quote:'「最后一局。两只碗，都得有黑有白。」',
+    bMin:1,bMax:49,wMin:1,wMax:49,wLock:false }
+];
+
+var START_DAO = 12;
+
+var st = {
+  phase:'intro',
+  round:1,
+  dao:START_DAO,
+  stake:2,
+  bA:25, wA:25,
+  paper:false,
+  leftIsA:true,
+  hist:[],
+  last:null,
+  opt:null,
+  simBusy:false,
+  stats:{ draws:0, wins:0, theo:0, bestP:0, bestCfg:null, simN:0, simB:0 }
+};
+
+var app = document.getElementById('app');
+function $(id){ return document.getElementById(id); }
+function clamp(v,a,b){ return v<a?a:(v>b?b:v); }
+
+/* 记牌：本机累计战绩（file:// 下也走 localStorage，失败则静默） */
+var MEMKEY='renzhu_heibaiqi_v1';
+var MEM={runs:0,draws:0,wins:0,best:0,paper:false};
+try{
+  var rawMem=localStorage.getItem(MEMKEY);
+  if(rawMem){
+    var om=JSON.parse(rawMem);
+    if(om && typeof om==='object'){
+      MEM.runs=om.runs|0; MEM.draws=om.draws|0; MEM.wins=om.wins|0; MEM.best=(+om.best)||0;
+      MEM.paper=!!om.paper;
+    }
+  }
+}catch(e){}
+st.paper=MEM.paper;
+function memSave(){ try{ localStorage.setItem(MEMKEY,JSON.stringify(MEM)); }catch(e){} }
+function memText(){
+  var rate = MEM.draws ? ((MEM.wins/MEM.draws*100).toFixed(0)+'%') : '—';
+  return '这张桌子记得你：<b>'+MEM.runs+'</b> 轮 · <b>'+MEM.draws+'</b> 局 · 胜率 <b>'+rate+
+         '</b> · 最高单局 <b>'+(MEM.best*100).toFixed(1)+'%</b>';
+}
+function renderMem(){
+  var el=$('memLine');
+  if(MEM.runs<1){ el.hidden=true; return; }
+  el.hidden=false; el.innerHTML=memText();
+}
+
+function toast(html, ms){
+  var t=$('toast');
+  t.innerHTML=html; t.classList.add('on');
+  clearTimeout(toast._t);
+  toast._t=setTimeout(function(){ t.classList.remove('on'); }, ms||1900);
+}
+function flash(good){
+  var f=$('flash');
+  f.className='flash'+(good?'':' red');
+  void f.offsetWidth;
+  f.classList.add('go');
+}
+
+/* ============ 数学 ============ */
+function prob(b,w){
+  var A=b+w; if(A<1) return null;
+  var B=(TOTAL_B-b)+(TOTAL_W-w); if(B<1) return null;
+  return 0.5*(b/A) + 0.5*((TOTAL_B-b)/B);
+}
+function rnd(){ return ROUNDS[st.round-1]; }
+
+/* 押 4 道起，裁判先手往每只碗里压 1 颗白子；押 5 道，两只碗还各自至少得装 30 颗（本作设定） */
+function stakeTight(){ return st.stake>=4; }
+function stakeTight2(){ return st.stake>=5; }
+function stakeNoteText(){
+  if(st.stake>=5) return '每碗先压 1 白 · 两碗 ≥30 颗';
+  if(st.stake>=4) return '每碗先压 1 白';
+  return '';
+}
+
+function valid(b,w){
+  var A=b+w, B=100-A;
+  if(A<1 || B<1) return false;            // 原文：两只碗都得有棋子
+  if(stakeTight() && (w<1 || (TOTAL_W-w)<1)) return false;
+  if(stakeTight2() && (A<30 || B<30)) return false;
+  switch(rnd().key){
+    case 'equal':    return A===50;
+    case 'white3':   return w>=3 && (TOTAL_W-w)>=3;
+    case 'floor10':  return A>=10 && B>=10;
+    case 'both':     return b>=1 && b<=49 && w>=1 && w<=49;
+    default:         return true;
+  }
+}
+function invalidText(){
+  if(stakeTight2() && (st.bA+st.wA<30 || 100-st.bA-st.wA<30))
+    return '押 5 道，裁判要验碗：两只碗各自至少 30 颗，不许一边太单薄。';
+  if(stakeTight() && (st.wA<1 || (TOTAL_W-st.wA)<1))
+    return '押 4 道起，裁判先手：每只碗至少 1 颗白子 —— 甲碗白 ≥1，乙碗白 ≥1。';
+  switch(rnd().key){
+    case 'equal':   return '本局要求两碗等重：甲碗 = 黑 + 白 必须正好 50 颗。';
+    case 'floor10': return '本局要求每只碗至少 10 颗：甲碗要 ≥10 颗，乙碗也要 ≥10 颗。';
+    default:        return '两只碗都必须有棋子。';
+  }
+}
+function optimum(){
+  var best=null;
+  for(var b=0;b<=50;b++){
+    for(var w=0;w<=50;w++){
+      if(!valid(b,w)) continue;
+      var p=prob(b,w); if(p==null) continue;
+      if(!best || p>best.p) best={p:p,b:b,w:w};
+    }
+  }
+  return best;
+}
+function fmtP(p){ return p==null?'—':(p*100).toFixed(1)+'%'; }
+
+/* ============ 阶段 ============ */
+function setPhase(p){
+  st.phase=p;
+  app.setAttribute('data-phase',p);
+  if(p==='alloc' || p==='shuffle'){
+    $('barAlloc').hidden=false; $('barPick').hidden=true;
+  }else if(p==='pick'){
+    $('barAlloc').hidden=true;  $('barPick').hidden=false;
+  }else{
+    $('barAlloc').hidden=true;  $('barPick').hidden=true;
+  }
+}
+function showOv(id){ $(id).classList.add('show'); }
+function hideOv(id){ $(id).classList.remove('show'); }
+
+/* ============ 渲染 ============ */
+var trayA=$('trayA'), trayB=$('trayB');
+var dotsA=[], dotsB=[];
+(function buildDots(){
+  for(var i=0;i<100;i++){
+    var a=document.createElement('i'); a.className='dot'; $('dotsA').appendChild(a); dotsA.push(a);
+    var b=document.createElement('i'); b.className='dot'; $('dotsB').appendChild(b); dotsB.push(b);
+  }
+})();
+
+function paintTray(tray,dots,blacks,whites){
+  var n=blacks+whites;
+  var R=Math.max(26, tray.clientWidth/2 - 9);
+  var size = n<=4 ? 16 : (n<=24 ? 11 : 9);
+  for(var i=0;i<100;i++){
+    var d=dots[i];
+    if(i>=n){ if(d.style.display!=='none') d.style.display='none'; continue; }
+    if(d.style.display==='none') d.style.display='block';
+    d.style.width=size+'px'; d.style.height=size+'px';
+    // 黑白按比例穿插：抖匀之后的样子
+    var isB = n>0 && (Math.floor((i+1)*blacks/n) > Math.floor(i*blacks/n));
+    var cls = 'dot '+(isB?'b':'w');
+    if(d.className!==cls) d.className=cls;
+    var rr=R*Math.pow((i+0.5)/Math.max(n,1),0.62)*(n<=3?0.26:(n<=8?0.55:1));
+    var ang=i*2.399963229728653;
+    d.style.transform='translate(-50%,-50%) translate('+(rr*Math.cos(ang)).toFixed(1)+'px,'+(rr*Math.sin(ang)).toFixed(1)+'px)';
+  }
+}
+
+function paint(){
+  var bA=st.bA, wA=st.wA, bB=TOTAL_B-bA, wB=TOTAL_W-wA;
+
+  paintTray(trayA,dotsA,bA,wA);
+  paintTray(trayB,dotsB,bB,wB);
+
+  if(st.phase==='pick'){
+    $('metaA').innerHTML='<span class="mname">左 碗</span><span>？</span>';
+    $('metaB').innerHTML='<span class="mname">右 碗</span><span>？</span>';
+  }else{
+    $('metaA').innerHTML='<span class="mname">甲</span><span class="mb">'+bA+' 黑</span><span class="mw">'+wA+' 白</span>';
+    $('metaB').innerHTML='<span class="mname">乙</span><span class="mb">'+bB+' 黑</span><span class="mw">'+wB+' 白</span>';
+  }
+
+  var pA = (bA+wA)>0 ? bA/(bA+wA) : 0;
+  var pB = (bB+wB)>0 ? bB/(bB+wB) : 0;
+  var ok = valid(bA,wA);
+  var p = ok ? prob(bA,wA) : null;
+
+  $('barA').querySelector('i').style.width = (pA*100).toFixed(1)+'%';
+  $('barB').querySelector('i').style.width = (pB*100).toFixed(1)+'%';
+  $('barA').className = 'dbar' + (pA>=0.999?' full':'');
+  $('barB').className = 'dbar' + (pB>=0.999?' full':'');
+  $('pA').textContent = fmtP(pA);
+  $('pB').textContent = fmtP(pB);
+  $('fA').textContent = fmtP(pA);
+  $('fB').textContent = fmtP(pB);
+  $('pTot').textContent = p==null?'不合规':fmtP(p);
+  $('pTot').className = p==null?'bad':'';
+
+  var dh='';
+  if(ok && rnd().key==='equal'){
+    dh='两碗都是 50 颗：黑子从甲碗挪走多少，乙碗就多多少，两边比例刚好互换 —— ½×a + ½×(1−a) 恒等于 50.0%。这一局只剩押注能选：押得越大，只是把 50% 赌得越大。';
+  }else if(ok){
+    if(bA+wA>0 && pA>=0.9999) dh='甲碗里一颗白子都没有 —— 摸到它，必赢。';
+    else if(bB+wB>0 && pB>=0.9999) dh='乙碗里一颗白子都没有 —— 摸到它，必赢。';
+    else if(bA===0) dh='甲碗里一颗黑子都没有 —— 摸到它，必输。';
+    else if(bB===0) dh='乙碗里一颗黑子都没有 —— 摸到它，必输。';
+  }
+  $('dHint').textContent = dh;
+  $('dHint').hidden = !dh;
+
+
+  $('hudP').textContent = fmtP(p);
+  $('hudRound').textContent = st.round+' / 5';
+  $('hudStake').textContent = st.stake+' 道';
+
+  // 条带
+  var r=rnd();
+  $('stripName').textContent = '第'+'一二三四五'[st.round-1]+'局 · '+r.name;
+  $('stripBadge').textContent = r.badge;
+  $('stripBadge').style.opacity = r.badge==='原文规则'?'.8':'1';
+  $('stripDesc').textContent = r.desc + (stakeTight()?'　· 押 '+st.stake+'：'+(st.stake>=5?'两碗各 ≥30 颗':'每碗 ≥1 白'):'');
+  $('stripQuote').innerHTML = '<span class="qlab">台词</span>'+r.quote;
+
+  // 进度点
+  var pips=$('pips'); pips.innerHTML='';
+  for(var i=0;i<5;i++){
+    var el=document.createElement('i'); el.className='pip';
+    var h=st.hist[i];
+    if(h) el.className='pip '+(h.win?'win':'lose');
+    else if(i+1===st.round) el.className='pip now';
+    pips.appendChild(el);
+  }
+
+  // 控件
+  $('bVal').textContent = bA;
+  $('wVal').textContent = wA;
+  $('rangeB').value = bA;
+  $('rangeW').value = wA;
+  $('rangeB').min=r.bMin; $('rangeB').max=r.bMax;
+  $('rangeW').min=r.wMin; $('rangeW').max=r.wMax;
+  $('rangeW').disabled = r.wLock;
+  $('ctlW').className = 'ctl'+(r.wLock?' lock':'');
+  $('wLock').hidden = !r.wLock;
+  $('bBad').hidden=true; $('wBad').hidden=true;
+
+  $('stVal').textContent = st.stake+' 道';
+  var sn='赢 +'+st.stake+' · 输 −'+st.stake;
+  if(stakeTight()) sn+='<br><em>押 4 起 · '+stakeNoteText()+'</em>';
+  var bust=Math.ceil(st.dao/st.stake);
+  if(bust<=3) sn+='<br><em class="risk">连输 '+bust+' 局就留下</em>';
+  $('stNote').innerHTML=sn;
+  $('hudStake').textContent = st.stake+' 道';
+
+  var canGo = ok;
+  $('btnConfirm').disabled = false;
+  $('btnConfirm').textContent = canGo?'确认分配':'先合规则';
+  $('btnConfirm').classList.toggle('primary', canGo);
+  $('btnConfirm').classList.toggle('fixmode', !canGo);
+  $('btnSim').disabled = !ok || st.simBusy;
+  if(!ok){
+    $('wBad').hidden=false; $('wBad').textContent=invalidText();
+  }
+
+  renderChart();
+  renderStakeButtons();
+}
+
+function renderStakeButtons(){
+  var max=Math.min(5, st.dao);
+  $('stMinus').disabled = st.stake<=1;
+  $('stPlus').disabled  = st.stake>=max;
+}
+
+function sampleP(b){
+  var r=rnd();
+  var w = r.wLock ? (50-b) : st.wA;
+  if(!valid(b,w)) return null;
+  return prob(b,w);
+}
+
+function renderChart(){
+  var box=$('chartBox');
+  if(!st.paper){
+    box.innerHTML='<div class="lock">算纸被生肖压在碗底下。<br>赌完第一局，它才翻给你看。</div>';
+    $('paperTip').textContent='锁住';
+    return;
+  }
+  $('paperTip').textContent = rnd().key==='equal' ? '怎么摆都是 50.0%'
+    : (rnd().wLock?'白子联动':'白子固定在 '+st.wA);
+
+  var W=340,H=124,L=31,R=9,T=9,B=19;
+  var iw=W-L-R, ih=H-T-B;
+  function X(b){ return L+iw*b/50; }
+  function Y(v){ return T+ih*(1-v); }
+
+  var segs=[], cur=[];
+  for(var b=0;b<=50;b++){
+    var p=sampleP(b);
+    if(p==null){ if(cur.length){segs.push(cur);cur=[];} continue; }
+    cur.push([X(b),Y(p)]);
+  }
+  if(cur.length) segs.push(cur);
+
+  var path='';
+  for(var s=0;s<segs.length;s++){
+    path += '<polyline points="'+segs[s].map(function(q){return q[0].toFixed(1)+','+q[1].toFixed(1);}).join(' ')+
+      '" fill="none" stroke="#c9a227" stroke-width="1.7" stroke-linejoin="round"/>';
+  }
+
+  var pnow = valid(st.bA, st.wA) ? prob(st.bA, st.wA) : null;
+  var cx=X(st.bA), cy=pnow==null?H-B:Y(pnow);
+
+  var grid='';
+  [0,.25,.5,.75,1].forEach(function(v){
+    grid+='<line x1="'+L+'" y1="'+Y(v)+'" x2="'+(W-R)+'" y2="'+Y(v)+'" stroke="#2a2318" stroke-width="1"/>';
+  });
+  grid+='<line x1="'+L+'" y1="'+Y(.5)+'" x2="'+(W-R)+'" y2="'+Y(.5)+'" stroke="#6a5a30" stroke-width="1" stroke-dasharray="3 4"/>';
+  var ylab='';
+  [['100%',1],['50%',.5],['0',0]].forEach(function(it){
+    ylab+='<text x="'+(L-5)+'" y="'+(Y(it[1])+3.5)+'" fill="#6f6350" font-size="9" text-anchor="end">'+it[0]+'</text>';
+  });
+  var xlab='';
+  [0,10,20,30,40].forEach(function(b){
+    xlab+='<text x="'+X(b)+'" y="'+(H-5)+'" fill="#6f6350" font-size="9" text-anchor="middle">'+b+'</text>';
+  });
+  xlab+='<text x="'+(W-R)+'" y="'+(H-5)+'" fill="#6f6350" font-size="9" text-anchor="end">颗</text>';
+
+  var dot='';
+  if(pnow!=null){
+    dot='<line x1="'+cx+'" y1="'+T+'" x2="'+cx+'" y2="'+(H-B)+'" stroke="#8a6d2a" stroke-width="1" stroke-dasharray="2 4"/>'+
+        '<circle cx="'+cx+'" cy="'+cy+'" r="6" fill="rgba(201,162,39,.18)"/>'+
+        '<circle cx="'+cx+'" cy="'+cy+'" r="3.2" fill="#f0d780"/>';
+  }
+
+  var peak='';
+  var o=st.opt;
+  if(o && o.p!=null){
+    if(rnd().key==='equal'){
+      peak='<text x="'+(W-R)+'" y="'+(Y(.5)-6)+'" fill="#a9906a" font-size="8.5" text-anchor="end">等重：一条平线，怎么挪都不动</text>';
+    }else{
+      var px=X(o.b), py=Y(o.p), anchor='middle', dx=0;
+      if(px<L+34){ anchor='start'; dx=4; } else if(px>W-R-34){ anchor='end'; dx=-4; }
+      peak='<circle cx="'+px+'" cy="'+py+'" r="2.8" fill="none" stroke="#8fae7a" stroke-width="1.2"/>'+
+           '<text x="'+(px+dx)+'" y="'+(py-5)+'" fill="#8fae7a" font-size="8.5" text-anchor="'+anchor+'">最高 '+fmtP(o.p)+'</text>';
+    }
+  }
+
+  box.innerHTML='<svg id="chart" viewBox="0 0 '+W+' '+H+'" preserveAspectRatio="xMidYMid meet">'+
+    grid+ylab+xlab+path+dot+peak+
+    '<text x="'+(L+1)+'" y="'+(T+9)+'" fill="#5f5540" font-size="8.5">黑子 → 甲碗</text>'+
+    '</svg>';
+}
+
+/* ============ 分配交互 ============ */
+function setAlloc(b,w,quiet){
+  var r=rnd();
+  st.bA = clamp(Math.round(b), r.bMin, r.bMax);
+  st.wA = clamp(Math.round(w), r.wMin, r.wMax);
+  if(st.bA>50) st.bA=50; if(st.wA>50) st.wA=50;
+  if(r.wLock) st.wA = 50 - st.bA;
+  paint();
+  if(!quiet) hideSim();
+}
+function hideSim(){ $('simBox').hidden=true; }
+
+function nearestValid(){
+  var bestD=1e9, cand=[];
+  for(var b=0;b<=50;b++){
+    for(var w=0;w<=50;w++){
+      if(!valid(b,w)) continue;
+      var d=Math.abs(b-st.bA)+Math.abs(w-st.wA);
+      if(d<bestD){ bestD=d; cand=[{b:b,w:w}]; }
+      else if(d===bestD){ cand.push({b:b,w:w}); }
+    }
+  }
+  /* 同样近的合法摆法里，挑胜率最高的那个 —— 免得「先合规则」把你送到一个合法却很差的位置 */
+  var best=null;
+  for(var i=0;i<cand.length;i++){
+    var p=prob(cand[i].b,cand[i].w);
+    if(p==null) continue;
+    if(!best || p>best.p) best={b:cand[i].b,w:cand[i].w,p:p};
+  }
+  if(best) setAlloc(best.b,best.w);
+}
+
+function bindRange(id, which){
+  $(id).addEventListener('input', function(e){
+    var v=parseInt(e.target.value,10);
+    if(which==='b'){
+      setAlloc(v, rnd().wLock ? (50-v) : st.wA);
+    }else{
+      if(rnd().wLock) return;
+      setAlloc(st.bA, v);
+    }
+  });
+}
+bindRange('rangeB','b');
+bindRange('rangeW','w');
+
+function nudge(which, delta){
+  if(which==='b') setAlloc(st.bA+delta, rnd().wLock?(50-(st.bA+delta)):st.wA);
+  else{ if(rnd().wLock) return; setAlloc(st.bA, st.wA+delta); }
+}
+$('bMinus').addEventListener('click',function(){ nudge('b',-1); });
+$('bPlus').addEventListener('click', function(){ nudge('b',+1); });
+$('wMinus').addEventListener('click',function(){ nudge('w',-1); });
+$('wPlus').addEventListener('click', function(){ nudge('w',+1); });
+
+/* ============ 押注 ============ */
+function setStake(v){
+  var max=Math.min(5, st.dao);
+  var was=st.stake;
+  st.stake = clamp(v, 1, max);
+  st.opt = optimum();
+  paint();
+  if((was<4 && st.stake>=4) || (was<5 && st.stake>=5)){
+    toast('押到 '+st.stake+' 道：裁判先手，'+stakeNoteText()+' —— 本局天花板 '+fmtP(st.opt.p)+
+          '，你现在的摆法'+(valid(st.bA,st.wA)?'还能用':'已经不合规'), 2600);
+  }
+}
+$('stMinus').addEventListener('click',function(){ setStake(st.stake-1); });
+$('stPlus').addEventListener('click', function(){ setStake(st.stake+1); });
+
+/* ============ 试摸 1000 次 ============ */
+$('btnSim').addEventListener('click', function(){
+  if(st.simBusy) return;
+  var bA=st.bA,wA=st.wA,bB=50-bA,wB=50-wA;
+  if(bA+wA<1 || bB+wB<1) return;
+
+  var N=1000, arr=[], hits=0;
+  for(var i=0;i<N;i++){
+    var takeA = Math.random()<0.5;
+    var black = takeA ? (Math.random() < bA/(bA+wA)) : (Math.random() < bB/(bB+wB));
+    arr.push(black); if(black) hits++;
+  }
+
+  st.simBusy=true; $('btnSim').disabled=true;
+  $('simBox').hidden=false;
+  var t0=performance.now(), dur=1100;
+  function step(t){
+    var k=Math.min(1,(t-t0)/dur);
+    var i=Math.floor(k*N);
+    var h=0; for(var j=0;j<i;j++) if(arr[j]) h++;
+    $('simLine').innerHTML='试摸 <b>'+i+'</b> / 1000 · 摸到黑 <b>'+h+'</b> · 当前 <b>'+(i?((h/i)*100).toFixed(1):'0.0')+'%</b>';
+    $('simFill').style.width=(k*100)+'%';
+    if(k<1) requestAnimationFrame(step);
+    else{
+      st.simBusy=false; $('btnSim').disabled=!valid(st.bA,st.wA);
+      var theo=prob(bA,wA);
+      $('simLine').innerHTML='试摸 1000 次：摸到黑 <b>'+h+'</b> 次（<b>'+(h/10).toFixed(1)+'%</b>），你算的是 <b>'+fmtP(theo)+'</b>，差 <b>'+Math.abs(h/10-theo*100).toFixed(1)+'</b> 个百分点。';
+      st.stats.simN+=N; st.stats.simB+=h;
+    }
+  }
+  requestAnimationFrame(step);
+});
+
+/* ============ 开局 / 轮次 ============ */
+function startRound(){
+  st.round = clamp(st.round,1,5);
+  st.simBusy=false; hideSim();
+  $('simLine').textContent='—';
+  $('simFill').style.width='0%';
+  st.last=null;
+
+  trayA.classList.remove('covered','picked');
+  trayB.classList.remove('covered','picked');
+  trayA.querySelector('.lid .lseal').textContent='甲';
+  trayB.querySelector('.lid .lseal').textContent='乙';
+
+  st.stake = clamp(st.stake, 1, Math.min(5, st.dao));
+  st.opt = optimum();
+  if(!valid(st.bA,st.wA)) nearestValid();
+  setPhase('alloc');
+  paint();
+
+  var rr=rnd();
+  toast('第'+'一二三四五'[st.round-1]+'局 · <b>'+rr.name+'</b>　'+rr.desc, 2300);
+}
+
+function confirmAlloc(){
+  if(st.phase!=='alloc') return;
+  if(!valid(st.bA,st.wA)){ nearestValid(); return; }
+
+  st.stake = clamp(st.stake,1,Math.min(5,st.dao));
+  st.leftIsA = Math.random()<0.5;
+
+  setPhase('shuffle');
+  paint();
+  $('btnConfirm').disabled=true;
+  $('btnSim').disabled=true;
+  $('stMinus').disabled=true;
+  $('stPlus').disabled=true;
+
+  trayA.classList.add('shake'); trayB.classList.add('shake');
+  toast('碗盖上了。<b>两只碗换了个位置</b> —— 你只能挑一只碗，挑不了碗里的棋子。', 1500);
+  setTimeout(function(){
+    trayA.classList.remove('shake'); trayB.classList.remove('shake');
+    trayA.classList.add('covered'); trayB.classList.add('covered');
+    trayA.querySelector('.lid .lseal').textContent='?';
+    trayB.querySelector('.lid .lseal').textContent='?';
+    setPhase('pick');
+    paint();
+  }, 820);
+}
+
+/* ============ 摸碗 ============ */
+function pickBowl(pos){
+  if(st.phase!=='pick') return;
+  var isA = (pos==='L') ? st.leftIsA : !st.leftIsA;
+  var b = isA ? st.bA : 50-st.bA;
+  var w = isA ? st.wA : 50-st.wA;
+  var total=b+w;
+
+  var win = Math.random() < (b/total);
+  st.last = {
+    round: st.round,
+    isA: isA,
+    b:b, w:w, total:total,
+    win: win,
+    p: prob(st.bA,st.wA),
+    pA: (st.bA+st.wA)>0 ? st.bA/(st.bA+st.wA) : 0,
+    pB: (50-st.bA+50-st.wA)>0 ? (50-st.bA)/(100-st.bA-st.wA) : 0,
+    stake: st.stake,
+    daoBefore: st.dao,
+    bA:st.bA, wA:st.wA
+  };
+
+  st.phase='reveal';
+  app.setAttribute('data-phase','reveal');
+
+  $('bigStone').className='bstone';
+  $('bigStone').querySelector('.qm').textContent='?';
+  $('rvTitle').className='rv-title'; $('rvTitle').textContent='';
+  $('rvSub').textContent='';
+  $('rvBody').className='rv-body'; $('rvBody').innerHTML='';
+  $('rvCap').innerHTML='你把手伸进<b>'+(isA?'左':'右')+'边那只碗</b>——指腹碰到一颗棋子。';
+  $('rvActs').innerHTML='<button type="button" class="btn primary" id="btnUnblind" disabled>手还伸在碗里…</button>';
+  showOv('ovReveal');
+  $('btnUnblind').addEventListener('click', revealStone);
+  setTimeout(function(){
+    var bb=$('btnUnblind');
+    if(!bb) return;
+    bb.disabled=false; bb.textContent='摘下眼罩';
+  },480);
+
+  $('trayA').classList.toggle('picked', pos==='L');
+  $('trayB').classList.toggle('picked', pos==='R');
+}
+
+function revealStone(){
+  if(st.phase!=='reveal' || !st.last) return;
+  var R=st.last;
+  st.phase='revealed';
+  app.setAttribute('data-phase','revealed');
+
+  var stone=$('bigStone');
+  stone.classList.add('flip');
+  setTimeout(function(){
+    stone.classList.remove('flip');
+    stone.classList.add(R.win?'black':'white');
+    stone.querySelector('.qm').textContent = '';
+  },240);
+
+  $('rvCap').innerHTML='那只碗是<b>'+(R.isA?'甲':'乙')+'碗</b>。';
+  setTimeout(function(){
+    $('rvTitle').textContent = R.win?'黑':'白';
+    $('rvTitle').className = 'rv-title on' + (R.win?'':' bad');
+    $('rvSub').textContent = R.win?'摸到黑子 · 你赢了这一局':'摸到白子 · 你输掉了这一局';
+  },330);
+
+  // 结算道
+  st.dao += R.win ? R.stake : -R.stake;
+  st.stats.draws++; if(R.win) st.stats.wins++;
+  st.stats.theo += R.p;
+  if(R.p>st.stats.bestP){ st.stats.bestP=R.p; st.stats.bestCfg={b:R.bA,w:R.wA}; }
+  st.hist.push({round:R.round, b:R.bA, w:R.wA, p:R.p, stake:R.stake, win:R.win, dao:st.dao,
+    optP:(st.opt?st.opt.p:null), optB:(st.opt?st.opt.b:null), optW:(st.opt?st.opt.w:null)});
+
+  flyDao(R.win?('+'+R.stake):('-'+R.stake), R.win);
+  $('dao').textContent = st.dao;
+  $('dao').classList.remove('bump'); void $('dao').offsetWidth; $('dao').classList.add('bump');
+  setTimeout(function(){ flash(R.win); }, 300);
+
+  if(!st.paper){ st.paper=true; MEM.paper=true; memSave(); }
+
+  setTimeout(function(){
+    buildRoundReview(R);
+    $('rvActs').innerHTML = (st.dao<=0 || R.round>=5)
+      ? '<button type="button" class="btn primary" id="btnNext">看结算</button>'
+      : '<button type="button" class="btn primary" id="btnNext">下一局</button>';
+    $('btnNext').addEventListener('click', nextRound);
+    $('rvBody').classList.add('on');
+  },700);
+}
+
+function moveHint(R){
+  if(rnd().key==='equal') return '这一局怎么挪都是 50.0% —— 能选的只剩押多少。';
+  if(stakeTight()) return st.stake>=5
+    ? '押 5 道：两碗各至少 30 颗 —— 把其中一只碗塞成 1 白加一堆黑，另一只接住剩下的棋子。'
+    : '押 4 起每碗至少 1 颗白：甲碗留 1 白，其余黑子全堆进甲碗，白子全推给乙碗。';
+  switch(rnd().key){
+    case 'white3': return '白子每碗至少 3 颗，挪不走；能挪的只有黑子 —— 把黑子尽量堆进一只碗，白子压到下限。';
+    case 'floor10': return '每碗至少 10 颗：把白子全推给乙碗，甲碗只留 10 颗黑，它才是纯的。';
+    case 'both':   return '两碗都得有黑有白：甲碗留 1 颗白兜底，黑子尽量往甲碗堆，乙碗接住剩下的黑。';
+    default:       return R.wA>0 ? '把甲碗的白子全推给乙碗，甲碗只留黑子。'
+                                : '再把黑子往一只碗里收 —— 收得越纯，那一碗越接近必赢。';
+  }
+}
+
+function buildRoundReview(R){
+  var r=ROUNDS[R.round-1];
+  var bB=50-R.bA, wB=50-R.wA;
+  var o=st.opt;
+  var diff=(R.p-o.p)*100;
+
+  var rows='';
+  rows+='<div class="bl"><span>甲碗 '+R.bA+' 黑 · '+R.wA+' 白</span><b>'+fmtP(R.pA)+'</b></div>';
+  rows+='<div class="bl"><span>乙碗 '+bB+' 黑 · '+wB+' 白</span><b>'+fmtP(R.pB)+'</b></div>';
+  rows+='<div class="bl hi"><span>½ × '+fmtP(R.pA)+' + ½ × '+fmtP(R.pB)+'</span><b>'+fmtP(R.p)+'</b></div>';
+
+  var daoLine = '押 '+R.stake+' 道 · '+(R.win?'赢':'输')+' → 道 '+R.daoBefore+' → '+st.dao;
+  var goalGap = 8 - (st.dao - START_DAO);
+  var goalLine = goalGap>0 ? '离满载（净 +8）还需净赚 '+goalGap+' 道'
+    : '<span class="gd">净赚已过 +8 —— 满载线到了。</span>';
+
+  var judge;
+  if(diff>=-0.15){
+    judge='<span class="gd">这一摆已经到顶。</span>'+(R.win?'':'这一摸没中，输的是运气，不是摆法。');
+  }else{
+    judge='这一摆比天花板低 <span class="bd">'+(-diff).toFixed(1)+'</span> 个百分点。'+moveHint(R);
+  }
+  var optLine;
+  if(r.key==='equal'){
+    optLine='等重把缝堵死了：两只碗各 50 颗时，<b>无论怎么摆都是 50.0%</b>。';
+  }else if(o.b===1&&o.w===0){
+    optLine='天花板 '+fmtP(o.p)+'：甲碗只放 <b>1 黑 0 白</b>（100%），乙碗 49 黑 50 白（49.5%）。';
+  }else{
+    optLine='天花板 '+fmtP(o.p)+'：甲碗 <b>'+o.b+' 黑 '+o.w+' 白</b>（'+fmtP(o.b/(o.b+o.w))+'）＋ 乙碗 '+(50-o.b)+' 黑 '+(50-o.w)+' 白（'+fmtP((50-o.b)/(100-o.b-o.w))+'）。';
+  }
+
+  $('rvBody').innerHTML = rows +
+    '<div class="bt">'+daoLine+'<br>'+goalLine+'<br>'+judge+'<br>'+optLine+'</div>';
+}
+
+function flyDao(txt, good){
+  var d=$('dao').parentNode;
+  var f=document.createElement('div');
+  f.className='fly'; f.textContent=txt;
+  f.style.color = good?'#e8c96b':'#d2685c';
+  d.appendChild(f);
+  setTimeout(function(){ f.remove(); },950);
+}
+
+function nextRound(){
+  hideOv('ovReveal');
+  if(st.dao<=0 || st.round>=5){ endRun(); return; }
+  st.round++;
+  startRound();
+}
+
+/* ============ 结算 ============ */
+function endRun(){
+  var net = st.dao - START_DAO;
+  var wins = st.hist.filter(function(h){return h.win;}).length;
+  var tier, tierBad=false, quote;
+
+  if(st.dao<=0){
+    tier='留 下'; tierBad=true;
+    quote='最后一道也进了碗里。终焉之地从不缺赌徒，缺的是能看穿规则缝隙的人。';
+  }else if(net>=8){
+    tier='满 载';
+    quote='十道进，二十道出。猪面把碗收走时，你听见它在面具后面笑了一声。';
+  }else if(net>=3){
+    tier='全 身';
+    quote='你活着离开这张桌子，口袋里多了几颗道。够本，也够再赌一次。';
+  }else if(net>=-2){
+    tier='白 坐';
+    quote='五局，五天，碗还是那两只碗。你没输，也没赢——概率就是这么不痛不痒。';
+  }else{
+    tier='亏 空'; tierBad=true;
+    quote='你把门票输在了概率上。不是运气不好，是你从来没把黑子堆到该去的地方。';
+  }
+
+  var rows='';
+  for(var i=0;i<st.hist.length;i++){
+    var h=st.hist[i];
+    rows+='<tr><td>'+(i+1)+'</td><td>'+h.b+' / '+h.w+'</td><td>'+fmtP(h.p)+'</td><td>'+h.stake+'</td>'+
+      '<td class="'+(h.win?'w':'l')+'">'+(h.win?'黑':'白')+'</td><td>'+h.dao+'</td></tr>';
+  }
+
+  var theo = st.hist.length? (st.stats.theo/st.hist.length) : 0;
+  var act  = st.hist.length? (wins/st.hist.length) : 0;
+  var tops = 0, gapSum = 0;
+  for(var j=0;j<st.hist.length;j++){
+    var hj=st.hist[j];
+    if(hj.optP==null) continue;
+    if(hj.p >= hj.optP - 0.0015) tops++;
+    gapSum += (hj.optP - hj.p)*100;
+  }
+  var gapAvg = st.hist.length ? gapSum/st.hist.length : 0;
+
+  MEM.runs++; MEM.draws += st.hist.length; MEM.wins += wins;
+  if(st.stats.bestP > MEM.best) MEM.best = st.stats.bestP;
+  memSave(); renderMem();
+
+  $('endSheet').innerHTML =
+    '<div class="kick">五局终了</div>'+
+    '<div class="tier'+(tierBad?' bad':'')+'">'+tier+'</div>'+
+    '<p class="eq">'+quote+'</p>'+
+    '<div class="egrid">'+
+      '<div><span>手上道</span><b>'+st.dao+'<small> / 起 12</small></b></div>'+
+      '<div><span>净输赢</span><b>'+(net>0?'+':'')+net+'</b></div>'+
+      '<div><span>胜局</span><b>'+wins+'<small> / '+st.hist.length+'</small></b></div>'+
+    '</div>'+
+    '<table class="rectab"><thead><tr><th>局</th><th>甲碗 黑/白</th><th>胜率</th><th>押</th><th>摸到</th><th>道</th></tr></thead>'+
+    '<tbody>'+rows+'</tbody></table>'+
+    '<p class="endnote">你这一轮平均给自己安排了 <b>'+fmtP(theo)+'</b> 的胜率，实际赢下 <b>'+fmtP(act)+'</b>。'+
+      '摆法到顶 <b>'+tops+'</b> / '+st.hist.length+' 局'+(gapAvg>0.15?'，平均还差 <b>'+gapAvg.toFixed(1)+'</b> 分':'')+'。'+
+      (st.stats.bestCfg?'最高的一次摆法：甲碗 '+st.stats.bestCfg.b+' 黑 '+st.stats.bestCfg.w+' 白（'+fmtP(st.stats.bestP)+'）。':'')+
+      '<br>规则只给了一个缝：<b>两只碗不必一样重</b> —— 黑子收得越纯，那只碗就越接近必赢。</p>'+
+    '<div class="memline">'+memText()+'</div>'+
+    '<div class="row2">'+
+      '<button type="button" class="btn ghost" id="btnEndRules">看规则</button>'+
+      '<button type="button" class="btn primary" id="btnAgain">再赌一轮</button>'+
+    '</div>';
+
+  showOv('ovEnd');
+  $('btnAgain').addEventListener('click', function(){ hideOv('ovEnd'); restartRun(); });
+  $('btnEndRules').addEventListener('click', function(){ hideOv('ovEnd'); showOv('ovRules'); rulesReturn='end'; });
+}
+
+function restartRun(){
+  st.round=1; st.dao=START_DAO; st.hist=[]; st.paper=MEM.paper;
+  st.bA=25; st.wA=25; st.stake=2;
+  st.stats.draws=0; st.stats.wins=0; st.stats.theo=0; st.stats.bestP=0; st.stats.bestCfg=null;
+  $('dao').textContent=st.dao;
+  hideOv('ovReveal'); hideOv('ovEnd');
+  trayA.classList.remove('covered','picked'); trayB.classList.remove('covered','picked');
+  startRound();
+}
+
+/* ============ 事件 ============ */
+var rulesReturn='intro';
+function openRules(from){
+  rulesReturn=from;
+  showOv('ovRules');
+}
+$('btnRules').addEventListener('click', function(){ openRules('intro'); });
+$('btnRulesTop').addEventListener('click', function(){ openRules('game'); });
+$('btnRulesClose').addEventListener('click', function(){ closeRules(); });
+$('btnRulesOk').addEventListener('click', function(){ closeRules(); });
+function closeRules(){
+  hideOv('ovRules');
+  if(rulesReturn==='end') showOv('ovEnd');
+}
+
+$('btnEnter').addEventListener('click', function(){
+  hideOv('ovIntro');
+  startRound();
+});
+$('btnConfirm').addEventListener('click', confirmAlloc);
+
+$('trayA').addEventListener('click', function(){
+  if(st.phase==='pick') pickBowl('L');
+});
+$('trayB').addEventListener('click', function(){
+  if(st.phase==='pick') pickBowl('R');
+});
+
+/* 窗口尺寸变化时重排棋子 */
+var rt;
+window.addEventListener('resize', function(){
+  clearTimeout(rt); rt=setTimeout(paint,120);
+});
+
+/* 初始化 */
+setPhase('intro');
+paint();
+$('simLine').textContent='—';
+$('dao').textContent=st.dao;
+renderMem();
+showOv('ovIntro');
+
+/* 测试钩子（只读快照） */
+window.Game = {
+  state: st,
+  probe: {valid:valid, optimum:optimum, prob:prob},
+  snapshot: function(){
+    return {phase:st.phase, round:st.round, dao:st.dao, stake:st.stake,
+      bA:st.bA, wA:st.wA, paper:st.paper, hist:st.hist.slice(), last:st.last};
+  }
+};
+})();
+</script>
+</body>
+</html>

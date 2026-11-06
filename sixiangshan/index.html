@@ -1,0 +1,1190 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>地羊 · 四情扇</title>
+<style>
+:root{
+  --ink:#12100e; --ink2:#1b1712; --ink3:#241d16;
+  --paper:#e9dcbf; --paper2:#d8c6a2;
+  --gold:#c9a24c; --gold-dim:#8d7233;
+  --line:rgba(201,162,76,.26);
+  --xi:#d9a844; --nu:#bf4237; --ai:#5b7ea6; --le:#6a9468;
+  --ok:#7fae72; --bad:#c25247;
+  --sh:0 2px 10px rgba(0,0,0,.45);
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;padding:0}
+body{
+  background:
+    radial-gradient(120% 60% at 50% 0%,rgba(201,162,76,.10),transparent 60%),
+    radial-gradient(90% 50% at 50% 100%,rgba(191,66,55,.07),transparent 65%),
+    repeating-linear-gradient(0deg,rgba(255,255,255,.014) 0 1px,transparent 1px 3px),
+    var(--ink);
+  color:var(--paper);
+  font-family:"Songti SC","STSong","Noto Serif SC","SimSun",serif;
+  font-size:15px;line-height:1.5;
+  min-height:100vh;
+}
+#app{max-width:520px;margin:0 auto;padding:10px 12px 24px}
+.hidden{display:none!important}
+
+/* ---------- 顶栏 ---------- */
+.topbar{
+  display:flex;flex-direction:column;gap:8px;
+  padding:10px 12px 12px;
+  border:1px solid var(--line);border-radius:10px;
+  background:linear-gradient(180deg,rgba(201,162,76,.10),rgba(0,0,0,.18));
+  box-shadow:var(--sh);
+}
+.brand{display:flex;flex-direction:column;line-height:1.2}
+.brand-cn{font-size:20px;letter-spacing:.22em;color:var(--gold);text-shadow:0 1px 0 #000}
+.brand-sub{font-size:11px;letter-spacing:.18em;color:#9d8d70;margin-top:3px}
+.hud{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.hud-item{
+  display:flex;align-items:center;gap:5px;
+  padding:4px 9px;border:1px solid var(--line);border-radius:999px;
+  background:rgba(0,0,0,.28);
+}
+.hud-k{font-size:11px;color:#9d8d70;letter-spacing:.1em}
+.hud-v{font-size:15px;color:var(--paper);font-variant-numeric:tabular-nums}
+.hud-v.warn{color:var(--bad)}
+.btn-ghost{
+  margin-left:auto;min-height:40px;padding:0 14px;
+  font-family:inherit;font-size:13px;letter-spacing:.1em;
+  color:var(--gold);background:transparent;
+  border:1px solid var(--gold-dim);border-radius:6px;cursor:pointer;
+}
+.btn-ghost:active{background:rgba(201,162,76,.14)}
+
+/* ---------- 面板 ---------- */
+main{display:flex;flex-direction:column;gap:10px;margin-top:10px}
+.panel{
+  border:1px solid var(--line);border-radius:10px;
+  background:linear-gradient(180deg,rgba(255,246,228,.045),rgba(255,246,228,.012));
+  padding:9px 10px 11px;
+}
+.panel-h{
+  margin:0 0 8px;font-size:12px;font-weight:400;letter-spacing:.16em;
+  color:var(--gold);display:flex;align-items:baseline;gap:8px;
+}
+.panel-h::before{content:"";display:inline-block;width:3px;height:12px;background:var(--gold);border-radius:1px}
+.panel-hint{font-size:11px;letter-spacing:.04em;color:#8c7d63;font-weight:400}
+
+/* ---------- 席位 ---------- */
+.seats{display:grid;grid-template-columns:1fr 1fr;gap:7px}
+.seat{
+  position:relative;text-align:left;cursor:pointer;
+  font-family:inherit;color:inherit;
+  padding:7px 8px 8px;border-radius:8px;
+  border:1px solid rgba(255,255,255,.10);
+  background:rgba(0,0,0,.22);
+  display:flex;flex-direction:column;gap:4px;
+}
+.seat:active{background:rgba(201,162,76,.10)}
+.seat-name{font-size:14px;display:flex;align-items:center;gap:5px;letter-spacing:.06em}
+.seat-tag{font-size:10px;padding:1px 5px;border-radius:3px;border:1px solid var(--line);color:#a99a7c;letter-spacing:.04em}
+.seat-nums{display:flex;gap:9px;font-size:11px;color:#a2947a;font-variant-numeric:tabular-nums}
+.seat-nums b{color:var(--paper);font-weight:400}
+.seat.self{border-color:rgba(201,162,76,.55);background:rgba(201,162,76,.10)}
+.seat.diyang{border-color:rgba(191,66,55,.45)}
+.seat.out{opacity:.42;filter:grayscale(.5)}
+.seat.out::after{
+  content:"已离场";position:absolute;right:6px;bottom:5px;
+  font-size:10px;color:#8c7d63;letter-spacing:.14em;
+}
+.seat.turn{border-color:rgba(201,162,76,.85);box-shadow:0 0 0 1px rgba(201,162,76,.35) inset}
+.seat.lead .seat-name::after{content:"领";font-size:10px;color:var(--ink);background:var(--gold);padding:0 4px;border-radius:3px;letter-spacing:0}
+.seat-detail{
+  margin-top:8px;padding:8px 9px;border-radius:7px;
+  background:rgba(0,0,0,.34);border:1px dashed var(--line);
+  font-size:12px;color:#b7a888;line-height:1.6;
+}
+.seat-detail b{color:var(--paper);font-weight:400}
+.seat-detail .known{display:flex;flex-wrap:wrap;gap:4px;margin-top:4px}
+
+/* ---------- 扇面 ---------- */
+.hand{display:flex;flex-wrap:wrap;gap:7px;justify-content:center;padding:6px 0 2px}
+.fanwrap{
+  position:relative;display:flex;flex-direction:column;align-items:center;gap:4px;
+  flex:0 0 auto;transition:transform .15s ease;
+}
+.fanwrap.on{transform:translateY(-7px)}
+.fanwrap.on::after{
+  content:"";position:absolute;left:-3px;right:-3px;top:-3px;bottom:15px;
+  border:2px solid var(--gold);border-radius:8px;
+  box-shadow:0 0 12px rgba(201,162,76,.55);pointer-events:none;
+}
+.fan{
+  width:60px;height:84px;border:0;padding:0;cursor:pointer;font-family:inherit;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;
+  clip-path:polygon(50% 100%,97% 40%,86% 12%,50% 0,14% 12%,3% 40%);
+  color:#1b1409;position:relative;overflow:hidden;
+}
+.fan::before{
+  content:"";position:absolute;inset:0;pointer-events:none;opacity:.22;
+  background:repeating-conic-gradient(from 210deg at 50% 100%,
+    rgba(0,0,0,.55) 0 .6deg,transparent .6deg 12deg);
+}
+.fan-ch{font-size:27px;line-height:1;letter-spacing:.02em;text-shadow:0 1px 0 rgba(255,255,255,.3);position:relative;z-index:1;margin-top:9px}
+.fan-ico{position:relative;z-index:1}
+.fan-sub{position:relative;z-index:1}
+.act-hint{grid-column:1/-1;font-size:11px;color:#8c7d63;text-align:center;padding:3px 0 1px;letter-spacing:.04em}
+.fan-sub{font-size:9px;letter-spacing:.2em;opacity:.65}
+.fan-ico{width:15px;height:15px;opacity:.55;margin-bottom:1px}
+.fan[data-e="xi"]{background:linear-gradient(160deg,#f3d189,#dcab48 58%,#b3852e)}
+.fan[data-e="nu"]{background:linear-gradient(160deg,#d97a6c,#bf4237 58%,#8d2b23);color:#f6e2cf}
+.fan[data-e="ai"]{background:linear-gradient(160deg,#8fb0cd,#5b7ea6 58%,#3d5b7d);color:#eef3f8}
+.fan[data-e="le"]{background:linear-gradient(160deg,#9dc297,#6a9468 58%,#47704a);color:#eef4ea}
+.fan.locked{filter:saturate(.6) brightness(.7)}
+.fan-btn{background:none;border:0;padding:0;cursor:pointer;font-family:inherit}
+.fan-meta{font-size:10px;color:#9b8c70;letter-spacing:.08em;min-height:12px}
+.hand-empty{font-size:12px;color:#8c7d63;padding:20px 0;text-align:center;width:100%}
+
+/* ---------- 摊子 ---------- */
+.shop{display:grid;grid-template-columns:repeat(3,1fr);gap:7px}
+.shop-item{
+  min-height:64px;border:1px solid rgba(255,255,255,.12);border-radius:8px;
+  background:rgba(0,0,0,.26);color:var(--paper);font-family:inherit;cursor:pointer;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;padding:6px 4px;
+}
+.shop-item:active{background:rgba(201,162,76,.12)}
+.shop-item .sp-ch{font-size:20px;line-height:1.1;letter-spacing:.06em}
+.shop-item .sp-price{font-size:11px;color:var(--gold);letter-spacing:.06em}
+.shop-item:disabled{opacity:.34;cursor:default}
+.shop-item .sp-ch[data-e="xi"]{color:var(--xi)}
+.shop-item .sp-ch[data-e="nu"]{color:#e0705f}
+.shop-item .sp-ch[data-e="ai"]{color:#8fb3d8}
+.shop-item .sp-ch[data-e="le"]{color:#95bd90}
+.shop-empty{grid-column:1/-1;font-size:12px;color:#8c7d63;text-align:center;padding:16px 0}
+
+/* ---------- 按钮 ---------- */
+.hand-actions{display:grid;grid-template-columns:1fr 1fr;gap:7px;margin-top:10px}
+.btn-act{
+  min-height:44px;font-family:inherit;font-size:14px;letter-spacing:.12em;
+  color:var(--paper);background:rgba(201,162,76,.10);
+  border:1px solid rgba(201,162,76,.40);border-radius:7px;cursor:pointer;
+  display:flex;align-items:center;justify-content:center;gap:5px;
+}
+.btn-act:active{background:rgba(201,162,76,.22)}
+.btn-act:disabled{opacity:.35;cursor:default}
+.btn-act.wide{grid-column:1/-1}
+.btn-act.gold{background:rgba(201,162,76,.22);border-color:rgba(201,162,76,.8);color:#f3e4c4}
+.btn-act.danger{border-color:rgba(191,66,55,.6);background:rgba(191,66,55,.14)}
+.btn-act small{font-size:11px;opacity:.65;letter-spacing:0}
+
+/* ---------- 邀请 / 待处理 ---------- */
+.pend-head{font-size:13px;color:var(--gold);letter-spacing:.1em;margin-bottom:6px}
+.pend-line{font-size:13px;color:#c9b998;line-height:1.6}
+.pend-fans{display:flex;gap:6px;margin:8px 0;align-items:center;flex-wrap:wrap}
+.pend-fans .lab{font-size:11px;color:#8c7d63}
+.pend-mini{
+  display:inline-flex;align-items:center;justify-content:center;
+  min-width:38px;height:38px;border-radius:6px;font-size:16px;letter-spacing:.04em;
+  border:1px solid rgba(255,255,255,.18);
+}
+.pend-mini[data-e="xi"]{background:rgba(217,168,68,.22);color:#ecc678}
+.pend-mini[data-e="nu"]{background:rgba(191,66,55,.24);color:#e5897c}
+.pend-mini[data-e="ai"]{background:rgba(91,126,166,.24);color:#a7c2de}
+.pend-mini[data-e="le"]{background:rgba(106,148,104,.24);color:#a8c9a3}
+
+/* ---------- 日志 ---------- */
+.log{max-height:168px;overflow-y:auto;font-size:12px;line-height:1.65;color:#a8987a;padding-right:2px}
+.log p{margin:0 0 3px}
+.log .t{color:#6f6249;margin-right:5px;font-variant-numeric:tabular-nums}
+.log .who{color:#c9b998}
+.log .ev-ok{color:#9fc794}
+.log .ev-bad{color:#e08b7f}
+.log .ev-gold{color:#dcb86a}
+.log .ev-sys{color:#8a7c63}
+.log::-webkit-scrollbar{width:4px}
+.log::-webkit-scrollbar-thumb{background:rgba(201,162,76,.35);border-radius:2px}
+
+/* ---------- 弹层 ---------- */
+.overlay{
+  position:fixed;inset:0;z-index:40;display:flex;align-items:center;justify-content:center;
+  padding:18px;background:rgba(8,6,5,.86);backdrop-filter:blur(3px);overflow-y:auto;
+}
+.modal{
+  position:relative;width:100%;max-width:400px;max-height:92vh;overflow-y:auto;
+  border:1px solid rgba(201,162,76,.55);border-radius:12px;
+  background:
+    radial-gradient(100% 60% at 50% 0,rgba(201,162,76,.12),transparent 70%),
+    linear-gradient(180deg,#211a13,#171310);
+  padding:22px 18px 20px;box-shadow:0 12px 40px rgba(0,0,0,.6);text-align:center;
+}
+.modal-seal{
+  width:44px;height:44px;margin:0 auto 10px;border-radius:8px;
+  border:1px solid rgba(191,66,55,.7);color:#d98d7c;font-size:24px;
+  display:flex;align-items:center;justify-content:center;background:rgba(191,66,55,.12);
+}
+.modal-title{
+  margin:0;font-size:23px;font-weight:400;letter-spacing:.26em;color:var(--gold);
+  text-shadow:0 1px 0 #000;
+}
+.modal-title-sm{font-size:19px;letter-spacing:.18em}
+.modal-sub{margin:8px 0 0;font-size:12px;color:#9d8d70;line-height:1.6}
+.modal-list{
+  list-style:none;margin:16px 0 18px;padding:0;text-align:left;
+  font-size:13px;color:#c2b193;line-height:1.65;
+}
+.modal-list li{position:relative;padding-left:14px;margin-bottom:6px}
+.modal-list li::before{content:"";position:absolute;left:0;top:.62em;width:4px;height:4px;border-radius:50%;background:var(--gold-dim)}
+.btn-main{
+  width:100%;min-height:48px;margin-top:4px;
+  font-family:inherit;font-size:16px;letter-spacing:.3em;color:#1b1409;cursor:pointer;
+  background:linear-gradient(180deg,#e0bd6a,#c9a24c);border:0;border-radius:8px;
+  box-shadow:0 3px 0 #8d7233,0 6px 16px rgba(0,0,0,.4);
+}
+.btn-main:active{transform:translateY(2px);box-shadow:0 1px 0 #8d7233}
+.modal-tall{
+  text-align:left;max-height:90vh;padding:18px 16px 16px;
+  display:flex;flex-direction:column;overflow:hidden;
+}
+.sheet-body{
+  font-size:12.5px;color:#c2b193;line-height:1.62;margin:10px 0 12px;
+  flex:1 1 auto;min-height:0;overflow-y:auto;padding-right:4px;
+}
+.modal-tall .btn-main{flex:0 0 auto}
+.sheet-body::-webkit-scrollbar{width:4px}
+.sheet-body::-webkit-scrollbar-thumb{background:rgba(201,162,76,.35);border-radius:2px}
+.sheet-body h3{margin:11px 0 4px;font-size:12.5px;font-weight:400;color:var(--gold);letter-spacing:.12em}
+.sheet-body h3:first-child{margin-top:0}
+.sheet-body p{margin:0 0 6px}
+.sheet-body .tag-note{color:#a8987a;font-size:12px;border-left:2px solid var(--gold-dim);padding-left:8px;margin:6px 0}
+.end-stamp{
+  width:70px;height:70px;margin:0 auto 12px;border:2px solid rgba(191,66,55,.75);border-radius:8px;
+  color:#d98d7c;font-size:20px;letter-spacing:.06em;
+  display:flex;align-items:center;justify-content:center;
+  transform:rotate(-8deg);background:rgba(191,66,55,.10);
+}
+.end-stamp.win{border-color:rgba(201,162,76,.8);color:#e8c97f;background:rgba(201,162,76,.10)}
+.end-body{font-size:13px;color:#c2b193;line-height:1.75;margin:12px 0 18px;text-align:left}
+.end-body .row{display:flex;justify-content:space-between;border-bottom:1px dotted rgba(201,162,76,.18);padding:4px 0}
+.end-body .row b{font-weight:400;color:var(--paper);font-variant-numeric:tabular-nums}
+.end-body .reason{color:#a8987a;font-size:12px;margin-top:8px;line-height:1.6}
+.end-body .score{color:var(--gold);font-size:19px;text-align:center;margin-top:12px;letter-spacing:.06em}
+
+/* ---------- 窄屏 ---------- */
+@media (max-width:400px){
+  #app{padding:8px 9px 18px}
+  .topbar{padding:8px 9px 10px}
+  .brand-cn{font-size:18px;letter-spacing:.18em}
+  .hud{gap:6px}
+  .hud-item{padding:3px 7px}
+  .panel{padding:8px 8px 10px}
+  .fan{width:56px;height:80px}
+  .fan-ch{font-size:24px}
+  .hand{gap:6px}
+  .btn-act{font-size:13px;letter-spacing:.06em;min-height:44px}
+  .modal{padding:18px 14px}
+}
+</style>
+</head>
+<body>
+<div id="app">
+  <header class="topbar">
+    <div class="brand">
+      <span class="brand-cn">地羊 · 四情扇</span>
+      <span class="brand-sub">十日终焉 · 生肖游戏</span>
+    </div>
+    <div class="hud">
+      <div class="hud-item"><span class="hud-k">回合</span><span class="hud-v" id="hudRound">1/5</span></div>
+      <div class="hud-item"><span class="hud-k">配对机会</span><span class="hud-v" id="hudOpp">3</span></div>
+      <div class="hud-item"><span class="hud-k">道</span><span class="hud-v" id="hudDao">8</span></div>
+      <button class="btn-ghost" id="btnRules" type="button">规则</button>
+    </div>
+  </header>
+
+  <main id="main">
+    <section class="panel">
+      <h2 class="panel-h">在场席位<span class="panel-hint" id="seatsHint">点席位看底细</span></h2>
+      <div class="seats" id="seats"></div>
+      <div class="seat-detail hidden" id="seatDetail"></div>
+    </section>
+
+    <section class="panel">
+      <h2 class="panel-h">地羊的摊子<span class="panel-hint">买扇 1 道/把 · 领先者 2 道</span></h2>
+      <div class="shop" id="shop"></div>
+    </section>
+
+    <section class="panel hidden" id="panelPending"></section>
+
+    <section class="panel">
+      <h2 class="panel-h">你的扇<span class="panel-hint" id="handHint">点 2 把不同情绪</span></h2>
+      <div class="hand" id="hand"></div>
+      <div class="hand-actions" id="handActions"></div>
+    </section>
+
+    <section class="panel">
+      <h2 class="panel-h">局面记录</h2>
+      <div class="log" id="log"></div>
+    </section>
+  </main>
+</div>
+
+<div class="overlay" id="startScreen">
+  <div class="modal">
+    <div class="modal-seal">羊</div>
+    <h1 class="modal-title">地羊 · 四情扇</h1>
+    <p class="modal-sub">四情配对，先凑齐者出厅。你的三次机会，别浪费在错的人身上。</p>
+    <ul class="modal-list">
+      <li>每人初始 3 把扇：喜、怒、哀、乐。</li>
+      <li>挂出自己 2 把不同情绪，指定对手补齐另两情，即成对离场。</li>
+      <li>被拒即耗 1 次机会，且你这 2 把会被登记在案、全场可见。</li>
+      <li>5 个回合、3 次机会，用完仍未离场即留在大厅。</li>
+    </ul>
+    <button class="btn-main" id="btnStart" type="button">入 局</button>
+  </div>
+</div>
+
+<div class="overlay hidden" id="sheetScreen">
+  <div class="modal modal-tall">
+    <h1 class="modal-title modal-title-sm" id="sheetTitle">规则</h1>
+    <div class="sheet-body" id="sheetBody"></div>
+    <button class="btn-main" id="sheetClose" type="button">知道了</button>
+  </div>
+</div>
+
+<div class="overlay hidden" id="endScreen">
+  <div class="modal">
+    <div class="end-stamp" id="endStamp">离场</div>
+    <h1 class="modal-title modal-title-sm" id="endTitle">结算</h1>
+    <div class="end-body" id="endBody"></div>
+    <button class="btn-main" id="btnRestart" type="button">再来一局</button>
+  </div>
+</div>
+
+<script>
+"use strict";
+/* ---------------- 常量 ---------------- */
+const EMO_KEYS = ["xi", "nu", "ai", "le"];
+const EMO_CH = { xi: "喜", nu: "怒", ai: "哀", le: "乐" };
+const EMO_NAME = { xi: "喜", nu: "怒", ai: "哀", le: "乐" };
+const ROUND_TIMES = ["0:00", "0:30", "1:00", "1:30", "2:00"];
+const MAX_ROUND = 5;
+const START_DAO = 8;
+const PAIR_OPP = 3;
+const HAND_CAP = 5;
+const DI_TOLL = 5;          // 与地羊配对的过店费
+const BUY_COST = 1;         // 买 1 把扇
+const LEAD_BUY_COST = 2;    // 领先者买扇加价
+const PEEK_COST = 1;
+const REFILL_ROUNDS = [2, 3, 4]; // 这几个回合开始前地羊补扇
+
+const SEAT_DEF = [
+  { key: "you",  name: "你",   tag: "玩家",   p: "三次机会，自己拿主意。" },
+  { key: "zhou", name: "老周", tag: "囤扇",   p: "前两回合压着不接，等扇子厚了再动。" },
+  { key: "man",  name: "小满", tag: "抢配",   p: "见缺口就应，能走就走，最怕慢一步。" },
+  { key: "tang", name: "阿棠", tag: "精明",   p: "不替领先者抬价，专挑弱势的一方成对。" },
+  { key: "qi",   name: "七叔", tag: "激进",   p: "手里有对就挂，宁可被拒也不等。" },
+  { key: "di",   name: "地羊", tag: "庄家",   p: "守店四回合，最后一次才亲自下场配对。" },
+];
+
+function iconSvg(e) {
+  const d = {
+    xi: '<circle cx="12" cy="12" r="6.5"/><circle cx="12" cy="12" r="2.2"/>',
+    nu: '<path d="M12 4 L20 20 L4 20 Z"/>',
+    ai: '<path d="M12 4 C18.5 11 18 18 12 20 C6 18 5.5 11 12 4 Z"/>',
+    le: '<path d="M12 3 L14.8 9.2 L21 12 L14.8 14.8 L12 21 L9.2 14.8 L3 12 L9.2 9.2 Z"/>'
+  }[e];
+  return '<svg class="fan-ico" viewBox="0 0 24 24" fill="currentColor" fill-opacity=".22" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round">' + d + "</svg>";
+}
+
+/* ---------------- 状态 ---------------- */
+let S = null;
+let aiTimer = null;
+
+function shuffle(a) {
+  const r = a.slice();
+  for (let i = r.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    const t = r[i]; r[i] = r[j]; r[j] = t;
+  }
+  return r;
+}
+
+function makeDeck() {
+  const d = [];
+  for (let c = 0; c < 12; c++) for (const e of EMO_KEYS) d.push(e);
+  return shuffle(d);
+}
+
+function newState() {
+  const st = {
+    round: 1,
+    seats: SEAT_DEF.map((d, i) => ({
+      idx: i, key: d.key, name: d.name, tag: d.tag, persona: d.p,
+      isPlayer: d.key === "you",
+      isDi: d.key === "di",
+      cards: [],
+      known: [],
+      opp: PAIR_OPP,
+      dao: START_DAO + (d.key === "di" ? 4 : 0),
+      out: false,
+      leftRound: 0,
+      note: ""
+    })),
+    deck: makeDeck(),
+    shop: [],
+    log: [],
+    pending: null,
+    mode: "idle",
+    sel: [],
+    peekTarget: null,
+    phase: "idle",
+    over: false,
+    result: null,
+    detailSeat: -1,
+    acted: [],
+    pendingDone: []
+  };
+  for (let i = 0; i < 6; i++) for (let k = 0; k < 3; k++) st.seats[i].cards.push(st.deck.pop());
+  refillShop(st);
+  return st;
+}
+
+function refillShop(st) {
+  while (st.shop.length < 3 && st.deck.length) st.shop.push(st.deck.pop());
+}
+
+/* ---------------- 小工具 ---------------- */
+function $(id) { return document.getElementById(id); }
+function P() { return S.seats[0]; }
+function seatByKey(k) { return S.seats.find(s => s.key === k); }
+function cardsStr(cards) { return cards.map(e => EMO_CH[e]).join(""); }
+function countEmo(cards) {
+  const m = { xi: 0, nu: 0, ai: 0, le: 0 };
+  for (const c of cards) m[c]++;
+  return m;
+}
+function missingEmos(cards) {
+  const m = countEmo(cards);
+  return EMO_KEYS.filter(e => m[e] === 0);
+}
+function hasAll(cards, needEmos) {
+  const m = countEmo(cards);
+  return needEmos.every(e => m[e] > 0);
+}
+function activeSeats() { return S.seats.filter(s => !s.out); }
+function leaderSeat() {
+  const a = activeSeats().slice().sort((x, y) =>
+    (y.cards.length - x.cards.length) || (y.dao - x.dao) || (x.idx - y.idx));
+  return a[0] || null;
+}
+function isLeader(seat) {
+  const l = leaderSeat();
+  return !!l && l.idx === seat.idx && seat.cards.length > 0;
+}
+function priceFor(seat) {
+  const lead = isLeader(seat);
+  if (seat.isDi) return lead ? LEAD_BUY_COST + 1 : LEAD_BUY_COST;
+  return lead ? LEAD_BUY_COST : BUY_COST;
+}
+function timeStr() { return ROUND_TIMES[S.round - 1] || "2:00"; }
+function pushLog(text, cls, who) {
+  S.log.push({ t: timeStr(), who: who || "", text: text, cls: cls || "" });
+  renderLog();
+}
+function revealKnown(seat, emos) {
+  for (const e of emos) seat.known.push(e);
+}
+
+/* ---------------- 渲染 ---------------- */
+function renderAll() {
+  if (!S) return;
+  renderHud();
+  renderSeats();
+  renderShop();
+  renderHand();
+  renderActions();
+  renderPending();
+  renderLog();
+}
+
+function renderHud() {
+  $("hudRound").textContent = S.round + "/" + MAX_ROUND + " · " + timeStr();
+  $("hudDao").textContent = P().dao;
+  $("hudOpp").textContent = P().opp;
+  $("hudOpp").className = "hud-v" + (P().opp <= 1 ? " warn" : "");
+}
+
+function renderSeats() {
+  const lead = leaderSeat();
+  const leadIdx = lead && lead.cards.length > 0 ? lead.idx : -1;
+  const box = $("seats");
+  box.innerHTML = S.seats.map(s => {
+    const cls = ["seat"];
+    if (s.isPlayer) cls.push("self");
+    if (s.isDi) cls.push("diyang");
+    if (s.out) cls.push("out");
+    if (S.turn === s.idx && !s.out && S.phase === "ai") cls.push("turn");
+    if (s.idx === leadIdx) cls.push("lead");
+    const known = s.known.length ? "在册：" + cardsStr(s.known) : "在册：—";
+    return '<button type="button" class="' + cls.join(" ") + '" data-seat="' + s.idx + '">' +
+      '<span class="seat-name">' + s.name + '<span class="seat-tag">' + s.tag + "</span></span>" +
+      '<span class="seat-nums"><span>扇 <b>' + s.cards.length + "</b></span>" +
+      "<span>机会 <b>" + s.opp + "</b></span>" +
+      "<span>道 <b>" + s.dao + "</b></span></span>" +
+      '<span class="seat-nums">' + known + "</span>" +
+      "</button>";
+  }).join("");
+  renderDetail();
+}
+
+function renderDetail() {
+  const box = $("seatDetail");
+  if (S.detailSeat < 0) { box.classList.add("hidden"); box.innerHTML = ""; return; }
+  const s = S.seats[S.detailSeat];
+  box.classList.remove("hidden");
+  let line = "<b>" + s.name + "</b>（" + s.tag + "）：" + s.persona;
+  line += "<br>手牌 <b>" + s.cards.length + "</b> 把 · 配对机会 <b>" + s.opp + "</b> · 道 <b>" + s.dao + "</b>";
+  if (s.out) line += " · <b>第 " + s.leftRound + " 回合已离场</b>";
+  if (s.known.length) {
+    line += '<div class="known">在册：' + s.known.map(e =>
+      '<span class="pend-mini" data-e="' + e + '">' + EMO_CH[e] + "</span>").join("") + "</div>";
+  } else {
+    line += '<div class="known">在册：尚无公开信息</div>';
+  }
+  if (s.note) line += '<div class="known">' + s.note + "</div>";
+  box.innerHTML = line;
+}
+
+function renderShop() {
+  const box = $("shop");
+  const mine = S.phase === "player" && !P().out;
+  if (!S.shop.length) {
+    box.innerHTML = '<div class="shop-empty">摊子上没扇了。</div>';
+    return;
+  }
+  const price = priceFor(P());
+  const full = P().cards.length >= HAND_CAP;
+  box.innerHTML = S.shop.map((e, i) =>
+    '<button type="button" class="shop-item" data-shop="' + i + '"' +
+    (mine && !full && P().dao >= price ? "" : " disabled") + ">" +
+    '<span class="sp-ch" data-e="' + e + '">' + EMO_CH[e] + "</span>" +
+    '<span class="sp-price">' + price + " 道</span></button>").join("");
+}
+
+function renderHand() {
+  const box = $("hand");
+  const me = P();
+  $("handHint").textContent = S.mode === "pair" ? "选 2 把不同情绪（已选 " + S.sel.length + "/2）" :
+    S.mode === "target" ? "挑一个对手挂扇" :
+    S.mode === "peek" ? "点席位看它 1 把扇" : "点 2 把不同情绪";
+  if (!me.cards.length) {
+    box.innerHTML = '<div class="hand-empty">手上无扇。</div>';
+    return;
+  }
+  box.innerHTML = me.cards.map((e, i) => {
+    const on = S.sel.indexOf(i) >= 0;
+    return '<div class="fanwrap' + (on ? " on" : "") + '">' +
+      '<button type="button" class="fan" data-e="' + e + '" data-hand="' + i + '">' +
+      iconSvg(e) + '<span class="fan-ch">' + EMO_CH[e] + "</span>" +
+      '<span class="fan-sub">' + EMO_NAME[e] + "</span></button>" +
+      '<span class="fan-meta">' + (on ? "已选" : "&nbsp;") + "</span></div>";
+  }).join("");
+}
+
+function renderActions() {
+  const box = $("handActions");
+  const me = P();
+  const myTurn = S.phase === "player" && !me.out;
+  const canPair = myTurn && me.opp > 0 && me.cards.length >= 2 && distinctCount(me.cards) >= 2 && eligibleTargets(me).length > 0;
+  const canPeek = myTurn && me.dao >= PEEK_COST;
+  const price = priceFor(me);
+  let html = "";
+  if (S.mode === "target") {
+    html += '<button type="button" class="btn-act gold wide" data-act="cancel">取消挂扇</button>';
+  } else if (S.mode === "pair") {
+    html += '<button type="button" class="btn-act wide" data-act="confirmPair">' +
+      (S.sel.length === 2 ? "挂出这两把，挑对手" : "先选 2 把不同情绪") + "</button>";
+    html += '<button type="button" class="btn-act wide" data-act="cancel">收起扇子</button>';
+  } else if (S.mode === "peek") {
+    html += '<button type="button" class="btn-act gold wide" data-act="cancel">取消窥扇</button>';
+  } else {
+    html += '<button type="button" class="btn-act gold wide" data-act="pair"' + (canPair ? "" : " disabled") + ">挂扇配对<small>耗 1 次机会</small></button>";
+    html += '<button type="button" class="btn-act" data-act="peek"' + (canPeek ? "" : " disabled") + ">窥扇<small>" + PEEK_COST + " 道</small></button>";
+    html += '<button type="button" class="btn-act" data-act="wait">观望<small>保道</small></button>';
+    html += '<div class="act-hint">摊子上买扇：' + price + " 道 / 把，点摊子即买</div>";
+  }
+  box.innerHTML = html;
+}
+
+function renderPending() {
+  const box = $("panelPending");
+  const p = S.pending;
+  if (!p || p.type !== "invite") { box.classList.add("hidden"); box.innerHTML = ""; return; }
+  const from = S.seats[p.from];
+  const need = missingEmos(p.cards);
+  const ok = hasAll(P().cards, need);
+  box.classList.remove("hidden");
+  box.innerHTML = '<div class="pend-head">有人请你成对</div>' +
+    '<div class="pend-line"><b class="who">' + from.name + "</b> 挂出 " +
+    '<div class="pend-fans"><span class="lab">它的扇</span>' +
+    p.cards.map(e => '<span class="pend-mini" data-e="' + e + '">' + EMO_CH[e] + "</span>").join("") +
+    '<span class="lab">你需补齐 ' + cardsStr(need) + "</span></div>" +
+    (ok ? "你手上正好有，应约即成对离场。" : "你手上缺这" + need.length + "情，无法应约，只能拒绝。") +
+    '<div class="hand-actions" style="grid-template-columns:1fr 1fr">' +
+    '<button type="button" class="btn-act gold" data-act="acceptInvite"' + (ok ? "" : " disabled") + ">应约</button>" +
+    '<button type="button" class="btn-act danger" data-act="declineInvite">拒绝</button></div></div>';
+}
+
+function renderLog() {
+  const box = $("log");
+  box.innerHTML = S.log.slice(-40).map(l =>
+    '<p><span class="t">' + l.t + "</span>" +
+    (l.who ? '<span class="who">' + l.who + "</span> " : "") +
+    '<span class="' + l.cls + '">' + l.text + "</span></p>").join("");
+  box.scrollTop = box.scrollHeight;
+}
+
+function distinctCount(cards) {
+  return EMO_KEYS.filter(e => cards.indexOf(e) >= 0).length;
+}
+
+/* ---------------- 规则 ---------------- */
+function canInviteTarget(from, t) {
+  if (t.out || t.idx === from.idx) return false;
+  if (t.opp <= 0 || t.cards.length < 2) return false;
+  if (t.isDi && S.round < MAX_ROUND) return false;   // 地羊前四回合守店，不受邀
+  if (from.isDi && S.round < MAX_ROUND) return false;
+  return true;
+}
+function eligibleTargets(seat) {
+  return S.seats.filter(t => canInviteTarget(seat, t));
+}
+
+function removeCards(seat, emos) {
+  for (const e of emos) {
+    const i = seat.cards.indexOf(e);
+    if (i >= 0) seat.cards.splice(i, 1);
+  }
+}
+
+function leaveSeat(seat, why) {
+  seat.out = true;
+  seat.leftRound = S.round;
+  seat.note = "第 " + S.round + " 回合离场：" + why;
+  pushLog(seat.name + " 离场（" + why + "）。", "ev-gold", "·");
+}
+
+/* 配对成功：from 挂 2 把，to 出另 2 情，双方各耗 1 次机会并离场 */
+function resolvePair(from, to, cards) {
+  const need = missingEmos(cards);
+  from.opp = Math.max(0, from.opp - 1);
+  to.opp = Math.max(0, to.opp - 1);
+  removeCards(from, cards);
+  removeCards(to, need);
+  if (from.isDi || to.isDi) {
+    const payer = from.isDi ? to : from;
+    payer.dao = Math.max(0, payer.dao - DI_TOLL);
+    pushLog("过店费 " + DI_TOLL + " 道由" + payer.name + "付给地羊。", "ev-sys", "地羊");
+  }
+  pushLog(from.name + " 的「" + cardsStr(cards) + "」与 " + to.name + " 的「" + cardsStr(need) + "」凑齐四情，双双离场。",
+    "ev-ok", "·");
+  leaveSeat(from, "四情成对");
+  leaveSeat(to, "四情成对");
+}
+
+/* 被拒：仅发起方耗 1 次机会，2 把扇登记在册 */
+function rejectPair(from, to, cards, reason) {
+  from.opp = Math.max(0, from.opp - 1);
+  revealKnown(from, cards);
+  pushLog(to.name + " 拒了 " + from.name + (reason ? "（" + reason + "）" : "") +
+    "，" + from.name + " 白耗 1 次机会，2 把 " + cardsStr(cards) + " 登记在册。", "ev-bad", "·");
+}
+
+/* 玩家挂扇，AI 应/拒 */
+function playerInitiate(targetIdx) {
+  const me = P();
+  const cards = S.sel.map(i => me.cards[i]);
+  const target = S.seats[targetIdx];
+  const need = missingEmos(cards);
+  const toll = target.isDi && me.dao < DI_TOLL;
+  if (toll) {
+    pushLog("地羊开价：" + DI_TOLL + " 道过店费。你的道不够，挂不上去。", "ev-bad", "地羊");
+    S.mode = "idle"; S.sel = [];
+    renderAll();
+    return;
+  }
+  pushLog("你挂出 " + cardsStr(cards) + "，请 " + target.name + " 补齐 " + cardsStr(need) + "。", "", "你");
+  S.mode = "idle"; S.sel = [];
+  const d = aiDecideAccept(me, target, cards);
+  if (d.ok) {
+    resolvePair(me, target, cards);
+    renderAll();
+    endGame(true, target.isDi ? "leave_di" : "leave",
+      target.isDi ? "你与地羊凑齐四情，付清过店费，走出了大厅。" : "你凑齐四情，从大厅离场。");
+    return;
+  }
+  rejectPair(me, target, cards, d.reason);
+  renderAll();
+  if (checkPlayerLost()) return;
+  finishPlayerTurn();
+}
+
+function buyCard(i) {
+  const me = P();
+  const price = priceFor(me);
+  if (S.phase !== "player" || me.out || i < 0 || i >= S.shop.length) return;
+  if (me.cards.length >= HAND_CAP) { pushLog("手上已有 " + HAND_CAP + " 把，拿不下了。", "ev-sys", "·"); return; }
+  if (me.dao < price) { pushLog("道不够，买不起。", "ev-bad", "·"); return; }
+  const emo = S.shop[i];
+  me.dao -= price;
+  me.cards.push(emo);
+  S.shop.splice(i, 1);
+  refillShop(S);
+  pushLog("你花 " + price + " 道买下 1 把「" + EMO_CH[emo] + "」，剩余 " + me.dao + " 道。", "", "你");
+  finishPlayerTurn();
+}
+
+function doPeek(t) {
+  const me = P();
+  if (S.phase !== "player" || me.out) return;
+  if (me.dao < PEEK_COST) return;
+  if (!t || t.idx === 0 || t.out || !t.cards.length) { pushLog("这个席位没扇可看。", "ev-sys", "·"); return; }
+  me.dao -= PEEK_COST;
+  const card = t.cards[Math.floor(Math.random() * t.cards.length)];
+  revealKnown(t, [card]);
+  t.note = "被窥见 1 把：" + EMO_CH[card];
+  pushLog("你花 1 道窥见 " + t.name + " 手上有「" + EMO_CH[card] + "」，已公开登记。", "", "你");
+  finishPlayerTurn();
+}
+
+function doWait() {
+  pushLog("你按住扇子，观望一轮。", "ev-sys", "你");
+  finishPlayerTurn();
+}
+
+/* 玩家行动结束 → 推进 */
+function finishPlayerTurn() {
+  S.mode = "idle";
+  S.sel = [];
+  S.acted.push(P().idx);
+  renderAll();
+  if (checkPlayerLost()) return;
+  advance();
+}
+
+function checkPlayerLost() {
+  const me = P();
+  if (S.over) return true;
+  if (me.out) return false;
+  if (me.opp <= 0) {
+    endGame(false, "opp0", "三次配对机会用尽，你还站在大厅里。");
+    return true;
+  }
+  if (activeSeats().length <= 1) {
+    endGame(false, "noRival", "大厅里再没有能和你成对的人。");
+    return true;
+  }
+  return false;
+}
+
+function endGame(win, code, reason) {
+  if (S.over) return;
+  clearTimeout(aiTimer);
+  S.over = true;
+  S.phase = "over";
+  const me = P();
+  const cardVal = me.cards.length * 5;
+  const score = me.dao + cardVal;
+  const di = seatByKey("di");
+  const draw = win && di.out && di.leftRound === me.leftRound && (di.dao + di.cards.length * 5) === score;
+  S.result = { win, draw, code, reason, score, dao: me.dao, cards: me.cards.length, cardVal, round: S.round };
+  renderAll();
+  renderEnd();
+}
+
+/* ---------------- AI ---------------- */
+const AI_CFG = {
+  zhou: { th: 0.50, buy: 0.55, peekAt: 5 },
+  man:  { th: 0.30, buy: 0.40, peekAt: 4 },
+  tang: { th: 0.42, buy: 0.45, peekAt: 3 },
+  qi:   { th: 0.24, buy: 0.32, peekAt: 6 },
+  di:   { th: 0.50, buy: 0.60, peekAt: 6 }
+};
+
+/* 某席位持有某情绪的概率（基于公开登记册） */
+function pHas(seat, emo) {
+  if (!seat.cards.length) return 0;
+  if (seat.known.indexOf(emo) >= 0) return 1;
+  const knownSet = [];
+  for (const k of seat.known) if (knownSet.indexOf(k) < 0) knownSet.push(k);
+  const unknownSlots = Math.max(0, seat.cards.length - seat.known.length);
+  const unknownEmo = 4 - knownSet.length;
+  if (unknownSlots <= 0 || unknownEmo <= 0) return 0;
+  return 1 - Math.pow((unknownEmo - 1) / unknownEmo, unknownSlots);
+}
+function pairChance(seat, need) {
+  let p = 1;
+  for (const e of need) p *= pHas(seat, e);
+  return p;
+}
+function distinctPairs(cards) {
+  const out = [];
+  for (let i = 0; i < cards.length; i++)
+    for (let j = i + 1; j < cards.length; j++)
+      if (cards[i] !== cards[j]) out.push([cards[i], cards[j]]);
+  return out;
+}
+
+/* 应约判定：只看真实手牌 + 性格 */
+function aiDecideAccept(from, target, cards) {
+  const need = missingEmos(cards);
+  if (!hasAll(target.cards, need)) return { ok: false, reason: "手里缺这 " + need.length + " 情" };
+  if (target.opp <= 0) return { ok: false, reason: "机会已用尽" };
+  if (target.key === "zhou" && S.round <= 2) return { ok: false, reason: "在囤扇，前两回合不接" };
+  if (target.key === "tang" && isLeader(from) && from.key !== "tang")
+    return { ok: false, reason: "不替领先者抬价" };
+  if (target.key === "qi" && from.opp <= 0) return { ok: false, reason: "对方没机会了" };
+  return { ok: true, reason: "能补齐，走" };
+}
+
+function bestPairFor(seat) {
+  const pairs = distinctPairs(seat.cards);
+  let best = null, bestP = -1, bestTarget = null;
+  for (const pr of pairs) {
+    const need = missingEmos(pr);
+    for (const t of S.seats) {
+      if (!canInviteTarget(seat, t)) continue;
+      if (t.isDi && seat.dao < DI_TOLL) continue;
+      let p = pairChance(t, need);
+      if (t.isPlayer && isLeader(t)) p *= 0.75;
+      if (p > bestP) { bestP = p; best = pr; bestTarget = t; }
+    }
+  }
+  return best ? { cards: best, target: bestTarget, p: bestP } : null;
+}
+
+function aiAct(seat) {
+  const cfg = AI_CFG[seat.key] || AI_CFG.qi;
+  S.turn = seat.idx;
+  seat.note = "";
+  // 前两回合信息少，AI 更保守：先看清局势再挂扇
+  const early = S.round <= 2 ? 0.15 : 0;
+
+  // 地羊第 5 回合：主动给玩家一次活路
+  if (seat.isDi && S.round === MAX_ROUND && !P().out && P().cards.length >= 2 && seat.opp > 0) {
+    const pr = distinctPairs(seat.cards)[0];
+    if (pr) {
+      pushLog("地羊挂出 " + cardsStr(pr) + "，明确指向你：补齐另两情，付 " + DI_TOLL + " 道过店费即可离场。",
+        "ev-gold", "地羊");
+      S.pending = { type: "invite", from: seat.idx, cards: pr };
+      renderAll();
+      return "wait";
+    }
+  }
+
+  // 1) 挂扇配对
+  if (seat.opp > 0 && seat.cards.length >= 2) {
+    const bp = bestPairFor(seat);
+    if (bp && bp.p >= cfg.th + early) {
+      const to = bp.target;
+      pushLog(seat.name + " 挂出 " + cardsStr(bp.cards) + "，请 " + to.name +
+        " 补齐 " + cardsStr(missingEmos(bp.cards)) + "（估概率 " + Math.round(bp.p * 100) + "%）。",
+        "", seat.name);
+      if (to.isPlayer) {
+        S.pending = { type: "invite", from: seat.idx, cards: bp.cards };
+        renderAll();
+        return "wait";
+      }
+      const d = aiDecideAccept(seat, to, bp.cards);
+      if (d.ok) resolvePair(seat, to, bp.cards);
+      else rejectPair(seat, to, bp.cards, d.reason);
+      renderAll();
+      return "done";
+    }
+  }
+
+  // 2) 买扇补缺口
+  const price = priceFor(seat);
+  const miss = missingEmos(seat.cards);
+  const shopHit = S.shop.findIndex(e => miss.indexOf(e) >= 0);
+  if (shopHit >= 0 && seat.cards.length < HAND_CAP && seat.dao >= price + 2 &&
+      Math.random() < cfg.buy && S.shop.length) {
+    const emo = S.shop[shopHit];
+    seat.dao -= price;
+    seat.cards.push(emo);
+    S.shop.splice(shopHit, 1);
+    refillShop(S);
+    pushLog(seat.name + " 花 " + price + " 道买下「" + EMO_CH[emo] + "」，补自己的缺口。", "", seat.name);
+    renderAll();
+    return "done";
+  }
+
+  // 3) 窥扇（看领先者或未知信息最多的人）
+  if (seat.dao >= cfg.peekAt && seat.dao >= PEEK_COST) {
+    const cands = activeSeats().filter(t => t.idx !== seat.idx && t.cards.length);
+    cands.sort((a, b) => (b.cards.length - b.known.length) - (a.cards.length - a.known.length));
+    const t = cands[0];
+    if (t && Math.random() < 0.5) {
+      seat.dao -= PEEK_COST;
+      const card = t.cards[Math.floor(Math.random() * t.cards.length)];
+      revealKnown(t, [card]);
+      t.note = "被 " + seat.name + " 窥见 1 把：" + EMO_CH[card];
+      pushLog(seat.name + " 花 1 道窥见 " + t.name + " 手上有「" + EMO_CH[card] + "」，已公开。", "", seat.name);
+      renderAll();
+      return "done";
+    }
+  }
+
+  pushLog(seat.name + " 按住扇子观望，道 " + seat.dao + "。", "ev-sys", seat.name);
+  renderAll();
+  return "done";
+}
+
+/* ---------------- 回合循环 ---------------- */
+function advance() {
+  if (S.over) return;
+  if (S.pending) { renderAll(); return; }
+  const next = S.seats.find(s => !s.out && S.acted.indexOf(s.idx) < 0 && s.idx !== 0);
+  if (next) {
+    S.turn = next.idx;
+    S.phase = "ai";
+    renderAll();
+    clearTimeout(aiTimer);
+    aiTimer = setTimeout(() => {
+      S.acted.push(next.idx);
+      const r = aiAct(next);
+      if (S.over) return;
+      if (r === "wait") return;
+      advance();
+    }, 620);
+    return;
+  }
+  endRound();
+}
+
+function endRound() {
+  if (S.over) return;
+  S.phase = "idle";
+  if (checkPlayerLost()) return;
+  if (S.round >= MAX_ROUND) {
+    endGame(false, "rounds", "五个回合走完，地羊收摊，你还留在大厅。");
+    return;
+  }
+  S.round++;
+  startRound();
+}
+
+function startRound() {
+  S.pending = null;
+  S.acted = [];
+  S.turn = 0;
+  S.mode = "idle";
+  S.sel = [];
+  S.detailSeat = -1;
+  pushLog("—— 第 " + S.round + " 回合 · " + timeStr() + " 开锣 ——", "ev-sys", "");
+  if (REFILL_ROUNDS.indexOf(S.round) >= 0) {
+    for (const s of S.seats) {
+      if (s.out) continue;
+      const want = s.isDi ? 5 : 3;
+      while (s.cards.length < want && S.deck.length) s.cards.push(S.deck.pop());
+    }
+    refillShop(S);
+    pushLog("地羊掀开扇匣补扇：各席位补至 3 把，自己补至 5 把。", "ev-gold", "地羊");
+  }
+  S.phase = "player";
+  renderAll();
+}
+
+/* ---------------- 玩家交互 ---------------- */
+function toggleSel(i) {
+  const k = S.sel.indexOf(i);
+  if (k >= 0) { S.sel.splice(k, 1); renderAll(); return; }
+  if (S.sel.length >= 2) return;
+  if (S.sel.length === 1 && P().cards[S.sel[0]] === P().cards[i]) {
+    pushLog("两把扇要不同情绪，这一把和你已选的重了。", "ev-sys", "·");
+    return;
+  }
+  S.sel.push(i);
+  renderAll();
+}
+
+function resolveInvite(accept) {
+  const p = S.pending;
+  if (!p || p.type !== "invite") return;
+  const from = S.seats[p.from];
+  const need = missingEmos(p.cards);
+  S.pending = null;
+  if (accept) {
+    if (!hasAll(P().cards, need)) {
+      rejectPair(from, P(), p.cards, "你手里缺这" + need.length + "情");
+    } else {
+      resolvePair(from, P(), p.cards);
+      renderAll();
+      endGame(true, from.isDi ? "leave_di" : "leave",
+        from.isDi ? "你应了地羊，补齐四情，付清 " + DI_TOLL + " 道过店费后离场。" : "你应了" + from.name + "，补齐四情，离场。");
+      return;
+    }
+  } else {
+    rejectPair(from, P(), p.cards, "你主动拒绝");
+  }
+  renderAll();
+  if (checkPlayerLost()) return;
+  advance();
+}
+
+function bindUI() {
+  $("seats").addEventListener("click", function (e) {
+    const b = e.target.closest("[data-seat]");
+    if (!b) return;
+    const idx = Number(b.getAttribute("data-seat"));
+    const t = S.seats[idx];
+    if (S.mode === "peek" && S.phase === "player") { doPeek(t); return; }
+    if (S.mode === "target" && S.phase === "player" && canInviteTarget(P(), t)) {
+      playerInitiate(idx);
+      return;
+    }
+    S.detailSeat = S.detailSeat === idx ? -1 : idx;
+    renderAll();
+  });
+
+  $("hand").addEventListener("click", function (e) {
+    const b = e.target.closest("[data-hand]");
+    if (!b || !S || S.over || S.phase !== "player") return;
+    const i = Number(b.getAttribute("data-hand"));
+    if (S.mode === "pair") { toggleSel(i); return; }
+    if (S.mode === "idle") { S.mode = "pair"; S.sel = [i]; if (S.detailSeat === 0) S.detailSeat = -1; renderAll(); }
+  });
+
+  $("shop").addEventListener("click", function (e) {
+    const b = e.target.closest("[data-shop]");
+    if (!b || S.over) return;
+    buyCard(Number(b.getAttribute("data-shop")));
+  });
+
+  $("handActions").addEventListener("click", function (e) {
+    const b = e.target.closest("[data-act]");
+    if (!b || S.over) return;
+    const act = b.getAttribute("data-act");
+    if (act === "pair") {
+      if (S.phase !== "player" || P().opp <= 0) return;
+      S.mode = "pair"; S.sel = []; S.detailSeat = -1;
+      pushLog("你展开扇子，挑两把不同情绪的挂出去。", "ev-sys", "你");
+      renderAll();
+    } else if (act === "confirmPair") {
+      if (S.sel.length !== 2) return;
+      S.mode = "target";
+      pushLog("已选 " + cardsStr(S.sel.map(i => P().cards[i])) + "，点一个席位挂过去。", "", "你");
+      renderAll();
+    } else if (act === "peek") {
+      if (P().dao < PEEK_COST) return;
+      S.mode = "peek";
+      pushLog("点一个席位，窥它的 1 把扇。", "ev-sys", "你");
+      renderAll();
+    } else if (act === "wait") {
+      doWait();
+    } else if (act === "cancel") {
+      S.mode = "idle"; S.sel = [];
+      renderAll();
+    }
+  });
+
+  $("panelPending").addEventListener("click", function (e) {
+    const b = e.target.closest("[data-act]");
+    if (!b) return;
+    if (b.getAttribute("data-act") === "acceptInvite") resolveInvite(true);
+    if (b.getAttribute("data-act") === "declineInvite") resolveInvite(false);
+  });
+
+  $("btnRules").addEventListener("click", function () {
+    $("sheetTitle").textContent = "规则 · 四情扇";
+    $("sheetBody").innerHTML = RULES.map(r =>
+      "<h3>" + r[0] + "</h3>" + r[1].map(p => '<p class="' + (p.indexOf("本作设定") === 0 ? "tag-note" : "") + '">' + p + "</p>").join("")
+    ).join("");
+    $("sheetScreen").classList.remove("hidden");
+  });
+  $("sheetClose").addEventListener("click", function () {
+    $("sheetScreen").classList.add("hidden");
+  });
+  $("btnStart").addEventListener("click", startGame);
+  $("btnRestart").addEventListener("click", startGame);
+}
+
+function startGame() {
+  clearTimeout(aiTimer);
+  S = newState();
+  S.phase = "player";
+  $("startScreen").classList.add("hidden");
+  $("endScreen").classList.add("hidden");
+  $("sheetScreen").classList.add("hidden");
+  pushLog("入局：六席各 3 把扇，你手上有 " + cardsStr(P().cards) + "。", "ev-sys", "");
+  startRound();
+}
+
+const RULES = [
+  ["牌与目标", [
+    "四种情绪：喜（金）、怒（赤）、哀（青）、乐（绿）。每人开局 3 把扇，配对机会 3 次。",
+    "凑齐喜、怒、哀、乐四情即「成对」，双方同时离场。你是离场即胜；被留下即负。"
+  ]],
+  ["挂扇与配对", [
+    "发起方从自己手上挑 2 把不同情绪，公开挂出，并指定一名对手。",
+    "对手手里若正好有缺的那 2 种情绪，就能应约；双方各耗 1 次配对机会，同时离场。",
+    "对手拒绝：发起方白耗 1 次机会，挂出的 2 把收回手里但登记在案，全场公开可见。"
+  ]],
+  ["一回合能做的事", [
+    "每回合每人 1 个行动：挂扇配对 / 买扇 / 窥扇 / 观望。",
+    "买扇：摊上 1 道一把，领先者（扇最多，同扇比道）要 2 道；手上限 5 把。",
+    "窥扇：花 1 道看指定席位 1 把扇，信息当场公开登记。"
+  ]],
+  ["回合与补扇", [
+    "五个回合，对应 0:00 / 0:30 / 1:00 / 1:30 / 2:00。",
+    "第 2、3、4 回合开锣时地羊补扇：各席位补至 3 把，地羊自己补至 5 把。",
+    "本作设定：原文「补扇 3 道一把可挑」简化为免费补至 3 把，想多拿改为花钱买扇。"
+  ]],
+  ["地羊的规矩", [
+    "地羊是庄家也是玩家：前四回合守店，不受邀、不挂扇。",
+    "第 5 回合它才下场，并主动给你挂一次扇；与它成对要付 5 道过店费（你付）。",
+    "本作设定：过店费只在真成对时收，被拒不收；地羊买扇价比常人多 1 道。"
+  ]],
+  ["胜负与结算", [
+    "胜：你配对成功离场。负：3 次机会用尽 / 5 回合走完仍在场 / 大厅再无对手。",
+    "平局：与地羊同回合离场且折算同分。",
+    "结算 = 剩余道 + 余扇 × 5 道。"
+  ]],
+  ["对手会怎么想", [
+    "所有人只看公开信息（在册扇、窥见结果）估算概率，按下式：某情在手的概率 = 1-(3/4)^未知槽。",
+    "老周前两回合囤扇不接；小满见缺口就应；阿棠拒绝替领先者抬价；七叔手上有对就挂；地羊第 5 回合才动手。",
+    "本作设定：AI 应约时读取真实手牌判定，发起时只用公开信息估概率。"
+  ]]
+];
+
+window.QS = {
+  snapshot: function () {
+    if (!S) return null;
+    return JSON.parse(JSON.stringify({
+      round: S.round, phase: S.phase, over: S.over, mode: S.mode, result: S.result,
+      pending: S.pending, shop: S.shop,
+      seats: S.seats.map(s => ({
+        key: s.key, name: s.name, cards: s.cards, known: s.known,
+        opp: s.opp, dao: s.dao, out: s.out, leftRound: s.leftRound
+      }))
+    }));
+  }
+};
+
+function renderEnd() {
+  const r = S.result;
+  const win = r.win && !r.draw;
+  $("endStamp").textContent = r.draw ? "平局" : win ? "离场" : "留场";
+  $("endStamp").className = "end-stamp" + (win ? " win" : "");
+  $("endTitle").textContent = r.draw ? "平局收场" : win ? "你走出来了" : "你留在了大厅";
+  $("endBody").innerHTML =
+    '<div class="row"><span>结局</span><b>' + (r.draw ? "平局" : win ? "离场（胜）" : "留场（负）") + "</b></div>" +
+    '<div class="row"><span>结束于第几回合</span><b>第 ' + r.round + ' 回合（' + ROUND_TIMES[r.round - 1] + '）</b></div>' +
+    '<div class="row"><span>剩余道</span><b>' + r.dao + " 道</b></div>" +
+    '<div class="row"><span>余扇折算</span><b>' + r.cards + " 把 × 5 = " + r.cardVal + " 道</b></div>" +
+    (r.draw ? '<div class="score">双方折算同分，不分高下</div>' : "") +
+    '<div class="score">结算 ' + r.score + " 道</div>" +
+    '<div class="reason">' + r.reason + "</div>";
+  $("endScreen").classList.remove("hidden");
+}
+
+bindUI();
+</script>
+</body>
+</html>

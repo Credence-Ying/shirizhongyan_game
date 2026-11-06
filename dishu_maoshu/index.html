@@ -1,0 +1,2523 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>地鼠·猫鼠游戏｜六个昼夜</title>
+<style>
+  :root{
+    --bg:#0b0e13;
+    --bg2:#10151d;
+    --panel:#141b25;
+    --panel2:#182230;
+    --line:#2a3546;
+    --line2:#3a475c;
+    --text:#ebe6da;
+    --muted:#9aa5b7;
+    --dim:#6b7688;
+    --gold:#e3b45f;
+    --gold2:#f2d59a;
+    --red:#e2604a;
+    --green:#6fbf7b;
+    --shadow:0 14px 40px rgba(0,0,0,.45);
+    --wood:#63b36f;
+    --fire:#e0603c;
+    --earth:#d8a84a;
+    --metal:#c9d2de;
+    --water:#4f93d2;
+    --mouse:#e8d6a8;
+    --cat:#d98a5f;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0}
+  body{
+    background:
+      radial-gradient(1200px 700px at 20% -10%, rgba(227,180,95,.09), transparent 60%),
+      radial-gradient(900px 600px at 110% 20%, rgba(79,147,210,.07), transparent 55%),
+      var(--bg);
+    color:var(--text);
+    font-family:system-ui,-apple-system,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif;
+    font-size:14px;line-height:1.65;
+    min-height:100vh;
+    overflow-x:hidden;
+    -webkit-font-smoothing:antialiased;
+  }
+  h1,h2,h3,h4{font-family:"Songti SC","Noto Serif CJK SC","STSong",serif;font-weight:700;margin:0;letter-spacing:.04em}
+  button{font-family:inherit;color:inherit;cursor:pointer;border:0;background:none;font-size:14px}
+  button:disabled{cursor:not-allowed}
+  #app{max-width:1240px;margin:0 auto;padding:16px;min-height:100vh}
+  .screen{display:none}
+  .screen.show{display:block;animation:fade .35s ease both}
+  @keyframes fade{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+  @keyframes pop{from{opacity:0;transform:scale(.96)}to{opacity:1;transform:none}}
+  @keyframes pulse{0%,100%{box-shadow:0 0 0 0 rgba(226,96,74,.5)}50%{box-shadow:0 0 0 8px rgba(226,96,74,0)}}
+  @keyframes flash{0%{background-color:rgba(227,180,95,.28)}100%{background-color:transparent}}
+
+  /* ---------- 标题 / 难度 ---------- */
+  .titlewrap{min-height:calc(100vh - 32px);display:flex;align-items:center;justify-content:center;padding:20px 0}
+  .titlebox{width:min(680px,100%);text-align:center;padding:38px 26px 30px;
+    background:linear-gradient(180deg,rgba(24,34,48,.9),rgba(16,21,29,.96));
+    border:1px solid var(--line);border-radius:18px;box-shadow:var(--shadow);position:relative;overflow:hidden}
+  .titlebox::before{content:"";position:absolute;inset:0;pointer-events:none;
+    background:radial-gradient(500px 240px at 50% 0,rgba(227,180,95,.13),transparent 70%)}
+  .kicker{font-size:12px;letter-spacing:.35em;color:var(--gold);text-transform:uppercase}
+  .titlebox h1{font-size:clamp(38px,8vw,64px);line-height:1.1;margin:12px 0 6px;color:#f3ecdd;
+    text-shadow:0 2px 0 rgba(0,0,0,.5),0 0 32px rgba(227,180,95,.18)}
+  .titlebox h1 .dot{color:var(--gold)}
+  .sub{font-size:clamp(15px,2.4vw,19px);color:var(--gold2);letter-spacing:.12em;margin:0 0 10px}
+  .blurb{color:var(--muted);margin:0 auto;max-width:460px}
+  .btns{display:flex;flex-wrap:wrap;gap:10px;justify-content:center;margin-top:26px}
+  .btn{padding:11px 20px;border-radius:10px;border:1px solid var(--line2);background:var(--panel2);
+    transition:transform .12s,background .15s,border-color .15s;font-weight:600;letter-spacing:.06em}
+  .btn:hover{transform:translateY(-1px);border-color:var(--gold);background:#1d2939}
+  .btn:active{transform:translateY(0)}
+  .btn.primary{background:linear-gradient(180deg,#e7bd6d,#c9953f);color:#1a1408;border-color:#f0d49b;
+    box-shadow:0 8px 22px rgba(227,180,95,.18)}
+  .btn.primary:hover{background:linear-gradient(180deg,#f0c97c,#d2a04a)}
+  .btn.small{padding:7px 12px;font-size:13px;border-radius:8px}
+  .btn.ghost{background:rgba(255,255,255,.03)}
+  .btn.danger{border-color:#6d342c;background:#2a1a17;color:#f0b3a7}
+  .foot{margin-top:22px;font-size:12px;color:var(--dim);letter-spacing:.1em}
+
+  .diffwrap{width:min(980px,100%);margin:0 auto;padding:22px 0 34px}
+  .diffhead{display:flex;align-items:baseline;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:16px}
+  .diffhead h2{font-size:26px}
+  .diffhead .back{color:var(--muted);font-size:13px;padding:6px 10px;border:1px solid var(--line);border-radius:8px}
+  .diffgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+  .diffcard{text-align:left;padding:16px;border-radius:14px;border:1px solid var(--line);background:var(--panel);
+    transition:border-color .15s,transform .15s;position:relative;min-width:0}
+  .diffcard:hover{transform:translateY(-2px);border-color:var(--line2)}
+  .diffcard.on{border-color:var(--gold);box-shadow:0 0 0 1px rgba(227,180,95,.35) inset;background:#1a2330}
+  .diffcard h3{font-size:20px;margin-bottom:2px}
+  .diffcard .tag{font-size:11px;color:var(--gold);letter-spacing:.18em}
+  .diffcard p{color:var(--muted);font-size:13px;margin:8px 0 0}
+  .diffcard .rows{display:flex;flex-wrap:wrap;gap:4px 10px;margin-top:10px;font-size:12px;color:var(--dim)}
+  .diffcard .rows b{color:var(--text);font-weight:600}
+  .diffcard.on::after{content:"已选";position:absolute;top:12px;right:12px;font-size:11px;color:#1a1408;
+    background:var(--gold);border-radius:20px;padding:2px 8px;font-weight:700}
+  .seedrow{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-top:18px;color:var(--muted);font-size:13px}
+  .seedrow input{width:150px;padding:8px 10px;border-radius:8px;border:1px solid var(--line2);
+    background:#0d131b;color:var(--text);font-family:ui-monospace,Consolas,monospace}
+  .seedrow .hint{font-size:12px;color:var(--dim)}
+
+  /* ---------- 教程 ---------- */
+  .tutwrap{width:min(860px,100%);margin:0 auto;padding:18px 0 30px}
+  .tutcard{border:1px solid var(--line);border-radius:18px;background:linear-gradient(180deg,#17202c,#10161f);
+    box-shadow:var(--shadow);overflow:hidden}
+  .tuthead{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:14px 18px;border-bottom:1px solid var(--line)}
+  .tuthead .no{font-size:12px;letter-spacing:.22em;color:var(--gold)}
+  .tuthead .skip{font-size:12px;color:var(--dim);border:1px solid var(--line);border-radius:20px;padding:4px 12px}
+  .tuthead .skip:disabled{opacity:.35}
+  .tutbody{padding:24px 22px;min-height:330px}
+  .tutbody h2{font-size:clamp(24px,4.6vw,32px);margin-bottom:8px}
+  .tutbody .lead{color:var(--gold2);font-size:15px;margin:0 0 14px}
+  .tutbody p{margin:0 0 12px;color:#d8d2c6}
+  .tutbody .small{font-size:13px;color:var(--muted)}
+  .tutbody .term{color:var(--gold2);font-weight:600;border-bottom:1px dashed rgba(227,180,95,.5);cursor:help}
+  .tutfoot{display:flex;justify-content:space-between;gap:10px;padding:14px 18px;border-top:1px solid var(--line);background:rgba(0,0,0,.18)}
+  .dots{display:flex;gap:6px;align-items:center}
+  .dots i{width:7px;height:7px;border-radius:50%;background:#31405a;display:block}
+  .dots i.on{background:var(--gold);box-shadow:0 0 8px rgba(227,180,95,.6)}
+  .chain{display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin:12px 0}
+  .chain .node{padding:5px 10px;border-radius:8px;font-size:13px;border:1px solid var(--line2);background:#121a25}
+  .chain .arrow{color:var(--dim);font-size:12px}
+  .keys{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:8px;margin-top:12px}
+  .keys div{border:1px solid var(--line);border-radius:10px;padding:8px 10px;font-size:13px;background:#111923}
+  .keys b{color:var(--gold2)}
+  .quiz{margin-top:14px;padding:14px;border:1px dashed var(--line2);border-radius:12px;background:rgba(255,255,255,.025)}
+  .quiz .q{font-size:14px;margin-bottom:10px;color:var(--gold2)}
+  .chips{display:flex;flex-wrap:wrap;gap:8px}
+  .chip{padding:8px 12px;border-radius:9px;border:1px solid var(--line2);background:#121a25;font-size:13px;transition:.15s}
+  .chip:hover{border-color:var(--gold);transform:translateY(-1px)}
+  .chip.right{border-color:#4f8f5b;background:#15251a;color:#a9e0b2}
+  .chip.wrong{border-color:#8b3c31;background:#2a1714;color:#f0b0a4;animation:shake .3s}
+  @keyframes shake{0%,100%{transform:translateX(0)}25%{transform:translateX(-4px)}75%{transform:translateX(4px)}}
+  .okline{margin-top:10px;font-size:13px;color:var(--green);min-height:20px}
+  .tutmap{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin:12px 0 6px}
+  .tutmap div{border:1px solid var(--line);border-radius:8px;padding:6px 7px;background:#111923;min-width:0}
+  .tutmap div b{display:block;font-size:12px;color:var(--gold2);font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .tutmap div span{font-size:10px;color:var(--dim);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;display:block}
+  .tutmap .sp{background:#0e141c;border-style:dashed}
+  .tutmap .cat{border-color:#5a3a2c}
+  .tutmap .home{border-color:#5a5130}
+
+  /* ---------- 主界面 ---------- */
+  #scrGame{padding-top:2px}
+  .topbar{display:flex;flex-wrap:wrap;align-items:center;gap:8px 14px;padding:10px 12px;margin-bottom:10px;
+    background:linear-gradient(180deg,rgba(24,34,48,.95),rgba(17,23,32,.95));border:1px solid var(--line);border-radius:12px}
+  .roundbadge{display:flex;align-items:center;gap:8px}
+  .roundbadge .ring{font-family:ui-monospace,Consolas,monospace;font-size:12px;color:var(--muted);border:1px solid var(--line2);border-radius:20px;padding:3px 10px}
+  .roundbadge .ring b{color:var(--gold2);font-size:15px}
+  .phasechip{font-size:12px;letter-spacing:.12em;border-radius:20px;padding:4px 12px;border:1px solid var(--line2);background:#121a25;white-space:nowrap}
+  .phasechip.night{border-color:#2e4a73;background:#111d2d;color:#a7c6ec}
+  .phasechip.day{border-color:#6d4a2a;background:#2a1e13;color:#f0c08c}
+  .phasechip.dawn{border-color:#5d4a6d;background:#221a2a;color:#d5b8ec}
+  .phasechip.end{border-color:#6d342c;background:#291714;color:#f0b3a7}
+  .topbar .spacer{flex:1 1 auto}
+  .phasetrack{display:flex;align-items:center;gap:4px;padding:0 12px 8px;margin-top:-4px;overflow:hidden}
+  .phasetrack .pstep{font-size:10.5px;letter-spacing:.06em;padding:3px 8px;border-radius:6px;border:1px solid var(--line);color:var(--dim);background:#0f151d;white-space:nowrap}
+  .phasetrack .pstep.on{color:var(--muted);border-color:var(--line2)}
+  .phasetrack .pstep.cur{color:var(--gold2);border-color:var(--gold);background:#221c11;box-shadow:0 0 8px rgba(227,180,95,.18)}
+  .phasetrack .parrow{color:#2b3646;font-style:normal;font-size:10px}
+  .dangertape{display:flex;flex-wrap:wrap;gap:6px;margin:0 0 10px}
+  .dtape{font-size:11.5px;color:#f0b3a7;background:#241311;border:1px solid #6d342c;border-radius:6px;padding:4px 8px;line-height:1.5}
+  .apmini{font-size:12px;color:var(--muted);display:flex;align-items:center;gap:6px}
+  .apdot{width:8px;height:8px;border-radius:50%;background:var(--gold);display:inline-block;box-shadow:0 0 6px rgba(227,180,95,.4)}
+  .apdot.off{background:#2b3646;box-shadow:none}
+  .topactions{display:flex;gap:6px}
+  .iconbtn{width:34px;height:32px;border-radius:8px;border:1px solid var(--line);background:#131b26;font-size:13px;
+    display:inline-flex;align-items:center;justify-content:center;color:var(--muted)}
+  .iconbtn:hover{border-color:var(--gold);color:var(--gold2)}
+
+  .gamegrid{display:grid;grid-template-columns:minmax(0,1fr) 330px;gap:12px;align-items:start}
+  .leftcol{min-width:0;display:flex;flex-direction:column;gap:10px}
+
+  .map{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+  .cell{position:relative;min-width:0;border-radius:12px;border:1px solid var(--line);background:var(--panel);
+    padding:8px 9px 7px;min-height:104px;display:flex;flex-direction:column;gap:4px;cursor:pointer;
+    transition:border-color .15s,transform .12s,background .15s;overflow:hidden}
+  .cell:hover{border-color:var(--line2);transform:translateY(-1px)}
+  .cell.sel{border-color:var(--gold);box-shadow:0 0 0 1px rgba(227,180,95,.5) inset;background:#1a2331}
+  .cell.special{background:#0f151d;border-style:dashed}
+  .cell.dimmed{filter:brightness(.72) saturate(.75)}
+  .cell.red{animation:pulse 1.6s infinite}
+  .cell.red .rname::after{content:"红灯";font-size:10px;color:#ff9c8a;border:1px solid #7a3a30;border-radius:20px;
+    padding:0 5px;margin-left:5px;letter-spacing:.1em}
+  .cell .chead{display:flex;align-items:center;justify-content:space-between;gap:4px;min-width:0}
+  .cell .rname{font-family:"Songti SC","STSong",serif;font-weight:700;font-size:14px;letter-spacing:.06em;
+    white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .cell .elem{font-size:10px;padding:1px 5px;border-radius:5px;border:1px solid currentColor;opacity:.9;white-space:nowrap}
+  .cell .fruitrow{display:flex;align-items:center;gap:5px;font-size:11px;color:var(--muted);min-height:18px}
+  .fruit{width:17px;height:17px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;
+    font-size:10px;font-weight:700;color:#11151c;border:1px solid rgba(255,255,255,.35);flex:0 0 auto;
+    font-family:"Songti SC",serif}
+  .fruit.wood{background:var(--wood)} .fruit.fire{background:var(--fire)} .fruit.earth{background:var(--earth)}
+  .fruit.metal{background:var(--metal)} .fruit.water{background:var(--water)}
+  .stockn{font-size:11px;color:var(--muted)}
+  .stockn.unknown{color:var(--dim);letter-spacing:.16em}
+  .stockn.stale{color:#8f7a52}
+  .cell .badges{position:absolute;top:7px;right:8px;display:flex;gap:3px;align-items:center}
+  .cell .chead{padding-right:0}
+  .miniic{font-size:9px;line-height:1;padding:2px 4px;border-radius:4px;border:1px solid var(--line2);color:var(--muted);background:#0f161f}
+  .miniic.hole{color:#9ed3a6;border-color:#3e6a46}
+  .miniic.card{color:#e9b2a6;border-color:#6d3c33}
+  .miniic.trap{color:#f0a28f;border-color:#7a3a30}
+  .tokens{margin-top:auto;display:flex;flex-wrap:wrap;gap:3px;align-items:flex-end;min-height:24px}
+  .mtok{width:21px;height:21px;border-radius:50%;border:1px solid #a68d55;background:radial-gradient(circle at 35% 30%,#f7e9c5,#c8ab6b);
+    color:#1b160c;font-size:11px;font-weight:700;display:inline-flex;align-items:center;justify-content:center;position:relative}
+  .mtok.cur{box-shadow:0 0 0 2px var(--gold),0 0 12px rgba(227,180,95,.5)}
+  .mtok.locked{filter:grayscale(.3) brightness(.75)}
+  .mtok.locked::after{content:"";position:absolute;inset:-3px;border:1px dashed #d06a55;border-radius:50%}
+  .mtok.dead{opacity:.28;text-decoration:line-through}
+  .ctok{width:23px;height:23px;border-radius:7px 7px 12px 12px;background:radial-gradient(circle at 40% 30%,#f0b388,#b96a43);
+    color:#23120a;font-size:10px;font-weight:800;display:inline-flex;align-items:center;justify-content:center;
+    border:1px solid #e0a57e;box-shadow:0 0 10px rgba(217,138,95,.28)}
+  .ctok.ghost{opacity:.45;filter:grayscale(.5)}
+  .ctoklabel{font-size:9px;color:#d1a184;white-space:nowrap}
+  .tracerow{display:flex;gap:2px;align-items:center;margin-top:2px}
+  .tracerow i{width:6px;height:6px;border-radius:1px;background:#344257;display:block}
+  .tracerow i.on{background:#c99a52}
+  .tracerow .tlabel{font-size:9px;color:var(--dim);margin-left:3px;letter-spacing:.06em}
+  .cell .clock{font-size:9px;color:#8f7a52;margin-left:auto;white-space:nowrap}
+
+  /* 鼠卡片 */
+  .mcards{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+  .mcard{border:1px solid var(--line);border-radius:12px;background:var(--panel);padding:9px 10px;cursor:pointer;
+    transition:.15s;min-width:0;position:relative}
+  .mcard:hover{border-color:var(--line2)}
+  .mcard.cur{border-color:var(--gold);background:#1b2431;box-shadow:0 0 0 1px rgba(227,180,95,.35) inset}
+  .mcard.dead{opacity:.45}
+  .mcard .mtop{display:flex;align-items:center;gap:6px;min-width:0}
+  .mcard .mname{font-family:"Songti SC",serif;font-weight:700;font-size:14px}
+  .mcard .mpos{font-size:11px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .mcard .mstat{margin-left:auto;display:flex;gap:3px}
+  .mcard .tag{font-size:9px;border-radius:4px;padding:1px 4px;border:1px solid var(--line2);color:var(--muted);white-space:nowrap}
+  .mcard .tag.warn{color:#f0b08f;border-color:#7a4631}
+  .mcard .tag.good{color:#a9d8b1;border-color:#3e6a46}
+  .mcard .rows{display:flex;align-items:center;gap:8px;margin-top:6px;flex-wrap:wrap}
+  .sat{display:flex;gap:3px;align-items:center}
+  .sat i{width:13px;height:9px;border-radius:2px;background:#2b3646;display:block;border:1px solid #3b4a60}
+  .sat i.on{background:linear-gradient(180deg,#eac168,#c6923d);border-color:#f0d49b}
+  .sat .lab{font-size:9px;color:var(--dim);margin-left:2px}
+  .apdots{display:flex;gap:2px;align-items:center}
+  .apdots i{width:5px;height:5px;border-radius:50%;background:var(--gold);display:block}
+  .apdots i.off{background:#2b3646}
+  .apdots .lab{font-size:9px;color:var(--dim);margin-left:2px}
+  .bag{display:flex;gap:3px;align-items:center;margin-top:4px;min-height:17px}
+  .bag .bslot{width:15px;height:15px;border-radius:4px;border:1px solid #354256;background:#101721;
+    display:inline-flex;align-items:center;justify-content:center;font-size:9px;color:var(--dim)}
+  .bag .bslot.filled{border-color:#8a7444}
+  .bag .more{font-size:9px;color:var(--dim)}
+
+  /* 行动面板 */
+  .actpanel{border:1px solid var(--line);border-radius:12px;background:var(--panel);padding:10px 11px}
+  .acthead{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:7px}
+  .acthead h4{font-size:13px;letter-spacing:.1em;color:var(--gold2)}
+  .acthead .who{font-size:11px;color:var(--muted)}
+  .actgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}
+  .abtn{position:relative;text-align:left;padding:7px 8px;border-radius:8px;border:1px solid var(--line2);
+    background:#121a25;font-size:12px;line-height:1.25;min-height:42px;transition:.12s;min-width:0}
+  .abtn b{display:block;font-size:12.5px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .abtn span{display:block;font-size:9.5px;color:var(--dim);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .abtn .cost{position:absolute;top:5px;right:6px;font-size:9px;color:var(--gold);letter-spacing:.02em}
+  .abtn:hover:not(:disabled){border-color:var(--gold);background:#1a2431;transform:translateY(-1px)}
+  .abtn:disabled{opacity:.38;background:#0e141c}
+  .abtn.hot{border-color:rgba(227,180,95,.7);background:#1c2634}
+  .abtn.endnight{background:#2a1c14;border-color:#5d4126;color:#f0c08c}
+  .acthint{font-size:11px;color:var(--dim);margin-top:7px;min-height:16px}
+  .acthint b{color:var(--gold2)}
+
+  /* 日志 */
+  .logpanel{border:1px solid var(--line);border-radius:12px;background:linear-gradient(180deg,#121a25,#0e151e);
+    padding:9px 10px;position:sticky;top:12px;max-height:calc(100vh - 28px);display:flex;flex-direction:column}
+  .loghead{display:flex;justify-content:space-between;align-items:center;font-size:11px;color:var(--muted);
+    letter-spacing:.12em;padding-bottom:6px;border-bottom:1px solid var(--line);margin-bottom:6px}
+  .loghead b{color:var(--gold2);letter-spacing:.06em}
+  .loglist{overflow-y:auto;flex:1;min-height:120px;max-height:66vh;font-size:12px;line-height:1.5;
+    display:flex;flex-direction:column;gap:2px;scrollbar-width:thin}
+  .logline{padding:2px 0;color:#c9c3b8;border-bottom:1px dotted rgba(255,255,255,.05)}
+  .logline .who{font-size:10px;color:var(--dim);margin-right:4px}
+  .logline.k-warn{color:#f0b08f}
+  .logline.k-bad{color:#f29c8b}
+  .logline.k-good{color:#a9d8b1}
+  .logline.k-cat{color:#e3b08c}
+  .logline.k-sys{color:#96a3b8}
+  .logline.new{animation:flash 1.1s ease}
+
+  /* ---------- 弹层 ---------- */
+  .modal{position:fixed;inset:0;background:rgba(4,6,10,.78);backdrop-filter:blur(5px);
+    display:none;align-items:center;justify-content:center;padding:18px;z-index:60}
+  .modal.show{display:flex}
+  .modalbox{width:min(620px,100%);max-height:88vh;display:flex;flex-direction:column;border-radius:16px;
+    border:1px solid var(--line2);background:linear-gradient(180deg,#18212d,#111821);box-shadow:var(--shadow);
+    animation:pop .25s ease both;overflow:hidden}
+  .modalbox h2{font-size:clamp(20px,4.4vw,27px);padding:15px 18px 0;color:#f2ead9}
+  .modalbox .mlead{font-size:12px;color:var(--gold);letter-spacing:.16em;padding:4px 18px 0}
+  .mbody{padding:12px 18px 6px;overflow-y:auto;min-height:60px;font-size:13.5px}
+  .mfoot{padding:12px 18px 16px;display:flex;gap:8px;justify-content:flex-end;flex-wrap:wrap;border-top:1px solid var(--line);background:rgba(0,0,0,.14)}
+  .rep{border:1px solid var(--line);border-radius:10px;padding:9px 11px;margin:8px 0;background:rgba(255,255,255,.025)}
+  .rep h4{font-size:13px;color:var(--gold2);margin-bottom:4px;letter-spacing:.08em}
+  .rep .row{display:flex;justify-content:space-between;gap:10px;font-size:12.5px;color:#ccc6ba;padding:2px 0}
+  .rep .row span:last-child{color:var(--muted);text-align:right}
+  .rep ul{margin:4px 0 0 16px;padding:0;font-size:12.5px;color:#ccc6ba}
+  .rep li{margin:2px 0}
+  .pill{display:inline-block;font-size:10px;border-radius:20px;padding:1px 7px;border:1px solid var(--line2);color:var(--muted);margin-left:4px}
+  .pill.bad{color:#f2a394;border-color:#7a3a30}
+  .pill.good{color:#a9d8b1;border-color:#3e6a46}
+  .pill.warn{color:#f0c08c;border-color:#6d4a2a}
+  .daycard{border:1px solid var(--line);border-left:3px solid var(--cat);border-radius:10px;padding:10px 12px;margin:8px 0;
+    background:rgba(217,138,95,.05);animation:pop .28s ease both}
+  .daycard .dc-head{display:flex;justify-content:space-between;gap:8px;font-size:11px;color:#d9a98a;letter-spacing:.08em}
+  .daycard .dc-text{font-size:13.5px;margin-top:3px;color:#e7dfd2}
+  .daycard .dc-roll{font-size:11.5px;color:var(--muted);margin-top:5px;font-family:ui-monospace,Consolas,monospace}
+  .daycard.hit{border-left-color:var(--red);background:rgba(226,96,74,.09)}
+  .choicegrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:8px;margin-top:6px}
+  .choice{text-align:left;border:1px solid var(--line2);border-radius:10px;padding:9px 10px;background:#121a25;font-size:12.5px}
+  .choice:hover{border-color:var(--gold);background:#1a2431}
+  .choice b{display:block;color:var(--gold2);font-size:13px}
+  .choice span{color:var(--dim);font-size:11px}
+  .feedgrid{display:flex;flex-wrap:wrap;gap:7px;margin:6px 0 12px}
+  .fruitbtn{padding:7px 10px;border-radius:9px;border:1px solid var(--line2);background:#121a25;font-size:12px;display:flex;align-items:center;gap:6px}
+  .fruitbtn:hover{border-color:var(--gold)}
+  .fruitbtn.sel{border-color:var(--gold);background:#20303f}
+  .holegrid{display:grid;grid-template-columns:repeat(5,1fr);gap:6px;margin:8px 0}
+  .holebtn{padding:9px 3px;border-radius:9px;border:1px solid var(--line2);background:#121a25;text-align:center;font-size:12px}
+  .holebtn:hover{border-color:var(--gold2)}
+  .holebtn small{display:block;font-size:9px;color:var(--dim)}
+
+  /* ---------- 结局 ---------- */
+  .reswrap{width:min(760px,100%);margin:0 auto;padding:22px 0 40px}
+  .rescard{border:1px solid var(--line);border-radius:18px;overflow:hidden;background:linear-gradient(180deg,#18212d,#0f1520);box-shadow:var(--shadow)}
+  .reshero{padding:24px 22px 16px;text-align:center;border-bottom:1px solid var(--line);position:relative;overflow:hidden}
+  .reshero::before{content:"";position:absolute;inset:0;background:radial-gradient(400px 160px at 50% 0,rgba(227,180,95,.16),transparent 70%)}
+  .reshero .kicker{font-size:11px}
+  .reshero h2{font-size:clamp(36px,9vw,58px);margin:6px 0 2px;letter-spacing:.13em}
+  .reshero.win h2{color:var(--gold2);text-shadow:0 0 30px rgba(227,180,95,.25)}
+  .reshero.lose h2{color:#e8907f}
+  .reshero .line{color:var(--muted);font-size:13px}
+  .reshero .rank{margin-top:10px;display:inline-flex;align-items:center;gap:8px;border:1px solid var(--line2);border-radius:24px;padding:4px 14px;font-size:12px;color:var(--muted)}
+  .reshero .rank b{font-size:20px;color:var(--gold2);font-family:"Songti SC",serif}
+  .resbody{padding:16px 20px 20px}
+  .statgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+  .stat{border:1px solid var(--line);border-radius:10px;padding:9px 10px;background:#111923}
+  .stat .n{font-size:19px;color:var(--gold2);font-family:ui-monospace,Consolas,monospace}
+  .stat .l{font-size:10.5px;color:var(--dim);letter-spacing:.08em}
+  .daoline{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;
+    margin:12px 0;padding:10px 12px;border:1px dashed #5d4126;border-radius:10px;background:rgba(227,180,95,.05);font-size:13px}
+  .daoline b{color:var(--gold2);font-size:16px}
+  .resbtns{display:flex;gap:8px;flex-wrap:wrap;margin-top:14px}
+
+  .toast{position:fixed;left:50%;bottom:22px;transform:translate(-50%,14px);opacity:0;pointer-events:none;
+    padding:9px 16px;border-radius:24px;background:#1f2a3a;border:1px solid var(--line2);color:var(--text);
+    font-size:12.5px;box-shadow:var(--shadow);transition:.22s;z-index:90;max-width:calc(100vw - 32px);text-align:center}
+  .toast.show{opacity:1;transform:translate(-50%,0)}
+  .toast.bad{border-color:#7a3a30;background:#2b1815;color:#f0b3a7}
+  .toast.good{border-color:#3e6a46;background:#13231a;color:#a9d8b1}
+
+  @media (max-width:900px){
+    #app{padding:10px}
+    .gamegrid{grid-template-columns:1fr}
+    .logpanel{position:static;max-height:200px}
+    .loglist{max-height:160px}
+    .diffgrid{grid-template-columns:1fr}
+    .titlebox{padding:28px 18px 22px}
+    .mcards{gap:6px}
+    .mcard{padding:7px 7px}
+    .mcard .mpos{font-size:10px}
+    .actgrid{grid-template-columns:repeat(3,1fr)}
+    .cell{min-height:96px;padding:7px}
+  }
+  @media (max-width:420px){
+    #app{padding:8px}
+    .topbar{padding:8px;gap:6px 8px}
+    .roundbadge .ring{font-size:10.5px;padding:2px 8px}
+    .phasechip{font-size:10.5px;padding:3px 9px}
+    .topactions{gap:4px}
+    .iconbtn{width:30px;height:28px;font-size:12px}
+    .map{gap:5px}
+    .cell{min-height:88px;padding:6px;border-radius:10px}
+    .cell .rname{font-size:12px}
+    .cell .elem{font-size:9px;padding:0 4px}
+    .cell .fruitrow{font-size:10px;gap:3px}
+    .fruit{width:15px;height:15px;font-size:9px}
+    .mtok{width:18px;height:18px;font-size:10px}
+    .ctok{width:20px;height:20px;font-size:9px}
+    .tracerow i{width:5px;height:5px}
+    .mcards{gap:4px}
+    .mcard{padding:6px;border-radius:9px}
+    .mcard .mname{font-size:12px}
+    .mcard .mpos{font-size:9px}
+    .mcard .rows{gap:4px;margin-top:4px}
+    .sat i{width:10px;height:8px}
+    .bag .bslot{width:12px;height:12px}
+    .actpanel{padding:8px}
+    .actgrid{gap:4px}
+    .abtn{padding:6px;font-size:11px;min-height:40px}
+    .abtn b{font-size:11px}
+    .abtn span{font-size:8.5px}
+    .abtn .cost{font-size:8px;top:4px;right:4px}
+    .modalbox{max-height:92vh}
+    .mbody{padding:10px 13px 4px}
+    .modalbox h2{padding:12px 13px 0}
+    .mfoot{padding:10px 13px 12px}
+    .holegrid{gap:4px}
+    .statgrid{grid-template-columns:repeat(2,1fr)}
+    .reshero{padding:20px 14px 14px}
+    .resbody{padding:12px 13px 16px}
+    .tutbody{padding:18px 15px;min-height:300px}
+    .tuthead{padding:11px 13px}
+    .tutfoot{padding:11px 13px}
+  }
+  @media (max-width:350px){
+    .actgrid{grid-template-columns:repeat(2,1fr)}
+    .topbar{gap:5px}
+    .phasechip{font-size:10px;padding:3px 6px}
+  }
+</style>
+</head>
+<body>
+<div id="app">
+
+  <section id="scrTitle" class="screen show">
+    <div class="titlewrap">
+      <div class="titlebox">
+        <div class="kicker">十日终焉 · 乐园 · 第一关</div>
+        <h1>地鼠<span class="dot">·</span>猫鼠游戏</h1>
+        <p class="sub">六个昼夜，别回不了家。</p>
+        <p class="blurb">三只地鼠，一只猫。夜里只有鼠能动，白天只有猫能动。果实、孔洞、夹子与洞，都是活下去的筹码。</p>
+        <div class="btns">
+          <button id="btnStart" class="btn primary">开始游戏</button>
+          <button id="btnContinue" class="btn ghost">继续上局</button>
+          <button id="btnRules" class="btn ghost">规则与五行</button>
+        </div>
+        <div class="foot">回合制 · 单人操控三只鼠 · 无实时计时</div>
+      </div>
+    </div>
+  </section>
+
+  <section id="scrDiff" class="screen">
+    <div class="diffwrap">
+      <div class="diffhead">
+        <h2>选择难度</h2>
+        <button id="btnDiffBack" class="back">返回标题</button>
+      </div>
+      <div class="diffgrid" id="diffGrid">
+        <button class="diffcard" data-diff="easy">
+          <span class="tag">EASY</span>
+          <h3>简单</h3>
+          <p>猫反应慢、爪子软。鼠屋三张床，谁都不用露宿。</p>
+          <div class="rows"><span>猫 AP <b>饱腹−1</b></span><span>基础命中 <b>45%</b></span><span>鼠 AP <b>6</b></span></div>
+        </button>
+        <button class="diffcard on" data-diff="normal">
+          <span class="tag">NORMAL</span>
+          <h3>普通</h3>
+          <p>标准规则。鼠屋只有两张床，第三只必须在外过夜。</p>
+          <div class="rows"><span>猫 AP <b>饱腹</b></span><span>基础命中 <b>60%</b></span><span>鼠 AP <b>6</b></span></div>
+        </button>
+        <button class="diffcard" data-diff="hard">
+          <span class="tag">HARD</span>
+          <h3>困难</h3>
+          <p>猫多一次行动、闻得更远，还有一张暗卡。</p>
+          <div class="rows"><span>猫 AP <b>饱腹+1</b></span><span>基础命中 <b>70%</b></span><span>鼠 AP <b>5</b></span></div>
+        </button>
+      </div>
+      <div class="seedrow">
+        <label for="seedInput">种子</label>
+        <input id="seedInput" inputmode="numeric" placeholder="留空随机" autocomplete="off">
+        <span class="hint">同一种子 + 同一操作 = 同一局命运；夹子位置也由它决定。</span>
+      </div>
+      <div class="btns" style="justify-content:flex-start">
+        <button id="btnBegin" class="btn primary">进入鼠屋</button>
+        <span class="hint" style="color:var(--dim);font-size:12px">首局会先走一遍完整的七页引导</span>
+      </div>
+    </div>
+  </section>
+
+  <section id="scrTut" class="screen">
+    <div class="tutwrap">
+      <div class="tutcard">
+        <div class="tuthead">
+          <span class="no" id="tutNo">教学 1 / 7</span>
+          <div class="dots" id="tutDots"></div>
+          <button id="btnTutSkip" class="skip">跳过</button>
+        </div>
+        <div class="tutbody" id="tutBody"></div>
+        <div class="tutfoot">
+          <button id="btnTutPrev" class="btn small ghost">上一步</button>
+          <button id="btnTutNext" class="btn small primary">知道了</button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="scrGame" class="screen">
+    <header class="topbar">
+      <div class="roundbadge">
+        <span class="ring">昼夜 <b id="roundNum">1</b> / 6</span>
+      </div>
+      <span class="phasechip night" id="phaseChip">入夜</span>
+      <span class="apmini" id="apMini"></span>
+      <span class="spacer"></span>
+      <div class="topactions">
+        <button class="iconbtn" id="btnHelp" title="规则与五行速查">?</button>
+        <button class="iconbtn" id="btnPause" title="暂停 / 存档">Ⅱ</button>
+      </div>
+    </header>
+    <div class="phasetrack" id="phaseTrack"></div>
+    <div class="dangertape" id="dangerTape"></div>
+    <div class="gamegrid">
+      <div class="leftcol">
+        <div class="map" id="map"></div>
+        <div class="mcards" id="mouseCards"></div>
+        <div class="actpanel" id="actPanel"></div>
+      </div>
+      <aside class="logpanel">
+        <div class="loghead"><b>现场记录</b><span id="logRound">第 1 昼夜</span></div>
+        <div class="loglist" id="logList"></div>
+      </aside>
+    </div>
+  </section>
+
+  <section id="scrResult" class="screen">
+    <div class="reswrap">
+      <div class="rescard">
+        <div class="reshero" id="resHero"></div>
+        <div class="resbody" id="resBody"></div>
+      </div>
+    </div>
+  </section>
+
+  <div class="modal" id="modal">
+    <div class="modalbox">
+      <div class="mlead" id="mLead"></div>
+      <h2 id="mTitle"></h2>
+      <div class="mbody" id="mBody"></div>
+      <div class="mfoot" id="mFoot"></div>
+    </div>
+  </div>
+
+  <div class="toast" id="toast"></div>
+</div>
+<script>
+'use strict';
+const $ = s => document.querySelector(s);
+const $$ = s => Array.from(document.querySelectorAll(s));
+
+/* ========== 规则常量 ========== */
+const DIFF = {
+  easy:   {name:'简单', base:45, traceHit:3, sense:15, cards:1, guard:0, beds:3, mouseAP:6, refresh:'all',  dark:false, apMode:'sat-1'},
+  normal: {name:'普通', base:60, traceHit:2, sense:30, cards:2, guard:1, beds:2, mouseAP:6, refresh:'all',  dark:false, apMode:'sat'},
+  hard:   {name:'困难', base:70, traceHit:1, sense:60, cards:3, guard:2, beds:2, mouseAP:5, refresh:'random', dark:true, apMode:'sat+1'}
+};
+const ELEM = {
+  wood:  {name:'木', color:'#63b36f'},
+  fire:  {name:'火', color:'#e0603c'},
+  earth: {name:'土', color:'#d8a84a'},
+  metal: {name:'金', color:'#c9d2de'},
+  water: {name:'水', color:'#4f93d2'}
+};
+const FRUITS = {
+  dragon:      {name:'火龙果', elem:'fire',  short:'龙'},
+  pomegranate: {name:'石榴',   elem:'earth', short:'榴'},
+  kumquat:     {name:'金桔',   elem:'metal', short:'桔'},
+  peach:       {name:'水蜜桃', elem:'water', short:'桃'},
+  papaya:      {name:'木瓜',   elem:'wood',  short:'瓜'}
+};
+/* 相克：木克土、土克水、水克火、火克金、金克木 */
+const COUNTER = {wood:'earth', earth:'water', water:'fire', fire:'metal', metal:'wood'};
+const COUNTERED_BY = {wood:'metal', metal:'fire', fire:'water', water:'earth', earth:'wood'};
+const GENERATES = {wood:'fire', fire:'earth', earth:'metal', metal:'water', water:'wood'};
+
+const ROOMS = [
+  {id:0, name:'木房',   elem:'wood',  fruit:'dragon',      special:false},
+  {id:1, name:'火房',   elem:'fire',  fruit:'pomegranate', special:false},
+  {id:2, name:'金房',   elem:'metal', fruit:'peach',       special:false},
+  {id:3, name:'鼠屋',   elem:null,    fruit:null,          special:'home'},
+  {id:4, name:'中央大厅',elem:null,   fruit:null,          special:'hall'},
+  {id:5, name:'猫屋',   elem:null,    fruit:null,          special:'cat'},
+  {id:6, name:'水房',   elem:'water', fruit:'papaya',      special:false},
+  {id:7, name:'土房',   elem:'earth', fruit:'kumquat',     special:false},
+  {id:8, name:'东廊',   elem:null,    fruit:null,          special:'dead'}
+];
+const ADJ = [[1,3],[0,2,4],[1,5],[0,4,6],[1,3,5,7],[2,4,8],[3,7],[4,6,8],[5,7]];
+const ROOM = id => ROOMS[id];
+const ELEM_ROOMS = [0,1,2,6,7];
+const PATROL = [5,4,7,6,4,1,2,5];
+const FRUIT_OF_ELEM = {wood:'papaya', fire:'dragon', earth:'pomegranate', metal:'kumquat', water:'peach'};
+const KEY_NAME = elem => FRUITS[FRUIT_OF_ELEM[COUNTERED_BY[elem]]].name;
+
+function fruitOf(roomId){
+  const f = ROOM(roomId).fruit;
+  return f ? FRUITS[f] : null;
+}
+function counterFruit(roomId){
+  const e = ROOM(roomId).elem;
+  return e ? FRUITS[COUNTERED_BY[e]] : null;
+}
+
+/* ========== 伪随机（同 seed 可复现） ========== */
+function rnd(){
+  G.rngState = (G.rngState + 0x6D2B79F5) >>> 0;
+  let t = G.rngState;
+  t = Math.imul(t ^ (t >>> 15), t | 1);
+  t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
+  return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+}
+const chance = p => rnd() * 100 < p;
+const pick = arr => arr[Math.floor(rnd() * arr.length)];
+const randInt = (a,b) => a + Math.floor(rnd() * (b - a + 1));
+
+/* ========== 状态 ========== */
+let G = null;
+
+function freshRooms(){
+  return ROOMS.map(r => ({
+    id:r.id, stock: r.fruit ? 2 : 0, lastKnownStock: r.fruit ? null : null,
+    known:false, trapPresent:false, trapSprung:false, trapKnown:false,
+    hasHole:false, redLight:false, trace:0, cardTurns:0, cardHidden:false
+  }));
+}
+
+function newState(diffKey, seed){
+  const d = DIFF[diffKey] ? diffKey : 'normal';
+  const state = {
+    phase:'TITLE', round:0, difficulty:d, seed:seed >>> 0,
+    rngState:(seed >>> 0),
+    rooms:freshRooms(), mice:[], cat:null, stash:[], logs:[],
+    selRoom:null, cur:0, peach:false,
+    stats:{carried:0, digs:0, rescues:0, caught:0, traps:0, falls:[]},
+    result:null, dawn:null, dayCards:[], dayDone:false, autoPlay:false, fast:false,
+    sleepPick:null, tutorial:false, started:false, catLast:{room:5, round:0}
+  };
+  return state;
+}
+
+function newGame(diffKey, seed){
+  const useSeed = (seed === undefined || seed === null || seed === '') ? Math.floor(Math.random()*1e9) : (Number(seed) >>> 0);
+  const st = newState(diffKey, useSeed);
+  st.seed = useSeed;
+  st.rngState = useSeed >>> 0;
+  G = st;
+  const d = DIFF[st.difficulty];
+  st.mice = [1,2,3].map(id => ({
+    id, roomId:3, satiety:2, ap:d.mouseAP, maxAp:d.mouseAP, backpack:[],
+    alive:true, captured:false, breatheUsed:false, trapImmune:0,
+    locked:false, exposed:false, feedUsed:false, slept:''
+  }));
+  st.cat = {
+    roomId:5, satiety:3, ap:0, charges:d.cards, memory:[], patrol:0,
+    searchToday:{}, actionsToday:0, dry:3, secretUsed:false, lastMove:'', motive:''
+  };
+  // 夹子：2 个五行房间，不重复
+  const trapRooms = [];
+  while(trapRooms.length < 2){
+    const r = pick(ELEM_ROOMS);
+    if(!trapRooms.includes(r)) trapRooms.push(r);
+  }
+  trapRooms.forEach(id => { st.rooms[id].trapPresent = true; });
+  st.trapRooms = trapRooms.slice();
+  G = st;
+  log('新的一局：三只鼠在鼠屋醒来，猫在猫屋舔爪。', 'sys');
+  return st;
+}
+
+function aliveMice(){ return G.mice.filter(m => m.alive); }
+function freeMice(){ return G.mice.filter(m => m.alive && !m.captured); }
+function curMouse(){ return G.mice[G.cur]; }
+function R(id){ return G.rooms[id]; }
+function roomMice(id){ return G.mice.filter(m => m.alive && m.roomId === id); }
+function roomName(id){ return ROOM(id).name; }
+// 鼠屋本夜可收留的鼠数：普通/困难减员后只留存活数-1 个床位（至少 1 只在外放哨），简单不施压
+function homeBeds(){
+  const d = DIFF[G ? G.difficulty : 'normal'];
+  const n = G ? aliveMice().length : 3;
+  if(G && G.difficulty === 'easy') return d.beds;
+  return Math.max(1, Math.min(d.beds, n - 1));
+}
+
+function saveGame(){
+  try{
+    if(!G || G.phase === 'TITLE' || G.result) return;
+    localStorage.setItem('dg_maoshu_save', JSON.stringify(G));
+    if(G.tutorial || localStorage.getItem('dg_maoshu_tut')) localStorage.setItem('dg_maoshu_tut','1');
+  }catch(e){}
+}
+function hasSave(){
+  try{ return !!localStorage.getItem('dg_maoshu_save'); }catch(e){ return false; }
+}
+function loadSaved(){
+  try{
+    const raw = localStorage.getItem('dg_maoshu_save');
+    if(!raw) return false;
+    const st = JSON.parse(raw);
+    if(!st || !st.mice || !st.rooms) return false;
+    G = st;
+    G.autoPlay = false;
+    return true;
+  }catch(e){ return false; }
+}
+
+/* ========== 小工具 ========== */
+function log(msg, kind){
+  if(!G) return;
+  G.logs.push({round:G.round || 1, phase:G.phase, msg, kind:kind || ''});
+  if(G.logs.length > 300) G.logs.shift();
+}
+let toastTimer = 0;
+function toast(msg, kind){
+  const el = $('#toast');
+  el.textContent = msg;
+  el.className = 'toast show ' + (kind || '');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(()=>{ el.className = 'toast ' + (kind || ''); }, 2200);
+}
+function androidVibrate(ms){ if(navigator.vibrate) navigator.vibrate(ms); }
+
+function bfsPath(from, to, avoidHome){
+  if(from === to) return [from];
+  const prev = {}; const seen = {[from]:true}; const q = [from];
+  while(q.length){
+    const cur = q.shift();
+    for(const nx of ADJ[cur]){
+      if(seen[nx]) continue;
+      if(avoidHome && nx === 3) continue;
+      seen[nx] = true; prev[nx] = cur;
+      if(nx === to){
+        const path = [nx]; let p = cur;
+        while(p !== from){ path.push(p); p = prev[p]; }
+        path.push(from);
+        return path.reverse();
+      }
+      q.push(nx);
+    }
+  }
+  return [from];
+}
+function dist(from, to, avoidHome){
+  return bfsPath(from, to, avoidHome).length - 1;
+}
+function nextStep(from, to, avoidHome){
+  const p = bfsPath(from, to, avoidHome);
+  return p.length > 1 ? p[1] : from;
+}
+
+function satBar(n, max){
+  let s = '';
+  for(let i=0;i<max;i++) s += '<i class="' + (i < n ? 'on' : '') + '"></i>';
+  return '<span class="sat">' + s + '<span class="lab">饱腹 ' + n + '/' + max + '</span></span>';
+}
+function apDots(n, max){
+  let s = '';
+  const shown = Math.max(max, n);
+  for(let i=0;i<shown;i++) s += '<i class="' + (i < n ? '' : 'off') + '"></i>';
+  return '<span class="apdots">' + s + '<span class="lab">AP ' + n + '</span></span>';
+}
+function fruitChip(fid, extra){
+  const f = FRUITS[fid];
+  if(!f) return '';
+  return '<span class="fruit ' + f.elem + '" title="' + f.name + '">' + ELEM[f.elem].name + '</span>' + (extra || '');
+}
+/* ========== 视图切换与通用渲染 ========== */
+function showScreen(id){
+  $$('.screen').forEach(el => el.classList.toggle('show', el.id === id));
+  window.scrollTo(0,0);
+}
+
+function phaseLabel(){
+  switch(G.phase){
+    case 'NIGHT_START': return {text:'入夜', cls:'night'};
+    case 'NIGHT_ACTION': return {text:'夜晚 · 鼠行动', cls:'night'};
+    case 'DAWN': return {text:'黎明判定', cls:'dawn'};
+    case 'DAY_ACTION': return {text:'白天 · 猫行动', cls:'day'};
+    case 'ROUND_END': return {text:'夜尽结算', cls:'end'};
+    default: return {text:'准备中', cls:'night'};
+  }
+}
+
+function catIntel(){
+  const see = new Set();
+  aliveMice().forEach(m => { see.add(m.roomId); ADJ[m.roomId].forEach(r => see.add(r)); });
+  const vis = see.has(G.cat.roomId);
+  if(vis) G.catLast = {room:G.cat.roomId, round:G.round};
+  const last = G.catLast || {room:5, round:0};
+  return {vis, room: vis ? G.cat.roomId : last.room, ago: vis ? 0 : Math.max(0, G.round - last.round)};
+}
+function traceVisible(id){
+  if(R(id).known) return true;
+  if(roomMice(id).length) return true;
+  return aliveMice().some(m => ADJ[m.roomId].includes(id));
+}
+
+function renderTop(){
+  $('#roundNum').textContent = G.round || 1;
+  const pl = phaseLabel();
+  const chip = $('#phaseChip');
+  chip.textContent = pl.text;
+  chip.className = 'phasechip ' + pl.cls;
+  const ap = $('#apMini');
+  if(G.phase === 'NIGHT_ACTION'){
+    const m = curMouse();
+    ap.innerHTML = m ? '<span style="color:var(--gold2);font-weight:600">鼠' + ['①','②','③'][m.id-1] + '</span>' + apDots(m.ap, m.maxAp) : '';
+  }else if(G.phase === 'DAY_ACTION'){
+    ap.innerHTML = '<span style="color:#e3b08c">猫</span><span class="sat"><i class="on"></i><i class="' + (G.cat.satiety>=2?'on':'') + '"></i><i class="' + (G.cat.satiety>=3?'on':'') + '"></i><span class="lab">饱腹 ' + G.cat.satiety + '/3</span></span><span style="margin-left:6px">今日余 ' + G.cat.ap + ' 动作</span>';
+  }else{
+    ap.innerHTML = '<span style="color:var(--muted)">存活 ' + freeMice().length + ' / 3</span>';
+  }
+  $('#logRound').textContent = '第 ' + (G.round || 1) + ' 昼夜';
+  $('#logRound').textContent = '第 ' + (G.round || 1) + ' 昼夜';
+  renderPhaseTrack();
+  renderDanger();
+}
+function renderPhaseTrack(){
+  const stages = [['入夜','NIGHT_START'],['夜行','NIGHT_ACTION'],['黎明','DAWN'],['白昼','DAY_ACTION'],['夜尽','ROUND_END']];
+  let idx = stages.findIndex(s => s[1] === G.phase);
+  if(idx < 0) idx = 1;
+  $('#phaseTrack').innerHTML = stages.map((s, i) =>
+    (i ? '<i class="parrow">›</i>' : '') +
+    '<span class="pstep' + (i <= idx ? ' on' : '') + (i === idx ? ' cur' : '') + '">' + s[0] + '</span>').join('');
+}
+function renderDanger(){
+  const tape = $('#dangerTape');
+  if(!tape) return;
+  const w = [];
+  G.mice.forEach(m => {
+    const name = '鼠' + ['①','②','③'][m.id-1];
+    if(!m.alive) return;
+    if(m.satiety <= 1) w.push(name + ' 饱腹 1/2：今夜结束前必须投果，否则饿死');
+    if(m.locked) w.push(name + ' 被困 ' + roomName(m.roomId) + '：需营救或打洞');
+  });
+  G.rooms.forEach(r => { if(r.redLight) w.push('红灯 ' + r.name + '：猫知道这里出过事'); });
+  if(G.phase === 'NIGHT_ACTION'){
+    G.mice.forEach(m => {
+      if(m.alive && m.roomId !== 3) w.push('鼠' + ['①','②','③'][m.id-1] + ' 在 ' + roomName(m.roomId) + '：夜末将' + (R(m.roomId).hasHole ? '在洞中过夜' : '露宿并落锁'));
+    });
+    const stay = aliveMice().filter(m => m.roomId === 3).length;
+    if(stay > homeBeds()) w.push('鼠屋超员：黎明需选 ' + (stay - homeBeds()) + ' 只去中央露宿');
+  }
+  const cards = G.rooms.filter(r => r.cardTurns > 0);
+  if(cards.length) w.push('设卡 ' + cards.map(r => r.name).join('、') + '：鼠不能进入');
+  if(!w.length){ tape.style.display = 'none'; tape.innerHTML = ''; return; }
+  tape.style.display = 'flex';
+  tape.innerHTML = w.slice(0, 3).map(t => '<span class="dtape">⚠ ' + t + '</span>').join('');
+}
+
+function renderMap(){
+  const intel = catIntel();
+  const now = G.phase === 'NIGHT_ACTION' ? curMouse() : null;
+  $('#map').innerHTML = ROOMS.map(rd => {
+    const r = R(rd.id);
+    const isElem = !!rd.elem;
+    const f = fruitOf(rd.id);
+    let stockTxt = '';
+    if(isElem){
+      if(!r.known) stockTxt = '<span class="stockn unknown">? ?</span>';
+      else stockTxt = '<span class="stockn stale">×' + r.lastKnownStock + '</span>';
+    }else if(rd.special === 'home'){
+      stockTxt = '<span class="stockn">储藏 ' + G.stash.length + '/6</span>';
+    }else if(rd.special === 'cat'){
+      stockTxt = '<span class="stockn">干粮 ' + G.cat.dry + '</span>';
+    }else{
+      stockTxt = '<span class="stockn">无果实</span>';
+    }
+    let badges = '';
+    if(r.hasHole) badges += '<span class="miniic hole">洞</span>';
+    if(r.cardTurns > 0) badges += '<span class="miniic card">' + (r.cardHidden ? '卡?' : '卡') + '</span>';
+    if(r.trapPresent && r.trapKnown) badges += '<span class="miniic trap">夹</span>';
+    if(r.trapSprung && isElem) badges += '<span class="miniic">夹已清</span>';
+    const miceTok = roomMice(rd.id).map(m => {
+      const cls = 'mtok' + (m === now ? ' cur' : '') + (m.locked ? ' locked' : '');
+      return '<span class="' + cls + '" title="鼠' + m.id + (m.locked?'（被封锁）':'') + '">' + ['①','②','③'][m.id-1] + '</span>';
+    }).join('');
+    const catHere = intel.vis && intel.room === rd.id;
+    const ghostHere = !intel.vis && intel.room === rd.id;
+    let catTok = '';
+    if(catHere) catTok = '<span class="ctok" title="猫">猫</span>';
+    else if(ghostHere) catTok = '<span class="ctok ghost" title="最后已知位置">猫</span><span class="ctoklabel">' + (intel.ago <= 0 ? '刚才' : intel.ago + ' 回合前') + '</span>';
+    if(ghostHere && G.round === 1 && intel.room === 5) catTok = '<span class="ctok ghost" title="开局时猫在猫屋">猫</span><span class="ctoklabel">开局在猫屋</span>';
+    let trace = '';
+    if(isElem){
+      const vis = traceVisible(rd.id);
+      if(vis){
+        let pips = '';
+        for(let i=0;i<3;i++) pips += '<i class="' + (i < r.trace ? 'on' : '') + '"></i>';
+        trace = '<div class="tracerow">' + pips + '<span class="tlabel">痕迹</span></div>';
+      }else{
+        trace = '<div class="tracerow"><span class="tlabel">痕迹 ?</span></div>';
+      }
+    }else{
+      trace = '<div class="tracerow"><span class="tlabel">' + (rd.special === 'home' ? (roomMice(3).length + ' 鼠在内') : '') + '</span></div>';
+    }
+    const dim = isElem && !r.known ? ' dimmed' : '';
+    const sel = G.selRoom === rd.id ? ' sel' : '';
+    const red = r.redLight ? ' red' : '';
+    const elemTag = isElem ? '<span class="elem" style="color:' + ELEM[rd.elem].color + '">' + ELEM[rd.elem].name + '</span>' : '';
+    const fruitHtml = f ? fruitChip(rd.fruit) : '';
+    return '<div class="cell' + (rd.special ? ' special' : '') + dim + sel + red + '" data-id="' + rd.id + '" id="cell-' + rd.id + '">' +
+      '<div class="chead"><span class="rname">' + rd.name + '</span>' + elemTag + '</div>' +
+      '<div class="fruitrow">' + fruitHtml + stockTxt + '</div>' +
+      '<div class="tokens">' + miceTok + catTok + '</div>' +
+      trace +
+      (badges ? '<div class="badges">' + badges + '</div>' : '') +
+    '</div>';
+  }).join('');
+}
+
+function renderMice(){
+  const isNight = G.phase === 'NIGHT_ACTION';
+  $('#mouseCards').innerHTML = G.mice.map((m, idx) => {
+    let stateTag = '';
+    if(!m.alive) stateTag = '<span class="tag">' + (m.captured ? '被囚' : '饿死') + '</span>';
+    else if(m.locked) stateTag = '<span class="tag warn">被困</span>';
+    else if(m.exposed) stateTag = '<span class="tag warn">露宿</span>';
+    if(m.breatheUsed) stateTag += '<span class="tag good">屏息</span>';
+    const bag = [0,1,2].map(i => {
+      const item = m.backpack[i];
+      if(!item) return '<span class="bslot">·</span>';
+      if(item === 'key') return '<span class="bslot filled" title="金锁：任意房间钥匙" style="color:#e9c26d">钥</span>';
+      return '<span class="bslot filled" title="' + FRUITS[item].name + '">' + ELEM[FRUITS[item].elem].name + '</span>';
+    }).join('');
+    const extra = m.backpack.length > 3 ? '<span class="more">+' + (m.backpack.length-3) + '</span>' : '';
+    return '<div class="mcard' + (idx===G.cur && isNight ? ' cur' : '') + (m.alive ? '' : ' dead') + '" data-mouse="' + m.id + '" id="mcard-' + m.id + '">' +
+      '<div class="mtop"><span class="mname">鼠' + ['①','②','③'][m.id-1] + '</span>' +
+        '<span class="mpos">' + roomName(m.roomId) + '</span><span class="mstat">' + stateTag + '</span></div>' +
+      '<div class="rows">' + satBar(m.satiety, 2) + apDots(m.ap, m.maxAp) + '</div>' +
+      '<div class="bag">' + bag + extra + '</div>' +
+    '</div>';
+  }).join('');
+}
+
+function defaultHint(){
+  const m = curMouse();
+  if(!m || !m.alive) return '点下方卡片选择一只鼠。';
+  if(G.phase === 'DAY_ACTION') return '白天鼠不能动。看猫一步步搜捕，等夜尽结算。';
+  if(m.locked) return '鼠' + ['①','②','③'][m.id-1] + ' 被困在 ' + roomName(m.roomId) + '：需相邻队友「营救」，或带钥匙「打洞」。';
+  if(m.satiety <= 1) return '警告：饱腹只剩 1 格，本夜结束前必须投果，否则会饿死。';
+  if(aliveMice().every(x => x.ap <= 0)) return '三只鼠的 AP 都已用完，可以结束夜晚。';
+  return '先点地图房间选中目标，再点动作。每只鼠的 AP 独立，可随时切换。';
+}
+
+function actionsFor(m){
+  const r = R(m.roomId);
+  const sel = G.selRoom;
+  const selRoom = sel === null ? null : R(sel);
+  const near = ADJ[m.roomId];
+  const acts = [];
+
+  // 移动
+  const canSeeSel = sel !== null && near.includes(sel);
+  let moveOk = false, moveWhy = '先点一个相邻房间';
+  if(canSeeSel){
+    if(m.ap <= 0) moveWhy = 'AP 不足';
+    else if(selRoom.cardTurns > 0) moveWhy = '猫在 ' + roomName(sel) + ' 设了卡，进不去';
+    else if(m.locked) moveWhy = '被困，无法移动';
+    else { moveOk = true; moveWhy = sel === 5 ? '进入猫屋会被立即囚禁！' : ''; }
+  }
+  acts.push({act:'move', label: sel !== null && canSeeSel ? ('前往 ' + roomName(sel)) : '移动', sub: canSeeSel ? (sel === 5 ? '有去无回' : '花费 1 AP') : '点相邻房间', cost:'1', ok:moveOk, why:moveWhy, hot:moveOk && sel !== 5});
+
+  const elemRoom = !!ROOM(m.roomId).elem;
+  // 探查
+  acts.push({act:'scout', label:'探查', sub:'看库存/夹子 · +1 痕迹', cost:'1',
+    ok: elemRoom && m.ap > 0 && !m.locked, why: !elemRoom ? '只能在五行房间探查' : (m.locked ? '被困，动不了' : 'AP 不足')});
+  // 搜寻
+  acts.push({act:'search', label:'搜寻', sub:'取 1 颗 · +1 痕迹', cost:'1',
+    ok: elemRoom && r.stock >= 1 && m.backpack.length < 3 && m.ap > 0 && !m.locked,
+    why: !elemRoom ? '这里没有果实' : (r.stock < 1 ? '本房库存为 0' : (m.backpack.length >= 3 ? '背包已满（3 格）' : (m.locked ? '被困，动不了' : 'AP 不足')))});
+  // 搬运
+  const cap = Math.min(r.stock, 3 - m.backpack.length);
+  acts.push({act:'carry', label:'搬运', sub: (cap > 0 ? '一次装 ' + cap + ' 颗' : '背包/库存不足') + ' · +1 痕迹', cost:'1',
+    ok: elemRoom && cap > 0 && m.ap > 0 && !m.locked,
+    why: !elemRoom ? '这里没有果实' : (cap <= 0 ? (m.backpack.length >= 3 ? '背包已满（3 格）' : '本房库存为 0') : (m.locked ? '被困，动不了' : 'AP 不足'))});
+  // 探查并搬空（合并操作，AP 消耗与分开点相同）
+  acts.push({act:'loot', label:'探查并搬空', sub: cap > 0 ? ('先查夹子，安全则装 ' + cap + ' 颗') : '背包/库存不足', cost:'2',
+    ok: elemRoom && cap > 0 && m.ap >= 2 && !m.locked,
+    why: !elemRoom ? '这里没有果实' : (cap <= 0 ? (m.backpack.length >= 3 ? '背包已满（3 格）' : '本房库存为 0') : (m.locked ? '被困，动不了' : (m.ap < 2 ? '需要 2 AP（探查 1 + 搬运 1）' : '')))});
+  // 打洞
+  const needKey = elemRoom ? KEY_NAME(ROOM(m.roomId).elem) : '';
+  const keyFid = elemRoom ? Object.keys(FRUITS).find(k => FRUITS[k].elem === COUNTERED_BY[ROOM(m.roomId).elem]) : null;
+  const hasGoodKey = m.backpack.includes('key') || (keyFid && m.backpack.includes(keyFid));
+  acts.push({act:'dig', label:'打洞', sub: hasGoodKey ? '钥匙就绪' : '钥匙：缺' + (needKey || '—'), cost:'1+钥匙',
+    ok: elemRoom && !r.hasHole && m.ap > 0,
+    why: !elemRoom ? '特殊房间无法打洞' : (r.hasHole ? '本房已经有洞了' : (m.ap <= 0 ? 'AP 不足' : '背包里没有' + needKey + '或金锁'))});
+  // 营救
+  const rescueRooms = near.filter(id => roomMice(id).some(x => x.locked));
+  acts.push({act:'rescue', label:'营救', sub: rescueRooms.length ? roomName(rescueRooms[0]) + ' 有被困鼠' : '相邻无被困鼠', cost:'1',
+    ok: rescueRooms.length > 0 && m.ap > 0 && !m.locked,
+    why: rescueRooms.length === 0 ? '相邻房间没有被困的鼠' : (m.locked ? '自己也困着' : 'AP 不足')});
+  // 清扫
+  acts.push({act:'clean', label:'清扫痕迹', sub:'本房痕迹归零', cost:'1',
+    ok: elemRoom && r.trace > 0 && m.ap > 0 && !m.locked,
+    why: !elemRoom ? '只在五行房有效' : (r.trace <= 0 ? '本房没有痕迹' : (m.locked ? '被困，动不了' : 'AP 不足'))});
+  // 屏息
+  acts.push({act:'breathe', label:'屏息', sub:'本昼被搜 −25%', cost:'0',
+    ok: !m.breatheUsed && m.alive && m.ap >= 0,
+    why: m.breatheUsed ? '本回合已经屏息过' : ''});
+  // 存入
+  const bagFruits = m.backpack.filter(x => x !== 'key');
+  acts.push({act:'store', label:'存入储藏', sub:'果实 0 AP 入库', cost:'0',
+    ok: m.roomId === 3 && bagFruits.length > 0 && G.stash.length < 6,
+    why: m.roomId !== 3 ? '必须在鼠屋' : (bagFruits.length === 0 ? '背包里没有果实' : (G.stash.length >= 6 ? '储藏已满（6 颗）' : ''))});
+  // 取出
+  acts.push({act:'take', label:'取出果实', sub:'从储藏取 1 颗', cost:'1',
+    ok: m.roomId === 3 && G.stash.length > 0 && m.backpack.length < 3 && m.ap > 0,
+    why: m.roomId !== 3 ? '必须在鼠屋' : (G.stash.length === 0 ? '储藏是空的' : (m.backpack.length >= 3 ? '背包已满' : 'AP 不足'))});
+  // 投果
+  acts.push({act:'feed', label:'投果入孔', sub:'饱腹 +1 与元素效果', cost:'0',
+    ok: m.roomId === 3 && !m.feedUsed && m.satiety < 2 && bagFruits.length > 0,
+    why: m.roomId !== 3 ? '必须在鼠屋' : (m.feedUsed ? '本回合已投过 1 颗' : (m.satiety >= 2 ? '饱腹已满（2 格）' : (bagFruits.length === 0 ? '背包里没有果实' : '')))});
+  // 结束该鼠
+  acts.push({act:'endmouse', label:'结束该鼠', sub:'切换到下一只', cost:'0', ok:true, why:''});
+  // 结束夜晚
+  acts.push({act:'endnight', label:'结束夜晚', sub:'未用 AP 作废', cost:'—', ok:true, why:'', end:true});
+  return acts;
+}
+
+function renderActions(){
+  const m = curMouse();
+  if(!m) return;
+  if(G.phase !== 'NIGHT_ACTION'){
+    const wait = G.phase === 'DAY_ACTION' ? '白天是猫的时间：鼠不能移动，也不能使用动作。' :
+      (G.phase === 'DAWN' ? '黎明判定中：先处理露宿与封锁。' : '夜尽结算中。');
+    $('#actPanel').innerHTML = '<div class="acthead"><h4>行动 · 暂停</h4><span class="who">' + wait + '</span></div>' +
+      '<div class="acthint" style="padding:8px 2px">' + wait + '</div>';
+    return;
+  }
+  const acts = actionsFor(m);
+  const head = '<div class="acthead"><h4>行动 · 夜</h4><span class="who">' +
+    '鼠' + ['①','②','③'][m.id-1] + ' 在 ' + roomName(m.roomId) + ' · 剩 ' + m.ap + ' AP</span></div>';
+  const grid = '<div class="actgrid">' + acts.map(a =>
+    '<button class="abtn' + (a.end ? ' endnight' : '') + (a.hot ? ' hot' : '') + '" data-act="' + a.act + '"' +
+    (a.ok ? '' : ' disabled') + ' title="' + (a.why || '') + '">' +
+    '<span class="cost">' + a.cost + '</span><b>' + a.label + '</b><span>' + (a.ok ? a.sub : a.why) + '</span></button>'
+  ).join('') + '</div>';
+  const hint = G.hint || defaultHint();
+  $('#actPanel').innerHTML = head + grid + '<div class="acthint">' + hint + '</div>';
+}
+
+function renderLog(){
+  const list = $('#logList');
+  const rows = G.logs.slice(-160).map((l, i) => {
+    const who = l.round ? ('D' + l.round) : '';
+    const cls = 'logline' + (l.kind ? ' k-' + l.kind : '') + (i >= 160 - 2 ? ' new' : '');
+    return '<div class="' + cls + '"><span class="who">' + who + '</span>' + l.msg + '</div>';
+  }).join('');
+  list.innerHTML = rows;
+  list.scrollTop = list.scrollHeight;
+}
+
+function renderGame(){
+  if(!G) return;
+  G.hint = '';
+  renderTop(); renderMap(); renderMice(); renderActions(); renderLog();
+  const intel = catIntel();
+  if(G.phase === 'NIGHT_ACTION'){
+    G.hint = defaultHint();
+    $('#actPanel .acthint').textContent = G.hint;
+  }
+}
+
+function selectRoom(id){
+  if(!G || G.phase !== 'NIGHT_ACTION') return;
+  G.selRoom = id;
+  renderMap();
+  renderActions();
+  const m = curMouse();
+  if(m && ADJ[m.roomId].includes(id) && R(id).cardTurns > 0) toast('猫在 ' + roomName(id) + ' 设了卡，这条路被堵住了', 'bad');
+  else if(m && id !== m.roomId && !ADJ[m.roomId].includes(id)) toast('不相邻：要先走到相邻房间，再过去', 'warn');
+}
+function selectMouse(id){
+  if(!G || G.phase !== 'NIGHT_ACTION') return;
+  const m = G.mice[id-1];
+  if(!m || !m.alive) { toast('鼠' + id + ' 已经不在了', 'bad'); return; }
+  G.cur = id - 1; G.selRoom = null;
+  renderGame();
+}
+/* ========== 弹层 ========== */
+let modalFns = [];
+function showModal(opts){
+  $('#mLead').textContent = opts.lead || '';
+  $('#mTitle').textContent = opts.title || '';
+  $('#mBody').innerHTML = opts.body || '';
+  modalFns = [];
+  $('#mFoot').innerHTML = (opts.buttons || []).map((b, i) => {
+    modalFns[i] = b.onClick || null;
+    return '<button class="btn small ' + (b.cls || 'ghost') + '" data-mact="' + i + '"' + (b.disabled ? ' disabled' : '') + '>' + b.label + '</button>';
+  }).join('');
+  $('#modal').classList.add('show');
+}
+function closeModal(){ $('#modal').classList.remove('show'); }
+
+/* ========== 鼠方行动 ========== */
+function failMsg(msg){
+  G.hint = msg;
+  toast(msg, 'bad');
+  const h = $('#actPanel .acthint');
+  if(h) h.textContent = msg;
+}
+function touchRoom(r){
+  r.trace = Math.min(3, r.trace + 1);
+  r.known = true;
+  r.lastKnownStock = r.stock;
+}
+function currentOk(){
+  const m = curMouse();
+  if(!m || !m.alive){ toast('这只鼠已经不在了，换一只', 'bad'); return null; }
+  return m;
+}
+
+function doAction(act){
+  if(!G || G.phase !== 'NIGHT_ACTION') return;
+  const m = currentOk();
+  if(!m) return;
+  const list = actionsFor(m);
+  const a = list.find(x => x.act === act);
+  if(a && !a.ok){ failMsg(a.why || '现在不能这么做'); return; }
+  switch(act){
+    case 'move': doMove(m); break;
+    case 'scout': doScout(m); break;
+    case 'search': doSearch(m); break;
+    case 'carry': doCarry(m); break;
+    case 'loot': doLoot(m); break;
+    case 'dig': doDig(m); break;
+    case 'rescue': doRescue(m); break;
+    case 'clean': doClean(m); break;
+    case 'breathe': doBreathe(m); break;
+    case 'store': doStore(m); break;
+    case 'take': openTake(m); break;
+    case 'feed': openFeed(m); break;
+    case 'endmouse': endMouse(m); break;
+    case 'endnight': askEndNight(); break;
+  }
+}
+
+function afterAction(){
+  if(!G || G.result) return;
+  if(freeMice().length === 0){ endGame(false, '全灭'); return; }
+  const m = curMouse();
+  if(m && m.alive && m.ap <= 0){
+    const next = G.mice.findIndex(x => x.alive && x.ap > 0);
+    if(next >= 0) G.cur = next;
+  }
+  saveGame(); renderGame();
+}
+
+function doMove(m){
+  const dest = G.selRoom;
+  if(dest === null){ failMsg('先在地图上点一个相邻房间'); return; }
+  if(!ADJ[m.roomId].includes(dest)){ failMsg('那个房间不与当前房间相邻'); return; }
+  const dr = R(dest);
+  if(dr.cardTurns > 0){ failMsg('猫在 ' + roomName(dest) + ' 设了卡，过不去'); return; }
+  if(m.locked){ failMsg('鼠' + m.id + ' 被困在 ' + roomName(m.roomId) + '，需要营救或打洞'); return; }
+  if(m.ap <= 0){ failMsg('AP 不足'); return; }
+  if(dest === 5){
+    showModal({
+      lead:'禁止入内', title:'鼠不能进猫屋',
+      body:'<p>猫屋是猫的地盘。鼠一旦进去，会被立刻关起来，<b style="color:#f0b3a7">直接淘汰</b>，队友无法营救。</p><p class="small" style="color:var(--muted)">这是你唯一一次确认机会。</p>',
+      buttons:[
+        {label:'算了，回鼠屋', cls:'ghost', onClick:closeModal},
+        {label:'仍然进去（淘汰鼠' + m.id + '）', cls:'danger', onClick:()=>{ closeModal(); m.ap--; m.roomId = 5; captureMouse(m, '自己走进猫屋'); afterAction(); }}
+      ]
+    });
+    return;
+  }
+  m.ap--;
+  m.roomId = dest;
+  m.slept = '';
+  const dr2 = R(dest);
+  dr2.known = true;
+  dr2.lastKnownStock = dr2.stock;
+  log('鼠' + ['①','②','③'][m.id-1] + ' 移动到 ' + roomName(dest) + '。' + (dest === 3 ? '回到鼠屋，暂时安全。' : ''), dest === 3 ? 'good' : '');
+  G.selRoom = null;
+  afterAction();
+}
+
+function doScout(m){
+  const r = R(m.roomId);
+  if(!ROOM(m.roomId).elem){ failMsg('只能在五行房间探查'); return; }
+  if(m.ap <= 0){ failMsg('AP 不足'); return; }
+  m.ap--; touchRoom(r); r.trapKnown = true;
+  const trapTxt = r.trapPresent ? '发现一处未触发的夹子！' : (r.trapSprung ? '夹子已经清理过了。' : '没有夹子。');
+  log('鼠' + ['①','②','③'][m.id-1] + ' 探查 ' + roomName(m.roomId) + '：库存 ' + r.stock + ' 颗' + FRUITS[ROOM(m.roomId).fruit].name + '，' + trapTxt + '痕迹 ' + r.trace + '/3。', r.trapPresent ? 'warn' : '');
+  G.hint = '探查结果：' + trapTxt;
+  afterAction();
+}
+
+function trapStrike(m, r){
+  const name = roomName(r.id);
+  r.trapPresent = false; r.trapSprung = true; r.trapKnown = true; r.redLight = true; r.trapVictim = m.id;
+  G.stats.traps++;
+  m.locked = true;
+  log('鼠' + ['①','②','③'][m.id-1] + ' 在 ' + name + ' 踩中夹子！本次取果失败，红灯亮起，房间落锁。', 'bad');
+  toast('夹子！鼠' + m.id + ' 被锁在 ' + name + '，红灯引来猫', 'bad');
+  androidVibrate(70);
+}
+function doSearch(m){
+  const r = R(m.roomId);
+  if(r.stock < 1){ failMsg('本房库存为 0'); return; }
+  if(m.backpack.length >= 3){ failMsg('背包已满（3 格）'); return; }
+  if(m.ap <= 0){ failMsg('AP 不足'); return; }
+  m.ap--;
+  const fid = ROOM(m.roomId).fruit;
+  if(r.trapPresent){
+    if(m.trapImmune > 0){
+      m.trapImmune--;
+      log('土孔的夹子豁免生效：鼠' + ['①','②','③'][m.id-1] + ' 安全取果。', 'good');
+    }else{
+      touchRoom(r);
+      trapStrike(m, r);
+      afterAction();
+      return;
+    }
+  }
+  r.stock = Math.max(0, r.stock - 1);
+  m.backpack.push(fid);
+  G.stats.carried++;
+  touchRoom(r);
+  log('鼠' + ['①','②','③'][m.id-1] + ' 在 ' + roomName(m.roomId) + ' 搜寻到 1 颗' + FRUITS[fid].name + '（库存 ' + r.stock + '）。');
+  afterAction();
+}
+function doCarry(m){
+  const r = R(m.roomId);
+  const n = Math.min(r.stock, 3 - m.backpack.length);
+  if(n <= 0){ failMsg('背包或库存不足'); return; }
+  if(m.ap <= 0){ failMsg('AP 不足'); return; }
+  m.ap--;
+  const fid = ROOM(m.roomId).fruit;
+  if(r.trapPresent){
+    if(m.trapImmune > 0){
+      m.trapImmune--;
+      log('夹子豁免抵消了 ' + roomName(m.roomId) + ' 的夹子。', 'good');
+    }else{
+      touchRoom(r);
+      trapStrike(m, r);
+      afterAction();
+      return;
+    }
+  }
+  r.stock -= n;
+  for(let i=0;i<n;i++) m.backpack.push(fid);
+  G.stats.carried += n;
+  touchRoom(r);
+  log('鼠' + ['①','②','③'][m.id-1] + ' 一次搬走 ' + n + ' 颗' + FRUITS[fid].name + '，库存剩 ' + r.stock + '。' +
+    (r.stock > 0 ? '背包只剩 ' + (3 - m.backpack.length) + ' 格，装不下剩下的 ' + r.stock + ' 颗。' : ''));
+  afterAction();
+}
+/* 合并操作：先探查（1 AP），安全再把本房剩余果实一次搬走（1 AP）。总 AP 与分开点相同。 */
+function doLoot(m){
+  const rd = ROOM(m.roomId);
+  const r = R(m.roomId);
+  if(!rd.elem){ failMsg('只能在五行房间使用'); return; }
+  if(m.locked){ failMsg('被困，动不了'); return; }
+  if(m.ap < 2){ failMsg('需要 2 AP（探查 1 + 搬运 1）'); return; }
+  if(r.stock < 1){ failMsg('本房库存为 0'); return; }
+  if(m.backpack.length >= 3){ failMsg('背包已满（3 格）'); return; }
+  m.ap--;
+  touchRoom(r); r.trapKnown = true;
+  if(r.trapPresent){
+    log('鼠' + ['①','②','③'][m.id-1] + ' 探查 ' + roomName(m.roomId) + '：发现未触发的夹子，停手没有取果（只花 1 AP）。', 'warn');
+    G.hint = '探查发现夹子，已停手；换一间房，或先清扫别处转移猫的注意。';
+    toast('发现夹子，停手', 'warn');
+    afterAction();
+    return;
+  }
+  const n = Math.min(r.stock, 3 - m.backpack.length);
+  m.ap--;
+  const fid = rd.fruit;
+  r.stock -= n;
+  for(let i=0;i<n;i++) m.backpack.push(fid);
+  G.stats.carried += n;
+  touchRoom(r);
+  log('鼠' + ['①','②','③'][m.id-1] + ' 探查后一次搬走 ' + n + ' 颗' + FRUITS[fid].name + '（库存 ' + r.stock + '）。');
+  afterAction();
+}
+function roomForFruit(fid){
+  const e = FRUITS[fid].elem;
+  return ROOMS.find(r => r.elem === COUNTER[e]) || null;
+}
+function doDig(m){
+  const r = R(m.roomId);
+  const rd = ROOM(m.roomId);
+  if(!rd.elem){ failMsg('特殊房间无法打洞'); return; }
+  if(r.hasHole){ failMsg('这间房已经有洞了'); return; }
+  if(m.ap <= 0){ failMsg('AP 不足'); return; }
+  const needFid = Object.keys(FRUITS).find(k => FRUITS[k].elem === COUNTERED_BY[rd.elem]);
+  const needName = FRUITS[needFid].name;
+  let idx = m.backpack.indexOf('key');
+  let used = 'key';
+  if(idx < 0){ idx = m.backpack.indexOf(needFid); used = needFid; }
+  if(idx < 0){
+    const other = m.backpack.find(x => x !== 'key');
+    let extra = '';
+    if(other){
+      const rf = roomForFruit(other);
+      extra = ' 你带的' + FRUITS[other].name + '是' + (rf ? rf.name : '别的房') + '的钥匙。';
+    }
+    const msg = roomName(m.roomId) + '只接受' + needName + '或金锁。' + extra;
+    log('打洞失败：' + msg, 'warn');
+    failMsg(msg);
+    return;
+  }
+  m.ap--;
+  m.backpack.splice(idx, 1);
+  r.hasHole = true;
+  roomMice(r.id).forEach(x => { x.locked = false; });
+  G.stats.digs++;
+  const usedName = used === 'key' ? '金锁' : FRUITS[needFid].name;
+  log('鼠' + ['①','②','③'][m.id-1] + ' 用' + usedName + '在 ' + roomName(m.roomId) + ' 打下洞：永久解除封锁。', 'good');
+  toast(roomName(m.roomId) + ' 已打洞，永久安全', 'good');
+  afterAction();
+}
+function doRescue(m){
+  const target = ADJ[m.roomId].find(id => roomMice(id).some(x => x.locked));
+  if(target === undefined){ failMsg('相邻房间没有被困的鼠'); return; }
+  if(m.ap <= 0){ failMsg('AP 不足'); return; }
+  m.ap--;
+  const names = roomMice(target).map(x => '鼠' + ['①','②','③'][x.id-1]).join('、');
+  roomMice(target).forEach(x => { x.locked = false; });
+  G.stats.rescues++;
+  log('鼠' + ['①','②','③'][m.id-1] + ' 撬开 ' + roomName(target) + ' 的锁，救出 ' + names + '。', 'good');
+  toast('营救成功：' + names + ' 可以行动了', 'good');
+  afterAction();
+}
+function doClean(m){
+  const r = R(m.roomId);
+  if(!ROOM(m.roomId).elem){ failMsg('只在五行房间有效'); return; }
+  if(m.ap <= 0){ failMsg('AP 不足'); return; }
+  m.ap--;
+  r.trace = 0; r.known = true;
+  log('鼠' + ['①','②','③'][m.id-1] + ' 清理了 ' + roomName(m.roomId) + ' 的痕迹。');
+  afterAction();
+}
+function doBreathe(m){
+  if(m.breatheUsed){ failMsg('本回合已经屏息过'); return; }
+  m.breatheUsed = true;
+  log('鼠' + ['①','②','③'][m.id-1] + ' 屏住呼吸，白天被搜命中 −25%。', 'good');
+  toast('鼠' + m.id + ' 已屏息', 'good');
+  afterAction();
+}
+function doStore(m){
+  if(m.roomId !== 3){ failMsg('必须回到鼠屋才能存入'); return; }
+  const fs = m.backpack.filter(x => x !== 'key');
+  if(!fs.length){ failMsg('背包里没有果实'); return; }
+  if(G.stash.length >= 6){ failMsg('储藏已满（6 颗）'); return; }
+  let n = 0;
+  for(let i=m.backpack.length-1;i>=0;i--){
+    if(m.backpack[i] !== 'key' && G.stash.length < 6){
+      G.stash.push(m.backpack[i]); m.backpack.splice(i,1); n++;
+    }
+  }
+  log('鼠' + ['①','②','③'][m.id-1] + ' 把 ' + n + ' 颗果实放进储藏（' + G.stash.length + '/6）。');
+  afterAction();
+}
+function openTake(m){
+  if(m.roomId !== 3){ failMsg('必须回到鼠屋才能取出'); return; }
+  if(!G.stash.length){ failMsg('储藏是空的'); return; }
+  if(m.backpack.length >= 3){ failMsg('背包已满'); return; }
+  const uniq = [...new Set(G.stash)];
+  showModal({
+    lead:'鼠屋储藏', title:'取出哪一颗？',
+    body:'<p class="small" style="color:var(--muted)">取出 1 颗花费 1 AP。储藏：' + G.stash.length + '/6。</p><div class="feedgrid">' +
+      uniq.map(f => '<button class="fruitbtn" data-take="' + f + '">' + fruitChip(f) + FRUITS[f].name + '<span style="color:var(--dim);font-size:10px">×' + G.stash.filter(x=>x===f).length + '</span></button>').join('') +
+      '</div>',
+    buttons:[{label:'取消', cls:'ghost', onClick:closeModal}]
+  });
+}
+function openFeed(m){
+  if(m.roomId !== 3){ failMsg('必须回到鼠屋才能投果'); return; }
+  if(m.feedUsed){ failMsg('本回合已经投过 1 颗'); return; }
+  if(m.satiety >= 2){ failMsg('饱腹已满（2 格），别浪费'); return; }
+  const fs = m.backpack.filter(x => x !== 'key');
+  if(!fs.length){ failMsg('背包里没有果实'); return; }
+  G.feedPick = null;
+  renderFeedModal(m);
+}
+function renderFeedModal(m){
+  const fs = m.backpack.filter(x => x !== 'key');
+  const uniq = [...new Set(fs)];
+  const body = '<p class="small" style="color:var(--muted)">选中背包里的果实，再点它对应的孔洞。投错孔不会消耗果实。</p>' +
+    '<div class="feedgrid">' + uniq.map(f =>
+      '<button class="fruitbtn' + (G.feedPick === f ? ' sel' : '') + '" data-fruit="' + f + '">' + fruitChip(f) + FRUITS[f].name +
+      '<span style="color:var(--dim);font-size:10px">×' + fs.filter(x=>x===f).length + '</span></button>').join('') + '</div>' +
+    (G.feedPick ? '<div class="holegrid">' + ['wood','fire','earth','metal','water'].map(e =>
+      '<button class="holebtn" data-hole="' + e + '">' + ELEM[e].name + '孔<small>' + (G.feedPick === e.key ? '' : '') + '</small></button>').join('') + '</div>' :
+      '<div class="holegrid"><span class="small" style="color:var(--dim)">先选果实，五个孔洞会出现在这里。</span></div>') +
+    '<div id="feedMsg" style="min-height:20px;font-size:12.5px;color:var(--dim)"></div>';
+  showModal({
+    lead:'鼠屋 · 五行孔洞', title:'投果入孔',
+    body:body,
+    buttons:[{label:'取消', cls:'ghost', onClick:()=>{ G.feedPick=null; closeModal(); }}]
+  });
+}
+function feedToHole(m, holeElem){
+  if(!G.feedPick){ return; }
+  const fid = G.feedPick;
+  const f = FRUITS[fid];
+  if(f.elem !== holeElem){
+    const msg = f.name + '属于' + ELEM[f.elem].name + '孔，不是' + ELEM[holeElem].name + '孔。投错不会消耗果实。';
+    const el = $('#feedMsg');
+    if(el) el.textContent = msg;
+    return;
+  }
+  const idx = m.backpack.indexOf(fid);
+  if(idx < 0) return;
+  m.backpack.splice(idx, 1);
+  m.satiety = Math.min(2, m.satiety + 1);
+  m.feedUsed = true;
+  G.feedPick = null;
+  closeModal();
+  let extra = '';
+  switch(f.elem){
+    case 'fire': m.ap += 1; extra = '本夜立即 +1 AP。'; break;
+    case 'earth': m.trapImmune += 1; extra = '获得 1 次夹子豁免。'; break;
+    case 'metal': m.backpack.push('key'); extra = '获得 1 个金锁（占背包 1 格，可开任意房门）。'; break;
+    case 'water': G.peach = true; extra = '本昼猫对你队的搜寻命中 −10%。'; break;
+    case 'wood': G.rooms.forEach(rr => { rr.trace = Math.max(0, rr.trace - 1); }); extra = '所有房间痕迹 −1。'; break;
+  }
+  log('鼠' + ['①','②','③'][m.id-1] + ' 把' + f.name + '投入' + ELEM[f.elem].name + '孔：饱腹 +1，' + extra, 'good');
+  toast('投果成功：饱腹 +1', 'good');
+  afterAction();
+}
+function endMouse(m){
+  if(!m.alive) return;
+  const next = G.mice.findIndex((x, i) => i > G.cur && x.alive) ;
+  let idx = G.mice.findIndex(x => x.alive && x.ap > 0);
+  if(next >= 0 && G.mice[next].ap > 0) idx = next;
+  if(idx < 0) idx = G.mice.findIndex(x => x.alive);
+  if(idx >= 0) G.cur = idx;
+  G.selRoom = null;
+  const rest = G.mice.reduce((a, x) => a + (x.alive ? x.ap : 0), 0);
+  if(rest <= 0) G.hint = '三只鼠的 AP 已用完，可以「结束夜晚」。';
+  renderGame();
+}
+function previewHit(m, rid){
+  const old = m.exposed;
+  m.exposed = true;
+  const hp = hitParts(m, rid);
+  m.exposed = old;
+  return hp.rate;
+}
+function askEndNight(){
+  if(G.phase !== 'NIGHT_ACTION') return;
+  const rest = G.mice.reduce((a, x) => a + (x.alive ? x.ap : 0), 0);
+  const outs = aliveMice().filter(m => m.roomId !== 3);
+  const stay = aliveMice().filter(m => m.roomId === 3).length;
+  const over = stay > homeBeds();
+  const preview = [];
+  outs.forEach(m => {
+    const hole = R(m.roomId).hasHole;
+    preview.push('<li>鼠' + ['①','②','③'][m.id-1] + ' 在' + roomName(m.roomId) + '：夜末' +
+      (hole ? '<b>洞中过夜</b>（命中 −30%）' : '<b>露宿并落锁</b>（黎明不能动，需营救或打洞）') +
+      '，预计命中 <b>' + previewHit(m, m.roomId) + '%</b></li>');
+  });
+  if(over) preview.push('<li>鼠屋里有 ' + stay + ' 只，超过 ' + homeBeds() + ' 个床位：黎明要再选 1 只去中央大厅露宿</li>');
+  if(rest > 0 || preview.length){
+    showModal({
+      lead:'提前收工', title:rest > 0 ? '还有 ' + rest + ' 点 AP 没用' : '确认结束夜晚',
+      body:(rest > 0 ? '<p>未使用的 AP 不会留到下一夜。现在结束，就会直接进入黎明判定。</p>' : '<p>检查一下夜末会发生什么。</p>') +
+        (preview.length ? '<div class="rep"><h4>夜末预告</h4><ul>' + preview.join('') + '</ul></div>' : ''),
+      buttons:[
+        {label:'再想想', cls:'ghost', onClick:closeModal},
+        {label:'结束夜晚', cls:'primary', onClick:()=>{ closeModal(); startDawn(); }}
+      ]
+    });
+  }else{
+    startDawn();
+  }
+}
+function captureMouse(m, cause){
+  if(!m.alive) return;
+  m.alive = false; m.captured = true; m.ap = 0; m.backpack = []; m.locked = false; m.exposed = false;
+  G.stats.caught++;
+  G.stats.falls.push({round:G.round, id:m.id, how:'被猫抓走' + (cause ? '（' + cause + '）' : '')});
+  log('鼠' + ['①','②','③'][m.id-1] + ' ' + (cause || '被猫抓走') + '，关进猫屋，淘汰。', 'bad');
+  toast('鼠' + m.id + ' 被淘汰了', 'bad');
+  androidVibrate(90);
+  if(freeMice().length === 0){ endGame(false, '全灭'); return true; }
+  return false;
+}
+/* ========== P0 入夜 ========== */
+function startNight(){
+  if(!G) return;
+  closeModal();
+  G.round += 1;
+  G.phase = 'NIGHT_START';
+  G.selRoom = null;
+  G.dayCards = [];
+  G.dayDone = false;
+  G.autoPlay = false;
+  const d = DIFF[G.difficulty];
+  const refreshList = [];
+
+  // 猫回猫屋、干粮应急
+  G.cat.roomId = 5;
+  G.cat.ap = 0;
+  G.catLast = {room:5, round:G.round};
+  if(G.cat.satiety <= 0){
+    if(G.cat.dry > 0){
+      G.cat.dry--; G.cat.satiety = 1;
+      log('猫饿得发昏，吃掉 1 颗猫屋干粮（剩 ' + G.cat.dry + '），饱腹回到 1。', 'cat');
+    }else{
+      log('猫屋干粮也空了，猫今晚只能趴着。', 'cat');
+    }
+  }
+
+  // 果实刷新
+  if(d.refresh === 'all'){
+    ELEM_ROOMS.forEach(id => {
+      const r = R(id);
+      if(r.stock < 2){ r.stock++; refreshList.push(ROOM(id).name); }
+    });
+  }else{
+    const picked = [];
+    while(picked.length < 3){
+      const id = pick(ELEM_ROOMS);
+      if(!picked.includes(id)) picked.push(id);
+    }
+    picked.forEach(id => {
+      const r = R(id);
+      if(r.stock < 2){ r.stock++; refreshList.push(ROOM(id).name); }
+    });
+  }
+
+  // 痕迹衰减、红灯清除、设卡倒计时
+  G.rooms.forEach(r => {
+    r.trace = Math.max(0, r.trace - 1);
+    r.redLight = false;
+    if(G.round >= 2 && r.cardTurns > 0) r.cardTurns--;
+  });
+  G.peach = false;
+  G.cat.searchToday = {};
+
+  // 鼠状态复位
+  G.mice.forEach(m => {
+    if(!m.alive) return;
+    m.ap = m.maxAp;
+    m.breatheUsed = false;
+    m.feedUsed = false;
+    m.exposed = false;
+    m.slept = '';
+  });
+  // 猫的记忆衰减
+  G.cat.memory.forEach(mem => mem.turns--);
+  G.cat.memory = G.cat.memory.filter(mem => mem.turns > 0);
+  G.cat.patrol = G.cat.patrol || 0;
+
+  const locked = G.mice.filter(m => m.alive && m.locked).map(m => '鼠' + m.id + '（' + roomName(m.roomId) + '）');
+  const holes = G.rooms.filter(r => r.hasHole).map(r => r.name);
+  const cards = G.rooms.filter(r => r.cardTurns > 0).map(r => r.name);
+  const bedsNow = homeBeds();
+  const aliveN = aliveMice().length;
+  const needFeed = aliveMice().filter(m => m.satiety < 2).length;
+  const nightTip = needFeed === 0
+    ? '本夜所有活鼠饱腹已满，<b>投果会被拒绝</b>。这一夜请把果实「存入」储藏，供下一夜投果用（每只鼠 1 颗）。'
+    : '本夜至少要带回 <b>' + needFeed + ' 颗果实</b>（先喂饱缺粮的鼠），否则夜尽会有人饿死。';
+  const bedWarn = aliveN > bedsNow
+    ? '本夜鼠屋只能收留 ' + bedsNow + ' 只，至少 ' + (aliveN - bedsNow) + ' 只必须在外过夜——先决定谁露宿，给它屏息或找有洞的房间。'
+    : '';
+
+  renderGame();
+  showScreen('scrGame');
+  const refreshTxt = refreshList.length ? refreshList.join('、') + ' 各长出 1 颗果实' : '各房果实已满，没有新果';
+  showModal({
+    lead:'第 ' + G.round + ' / 6 昼夜 · 入夜',
+    title:'天黑了，鼠可以出洞',
+    body:
+      '<div class="rep"><h4>这一夜</h4>' +
+      '<div class="row"><span>果实刷新</span><span>' + refreshTxt + '</span></div>' +
+      '<div class="row"><span>猫的位置</span><span>猫屋（它白天才会出来）</span></div>' +
+      '<div class="row"><span>猫的饱腹</span><span>' + G.cat.satiety + '/3 · 猫屋干粮 ' + G.cat.dry + '</span></div>' +
+      '<div class="row"><span>可行动鼠</span><span>' + aliveMice().length + ' 只 · 每只 ' + DIFF[G.difficulty].mouseAP + ' AP</span></div>' +
+      '</div>' +
+      '<div class="rep"><h4>上回合遗留</h4>' +
+      '<ul>' +
+      '<li>鼠屋床位：' + bedsNow + ' 个' + (aliveN > bedsNow ? '（今夜的鼠屋只能睡 ' + bedsNow + ' 只）' : '') + '</li>' +
+      '<li>已打洞：' + (holes.length ? holes.join('、') + '（永久安全，可过夜）' : '无') + '</li>' +
+      '<li>门窗设卡：' + (cards.length ? cards.join('、') : '无') + '</li>' +
+      '<li>仍被困：' + (locked.length ? locked.join('、') + '（需营救或打洞）' : '无') + '</li>' +
+      '</ul></div>' +
+      '<p class="small" style="color:var(--muted)">' + nightTip + (bedWarn ? ' ' + bedWarn : '') + '</p>',
+    buttons:[{label:'开始夜晚', cls:'primary', onClick:()=>{
+      closeModal(); G.phase = 'NIGHT_ACTION'; G.selRoom = null;
+      G.mice.forEach(m => { if(m.alive && m.ap > 0) m.ap = m.maxAp; });
+      saveGame(); renderGame();
+    }}]
+  });
+}
+
+/* ========== P2 黎明 ========== */
+function needSleepChoice(){
+  const alive = aliveMice();
+  return alive.length > homeBeds() && alive.every(m => m.roomId === 3);
+}
+function startDawn(){
+  if(!G || G.phase !== 'NIGHT_ACTION') return;
+  G.phase = 'DAWN';
+  G.selRoom = null;
+  closeModal();
+  if(needSleepChoice()){
+    const beds = homeBeds();
+    const base = DIFF[G.difficulty].base;
+    const def = aliveMice().slice().sort((a,b) => (a.backpack.length - b.backpack.length) || (a.id - b.id))[0];
+    showModal({
+      lead:'黎明 · 鼠屋床位不够', title:'谁去中央大厅露宿？',
+      body:'<p>鼠屋本夜只有 <b>' + beds + ' 个床位</b>，' + aliveMice().length + ' 只鼠都回来了。必须有 1 只去中央大厅过夜——它会暴露在猫的巡逻范围里，而且黎明封锁后不能自己走。</p>' +
+        '<p class="small" style="color:var(--muted)">默认选中背包最少的一只（被捉损失最小）。露宿不等于淘汰，队友可以在夜里用 1 AP 营救。露宿后预计命中：<b>' + base + '%</b>（可在行动前先给它屏息，降到 ' + Math.max(10, base - 25) + '%）。</p>' +
+        '<p class="small" style="color:#e0b46a">中央大厅紧挨猫屋，猫第一个白天很可能直接来搜。不想赌这一口，可以在结束夜晚前留 1 只鼠在远处的五行房过夜（最好先打洞，洞中 −30%），而不是让三只全回家。</p>',
+      buttons: aliveMice().map(m => ({
+        label:'鼠' + ['①','②','③'][m.id-1] + ' · 背包 ' + m.backpack.length + ' 颗 · 剩 ' + m.ap + ' AP' + (m.id === def.id ? '（默认）' : ''),
+        cls: m.id === def.id ? 'primary' : 'ghost',
+        onClick:()=>{ closeModal(); finalizeDawn(m.id); }
+      }))
+    });
+    return;
+  }
+  finalizeDawn(null);
+}
+function finalizeDawn(pickId){
+  if(pickId !== null){
+    const m = G.mice[pickId-1];
+    if(m && m.alive && m.roomId === 3){
+      m.roomId = 4;
+      m.slept = '露宿';
+      log('床位不够：鼠' + ['①','②','③'][pickId-1] + ' 被留在中央大厅露宿。', 'warn');
+    }
+  }
+  const d = DIFF[G.difficulty];
+  aliveMice().forEach(m => {
+    if(m.roomId === 3){
+      m.slept = '安睡';
+      m.exposed = false;
+      m.locked = false;
+    }else{
+      const hole = R(m.roomId).hasHole;
+      m.slept = hole ? '洞中' : '露宿';
+      m.exposed = true;
+      m.locked = !hole;
+    }
+  });
+  // 猫在黎明时对相邻房间的察觉
+  ADJ[5].forEach(id => {
+    if(roomMice(id).length && chance(d.sense)){
+      G.cat.memory.push({room:id, turns:2});
+    }
+  });
+  const warn = aliveMice().filter(m => m.satiety <= 1);
+  const lockedMice = aliveMice().filter(m => m.locked);
+  const exposed = aliveMice().filter(m => m.exposed);
+  const reds = G.rooms.filter(r => r.redLight);
+  const advice = [];
+  if(lockedMice.length) advice.push('有鼠被黎明封锁，夜里需要相邻队友花 1 AP 营救，或带钥匙打洞。');
+  if(exposed.length) advice.push('露宿的鼠白天会被猫搜捕。已打洞的房间可减 30% 命中；屏息再减 25%。');
+  if(warn.length) advice.push('饱腹 ≤1 的鼠今晚必须投果，否则夜尽饿死。');
+  if(!G.rooms.some(r => r.hasHole) && exposed.length) advice.push('还没打洞：优先带钥匙开木房或水房，给第三只鼠一个安全的过夜点。');
+
+  G.dawn = {exposed:exposed.map(m=>m.id), locked:lockedMice.map(m=>m.id), reds:reds.map(r=>r.id)};
+  const rows = G.mice.map(m => {
+    if(!m.alive) return '<div class="row"><span>鼠' + ['①','②','③'][m.id-1] + '</span><span>' + (m.captured ? '已被囚' : '已饿死') + '</span></div>';
+    const tags = (m.locked ? '<span class="pill bad">被封锁</span>' : '') + (m.exposed ? '<span class="pill warn">露宿</span>' : '<span class="pill good">安睡</span>') + (R(m.roomId).hasHole ? '<span class="pill good">洞中</span>' : '');
+    return '<div class="row"><span>鼠' + ['①','②','③'][m.id-1] + ' · ' + roomName(m.roomId) + '</span><span>' + tags + ' · 饱腹 ' + m.satiety + '/2</span></div>';
+  }).join('');
+
+  renderGame();
+  showModal({
+    lead:'黎明 · 第 ' + G.round + ' 昼夜',
+    title: exposed.length === 0 ? (aliveMice().length === 1 ? '鼠' + ['①','②','③'][aliveMice()[0].id-1] + ' 在鼠屋安睡' : aliveMice().length + ' 只鼠都安睡') :
+      (exposed.length === 1 ? '鼠' + ['①','②','③'][exposed[0].id-1] + ' 在 ' + roomName(exposed[0].roomId) + ' 过夜' : exposed.length + ' 只鼠在外过夜'),
+    body:'<div class="rep"><h4>各鼠位置</h4>' + rows + '</div>' +
+      '<div class="rep"><h4>警报</h4><ul>' +
+      '<li>红灯房：' + (reds.length ? reds.map(r => r.name).join('、') + '（猫知道这里有鼠）' : '无') + '</li>' +
+      '<li>被封锁：' + (lockedMice.length ? lockedMice.map(m => roomName(m.roomId)).join('、') : '无') + '</li>' +
+      '<li>饱腹预警：' + (warn.length ? warn.map(m => '鼠' + m.id).join('、') : '无') + '</li>' +
+      '</ul></div>' +
+      '<p class="small" style="color:var(--gold2)">建议：' + (advice.length ? advice.join(' ') : '保持节奏，白天看猫怎么动。') + '</p>',
+    buttons:[{label:'进入白天', cls:'primary', onClick:()=>{ closeModal(); startDay(); }}]
+  });
+}
+
+/* ========== P3 白天 ========== */
+function startDay(){
+  if(!G) return;
+  G.phase = 'DAY_ACTION';
+  G.dayCards = [];
+  G.dayDone = false;
+  G.autoPlay = false;
+  G.cat.searchToday = {};
+  G.cat.actionsToday = 0;
+  const sat = G.cat.satiety;
+  let ap = 0;
+  if(sat > 0){
+    if(G.difficulty === 'easy') ap = Math.max(1, sat - 1);
+    else if(G.difficulty === 'hard') ap = sat + 1;
+    else ap = sat;
+  }
+  G.cat.ap = ap;
+  G.cat.apStart = ap;
+  if(ap <= 0){
+    log('猫趴在猫屋不动：它饿得没有力气出门。', 'cat');
+  }else{
+    log('天亮了。猫伸了个懒腰，今天有 ' + ap + ' 个动作。', 'cat');
+  }
+  saveGame(); renderGame();
+  renderDayModal();
+  if(G.autoPlay) scheduleAuto();
+}
+function renderDayModal(){
+  const intro = G.cat.apStart > 0
+    ? '<p class="small" style="color:var(--muted)">猫的饱腹是 ' + G.cat.satiety + '/3，今天能动 <b>' + G.cat.apStart + '</b> 次。它的每个动作都会写清动机；你只能看，不能干预。</p>'
+    : '<p class="small" style="color:var(--muted)">猫今天没有行动力。鼠在房里待着也会被夜尽结算饿到——但至少不会被抓。</p>';
+  const cards = G.dayCards.map(cardHtml).join('');
+  const done = G.dayDone || G.cat.ap <= 0 || G.cat.actionsToday >= 4 || !G.cat.apStart;
+  const foot = [];
+  if(!done){
+    foot.push({label:'下一动作', cls:'primary', onClick:()=>{ catStep(); }});
+    foot.push({label: G.autoPlay ? '停止自动' : '自动播报', cls:'ghost', onClick:()=>{ G.autoPlay = !G.autoPlay; renderDayModal(); if(G.autoPlay) scheduleAuto(); }});
+    foot.push({label: G.fast ? '常速' : '加速', cls:'ghost', onClick:()=>{ G.fast = !G.fast; renderDayModal(); }});
+  }else{
+    foot.push({label:'夜尽结算', cls:'primary', onClick:()=>{ closeModal(); roundEnd(); }});
+  }
+  showModal({
+    lead:'白天 · 猫在行动', title: done ? '白天结束' : '猫醒了',
+    body: intro + cards,
+    buttons: foot
+  });
+  if(G.autoPlay && !done) scheduleAuto();
+}
+function cardHtml(c){
+  return '<div class="daycard' + (c.hit ? ' hit' : '') + '">' +
+    '<div class="dc-head"><span>' + c.tag + '</span><span>' + (c.hit ? '捕获' : '') + '</span></div>' +
+    '<div class="dc-text">' + c.text + '</div>' +
+    (c.roll ? '<div class="dc-roll">' + c.roll + '</div>' : '') +
+  '</div>';
+}
+let autoTimer = null;
+function scheduleAuto(){
+  if(autoTimer) clearTimeout(autoTimer);
+  autoTimer = setTimeout(()=>{
+    if(!G || G.phase !== 'DAY_ACTION' || G.dayDone || G.result) return;
+    if(!G.autoPlay) return;
+    if(G.cat.ap <= 0 || G.cat.actionsToday >= 4 || !G.cat.apStart) return;
+    catStep();
+  }, G.fast ? 480 : 1400);
+}
+function catStep(){
+  if(!G || G.phase !== 'DAY_ACTION' || G.dayDone) return;
+  if(G.cat.ap <= 0 || G.cat.actionsToday >= 4 || !G.cat.apStart){
+    G.dayDone = true; renderDayModal(); return;
+  }
+  const card = catActOnce();
+  if(!card){ G.dayDone = true; renderDayModal(); return; }
+  G.cat.ap--;
+  G.cat.actionsToday++;
+  G.dayCards.push(card);
+  if(G.result){ return; }
+  if(G.cat.ap <= 0 || G.cat.actionsToday >= 4){
+    G.dayDone = true;
+  }
+  saveGame(); renderGame(); renderDayModal();
+}
+
+/* ========== P4 夜尽 ========== */
+function roundEnd(){
+  if(!G) return;
+  closeModal();
+  G.phase = 'ROUND_END';
+  const deadRows = [];
+  const before = G.mice.map(m => ({id:m.id, sat:m.satiety, alive:m.alive}));
+  G.mice.forEach(m => {
+    if(!m.alive) return;
+    m.satiety = Math.max(0, m.satiety - 1);
+    if(m.satiety <= 0){
+      m.alive = false;
+      m.satiety = 0;
+      G.stats.falls.push({round:G.round, id:m.id, how:'夜尽饿死'});
+      deadRows.push('鼠' + ['①','②','③'][m.id-1] + ' 饿死了');
+      log('夜尽：鼠' + ['①','②','③'][m.id-1] + ' 饱腹归零，饿死。', 'bad');
+    }else{
+      log('夜尽：鼠' + ['①','②','③'][m.id-1] + ' 饱腹 −1，剩 ' + m.satiety + '/2。');
+    }
+  });
+  G.cat.satiety = Math.max(0, G.cat.satiety - 1);
+  G.cat.ap = 0;
+  log('夜尽：猫也饿了 1 格，饱腹 ' + G.cat.satiety + '/3。', 'cat');
+  renderGame();
+
+  if(freeMice().length === 0){
+    showRoundModal(deadRows, true);
+    return;
+  }
+  if(G.round >= 6){
+    showRoundModal(deadRows, 'final');
+    return;
+  }
+  showRoundModal(deadRows, false);
+}
+function showRoundModal(deadRows, state){
+  const satRows = G.mice.map(m => {
+    if(!m.alive) return '<div class="row"><span>鼠' + ['①','②','③'][m.id-1] + '</span><span>' + (m.captured ? '被囚' : '饿死') + '</span></div>';
+    return '<div class="row"><span>鼠' + ['①','②','③'][m.id-1] + ' · ' + roomName(m.roomId) + '</span><span>饱腹 ' + m.satiety + '/2 ' + (m.satiety <= 1 ? '<span class="pill bad">下一夜会饿死</span>' : '') + '</span></div>';
+  }).join('');
+  const body = '<div class="rep"><h4>夜尽 · 所有活着的单位饱腹 −1</h4>' + satRows +
+    '<div class="row"><span>猫</span><span>饱腹 ' + G.cat.satiety + '/3</span></div>' +
+    '<div class="row"><span>道 · 若现在结算</span><span>' + (freeMice().length ? '共 30 道 · 每只 ' + Math.floor(30/freeMice().length) + ' 道' : '0 道') + '</span></div></div>' +
+    (deadRows.length ? '<div class="rep"><h4 style="color:#f0b3a7">淘汰</h4><ul><li>' + deadRows.join('</li><li>') + '</li></ul></div>' : '') +
+    '<p class="small" style="color:var(--muted)">存活自由鼠：' + freeMice().length + ' / 3。</p>';
+  const buttons = [];
+  if(state === true){
+    buttons.push({label:'查看结局', cls:'danger', onClick:()=>{ closeModal(); endGame(false, '全灭：鼠群没有幸存者'); }});
+  }else if(state === 'final'){
+    buttons.push({label:'查看结局', cls:'primary', onClick:()=>{ closeModal(); endGame(true, '撑过第 6 个昼夜'); }});
+  }else{
+    buttons.push({label:'继续 → 第 ' + (G.round + 1) + ' 昼夜', cls:'primary', onClick:()=>{ closeModal(); startNight(); }});
+  }
+  showModal({
+    lead:'夜尽 · 第 ' + G.round + ' 昼夜结束',
+    title: state === true ? '鼠群全灭' : (state === 'final' ? '最后一夜过去了' : '熬过一夜'),
+    body, buttons
+  });
+}
+/* ========== 猫 AI ========== */
+function nearestRoom(from, ids, avoidHome){
+  let best = null, bestD = 999;
+  ids.forEach(id => {
+    const d = dist(from, id, avoidHome);
+    if(d < bestD || (d === bestD && id < best)){ best = id; bestD = d; }
+  });
+  return best;
+}
+function catCertainTarget(){
+  const c = G.cat;
+  const cands = [];
+  if(roomMice(c.roomId).length) cands.push({room:c.roomId, why:'visible'});
+  G.rooms.forEach(r => { if(r.redLight) cands.push({room:r.id, why:'red'}); });
+  c.memory.forEach(mem => { if(mem.turns > 0 && mem.room !== c.roomId) cands.push({room:mem.room, why:'memory'}); });
+  if(!cands.length) return null;
+  const rooms = [...new Set(cands.map(x => x.room))];
+  const target = nearestRoom(c.roomId, rooms, true);
+  const why = cands.find(x => x.room === target).why;
+  return {room:target, why};
+}
+function catFoodTarget(){
+  // 只闻得到所在房与相邻房（§5.1 信息权限），不读全图
+  const rooms = [G.cat.roomId, ...ADJ[G.cat.roomId]].filter(id => ROOM(id).elem && R(id).stock > 0);
+  if(!rooms.length) return null;
+  return {room:nearestRoom(G.cat.roomId, rooms, true)};
+}
+function catTraceTarget(){
+  const d = DIFF[G.difficulty];
+  let best = null, bestScore = -999;
+  ELEM_ROOMS.forEach(id => {
+    const r = R(id);
+    if(r.trace < d.traceHit) return;
+    const score = r.trace * 2 - dist(G.cat.roomId, id, true);
+    if(score > bestScore || (score === bestScore && id < best)){ best = id; bestScore = score; }
+  });
+  return best === null ? null : {room:best};
+}
+function catGuardTarget(){
+  const d = DIFF[G.difficulty];
+  if(d.guard <= 0 || G.round < 4) return null;
+  const exits = [0,6,4];
+  const ranked = exits.map(id => {
+    const r = R(id);
+    const cnt = G.cat.searchToday[id] || 0;
+    return {id, score:r.trace * 3 - cnt * 5 + (id === 4 ? 1 : 0)};
+  }).sort((a,b) => (b.score - a.score) || (a.id - b.id));
+  const slots = ranked.slice(0, Math.min(d.guard, ranked.length));
+  // 困难守 2 个出口：单双回合轮流蹲守分数最高的两个出口；普通只守最优 1 个
+  const slotIdx = d.guard >= 2 ? (G.round % 2) : 0;
+  const target = slots[Math.min(slotIdx, slots.length - 1)];
+  return {room:target.id};
+}
+function catPlan(){
+  const c = G.cat;
+  const hungry = c.satiety <= 1;
+  const certain = catCertainTarget();
+  // 眼前/红灯里的鼠比一口果子更值钱（抓鼠 +2 饱腹）；只有“记忆”这种旧线索才先吃饭
+  if(certain && (certain.why !== 'memory' || !hungry)) return {intent:'hunt', room:certain.room, why:certain.why};
+  if(hungry){
+    if(ROOM(c.roomId).elem && R(c.roomId).stock > 0) return {intent:'eat', room:c.roomId, why:'饿了'};
+    const food = catFoodTarget();
+    if(food) return {intent:'eat', room:food.room, why:'饿了'};
+  }
+  if(certain) return {intent:'hunt', room:certain.room, why:certain.why};
+  const trace = catTraceTarget();
+  if(trace) return {intent:'hunt', room:trace.room, why:'trace'};
+  const guard = catGuardTarget();
+  if(guard) return {intent:'guard', room:guard.room, why:'guard'};
+  if(G.round >= 3 && c.charges > 0){
+    const exits = [0,6].filter(id => R(id).cardTurns === 0);
+    if(exits.length){
+      const target = nearestRoom(c.roomId, exits, true);
+      if(target !== null) return {intent:'card', room:target, why:'card'};
+    }
+  }
+  const idx = PATROL.indexOf(c.roomId);
+  const next = PATROL[(idx >= 0 ? idx + 1 : 1) % PATROL.length];
+  return {intent:'patrol', room:next, why:'patrol'};
+}
+function catMoveTo(dest, motive){
+  const c = G.cat;
+  const from = c.roomId;
+  c.roomId = dest;
+  c.motive = motive;
+  const seen = roomMice(dest).length ? ' 它一进门就看见了鼠影。' : '';
+  log('猫 从 ' + roomName(from) + ' 走向 ' + roomName(dest) + '（' + motive + '）。' + seen, 'cat');
+  return {tag:'猫 · 移动', text:'猫 从 ' + roomName(from) + ' 走向 ' + roomName(dest) + '——' + motive + '。' + seen};
+}
+function hitParts(m, roomId){
+  const d = DIFF[G.difficulty];
+  const r = R(roomId);
+  const prior = G.cat.searchToday[roomId] || 0;
+  const parts = [];
+  let p = d.base;
+  parts.push('基础 ' + d.base + '%');
+  if(prior > 0){ const add = Math.min(45, prior * 15); p += add; parts.push('同房第 ' + (prior + 1) + ' 次 +' + add + '%'); }
+  if(r.redLight && r.trapVictim === m.id){ p += 20; parts.push('踩夹红灯 +20%'); }
+  if(r.stock >= 2){ p -= 10; parts.push('杂物遮蔽 −10%'); }
+  if(m.backpack.length >= 1){ p -= 10; parts.push('背着果 −10%'); }
+  if(m.breatheUsed){ p -= 25; parts.push('屏息 −25%'); }
+  if(r.hasHole && m.exposed){ p -= 30; parts.push('洞中过夜 −30%'); }
+  if(G.peach){ p -= 10; parts.push('水蜜桃 −10%'); }
+  p = Math.max(10, Math.min(95, p));
+  return {rate:Math.round(p), parts};
+}
+function catSearch(guard){
+  const c = G.cat;
+  const rid = c.roomId;
+  const r = R(rid);
+  const mice = roomMice(rid);
+  const prior = c.searchToday[rid] || 0;
+  if(!mice.length){
+    r.redLight = false;
+    c.memory = c.memory.filter(mem => mem.room !== rid);
+    const txt = guard
+      ? '猫 在 ' + roomName(rid) + ' 门口蹲守了一会儿，没有鼠出来。'
+      : '猫 在 ' + roomName(rid) + ' 翻找了一阵，什么也没找到——看来它记错了地方。';
+    log(txt, 'cat');
+    return {tag:'猫 · 搜寻', text:txt, roll:'空房（不计入同房次数）'};
+  }
+  let target;
+  if(r.redLight && r.trapVictim && mice.some(m => m.id === r.trapVictim)){
+    target = mice.find(m => m.id === r.trapVictim);
+  }else{
+    target = pick(mice);
+  }
+  const hp = hitParts(target, rid);
+  c.searchToday[rid] = prior + 1;
+  const roll = Math.floor(rnd() * 100) + 1;
+  const base = '目标 鼠' + ['①','②','③'][target.id-1] + ' · 命中率 ' + hp.rate + '% · 掷骰 ' + roll + '（' + hp.parts.join(' / ') + '）';
+  if(roll <= hp.rate){
+    c.satiety = Math.min(3, c.satiety + 2);
+    const txt = '猫 在 ' + roomName(rid) + ' 搜寻，按住了鼠' + ['①','②','③'][target.id-1] + '！猫饱腹 +2。';
+    log(txt, 'bad');
+    const ended = captureMouse(target, '在 ' + roomName(rid) + ' 被猫搜到');
+    return {tag:'猫 · 捕获', text:txt, roll:base, hit:true};
+  }
+  c.memory = c.memory.filter(mem => mem.room !== rid);
+  c.memory.push({room:rid, turns:2});
+  const txt = '猫 在 ' + roomName(rid) + ' 搜寻，扑了个空，但它确信这里确实有鼠。';
+  log(txt, 'cat');
+  return {tag:'猫 · 搜寻', text:txt, roll:base};
+}
+function catEat(){
+  const c = G.cat;
+  const rid = c.roomId;
+  const r = R(rid);
+  if(r.stock <= 0) return catSearch();
+  const fid = ROOM(rid).fruit;
+  r.stock--;
+  const before = c.satiety;
+  c.satiety = Math.min(3, c.satiety + 1);
+  c.ap++;
+  log('猫 在 ' + roomName(rid) + ' 吃掉 1 颗' + FRUITS[fid].name + '：饱腹 ' + before + '→' + c.satiety + '，多出 1 个动作。', 'cat');
+  return {tag:'猫 · 吃果', text:'猫 在 ' + roomName(rid) + ' 吃掉 1 颗' + FRUITS[fid].name + '，饱腹回到 ' + c.satiety + '/3，精神了一些。'};
+}
+function catSetCard(){
+  const c = G.cat;
+  const r = R(c.roomId);
+  r.cardTurns = 2;
+  r.cardHidden = G.difficulty === 'hard' && c.charges === 1;
+  c.charges--;
+  const txt = '猫 在 ' + roomName(c.roomId) + ' 门口设下一道卡：接下来 2 回合鼠不能从这进' +
+    (r.cardHidden ? '（这张卡藏得很隐蔽，你看不清位置）' : '（位置公开）') + '。';
+  log(txt, 'cat');
+  return {tag:'猫 · 设卡', text:txt};
+}
+function catActOnce(){
+  const c = G.cat;
+  if(c.actionsToday >= 4) return null;
+  if(c.ap <= 0) return null;
+  const plan = catPlan();
+  if(!plan) return null;
+  const tag = '猫 · 动作 ' + (c.actionsToday + 1) + '/' + Math.max(c.apStart || 1, c.actionsToday + 1);
+
+  if(plan.intent === 'card'){
+    if(c.roomId === plan.room) return Object.assign(catSetCard(), {tag});
+    const card = catMoveTo(nextStep(c.roomId, plan.room, true), '去鼠屋出口，准备设卡');
+    return Object.assign(card, {tag});
+  }
+  if(c.roomId !== plan.room){
+    let motive = '按巡逻路线走';
+    if(plan.why === '饿了') motive = '饿了，闻到了果子的气味';
+    else if(plan.why === 'visible') motive = '看见鼠了，扑过去';
+    else if(plan.why === 'red') motive = '红灯亮了，那边肯定有鼠';
+    else if(plan.why === 'memory') motive = '它记得那间房里还有鼠';
+    else if(plan.why === 'trace') motive = '嗅到了新鲜的痕迹';
+    else if(plan.why === 'guard') motive = '蹲守鼠屋出口';
+    const dest = nextStep(c.roomId, plan.room, true);
+    const card = catMoveTo(dest, motive);
+    return Object.assign(card, {tag});
+  }
+  if(plan.intent === 'eat'){
+    if(ROOM(c.roomId).elem && R(c.roomId).stock > 0) return Object.assign(catEat(), {tag});
+    const food = catFoodTarget();
+    if(food && food.room !== c.roomId){
+      return Object.assign(catMoveTo(nextStep(c.roomId, food.room, true), '饿了，去找果子'), {tag});
+    }
+  }
+  if(plan.intent === 'hunt' || plan.intent === 'guard'){
+    return Object.assign(catSearch(plan.intent === 'guard'), {tag});
+  }
+  if(plan.intent === 'patrol'){
+    const dest = plan.room;
+    return Object.assign(catMoveTo(dest, '按固定路线巡逻'), {tag});
+  }
+  return Object.assign(catSearch(), {tag});
+}
+/* ========== 结局 ========== */
+function endGame(win, reason){
+  if(!G || G.result) return;
+  closeModal();
+  if(autoTimer){ clearTimeout(autoTimer); autoTimer = null; }
+  G.phase = 'RESULT';
+  const n = freeMice().length;
+  let rating = '—';
+  if(win){
+    if(n === 3 && G.stats.traps === 0) rating = 'S';
+    else if(n === 3) rating = 'A';
+    else if(n === 2) rating = 'B';
+    else rating = 'C';
+  }
+  const dao = win ? Math.floor(30 / Math.max(1, n)) : 0;
+  G.stats.satietyLeft = G.mice.reduce((a, m) => a + (m.alive ? m.satiety : 0), 0);
+  G.result = {win, reason, survivors:n, rating, dao, round:G.round, at:Date.now()};
+  log(win ? '结局：鼠方撑过了六个昼夜。' : '结局：鼠方全灭。', win ? 'good' : 'bad');
+  try{ localStorage.removeItem('dg_maoshu_save'); }catch(e){}
+  showResult();
+}
+function showResult(){
+  const r = G.result;
+  if(!r) return;
+  const hero = $('#resHero');
+  hero.className = 'reshero ' + (r.win ? 'win' : 'lose');
+  hero.innerHTML =
+    '<div class="kicker">' + (r.win ? 'SURVIVED · 六个昼夜' : 'GAME OVER · 第 ' + r.round + ' 昼夜') + '</div>' +
+    '<h2>' + (r.win ? '鼠方获胜' : '鼠方全灭') + '</h2>' +
+    '<div class="line">' + r.reason + ' · 幸存 ' + r.survivors + ' / 3</div>' +
+    '<div class="rank">评级 <b>' + r.rating + '</b><span>' +
+      (r.rating === 'S' ? '完美潜行：三鼠齐活，一颗夹子都没踩' :
+       r.rating === 'A' ? '全身而退：三鼠齐活' :
+       r.rating === 'B' ? '折损一只，仍有两只回到地面' :
+       r.rating === 'C' ? '只剩一只鼠活着' : '没有鼠活着离开') +
+    '</span></div>';
+  const rows = G.mice.map(m => {
+    const status = m.alive ? ('活着 · ' + roomName(m.roomId) + ' · 饱腹 ' + m.satiety + '/2') : (m.captured ? '被关进猫屋' : '饿死');
+    return '<div class="row"><span>鼠' + ['①','②','③'][m.id-1] + '</span><span>' + status + '</span></div>';
+  }).join('');
+  const review = [];
+  if(r.win){
+    if(G.stats.traps === 0) review.push('全程没踩夹：探查与搬运前先确认夹子，是潜行的关键。');
+    if(G.stats.digs >= 2) review.push('开了 ' + G.stats.digs + ' 个洞：洞中过夜把白天命中压低了 30%。');
+    review.push('共搬回 ' + G.stats.carried + ' 颗果实，幸存鼠剩余总饱腹 ' + G.stats.satietyLeft + '。');
+  }else{
+    if(G.stats.caught > 0) review.push('被猫抓走 ' + G.stats.caught + ' 只。夜里给露宿鼠开洞（−30%）并屏息（−25%），白天别让它单独待着。');
+    if(G.stats.traps > 0) review.push('触发夹子 ' + G.stats.traps + ' 次。踏入五行房前先「探查」，夹子会亮红灯并把猫引来。');
+    const starved = G.mice.filter(m => !m.alive && !m.captured).length;
+    if(starved > 0) review.push('有 ' + starved + ' 只鼠饿死。夜尽所有活鼠饱腹 −1，回鼠屋投果 +1；也可把果实存进储藏跨夜备用。');
+    review.push('下一局优先在木房或水房开洞，给第 3 只鼠一个安全的过夜点。');
+  }
+  const reviewHtml = '<div class="rep" style="margin-top:12px"><h4>' + (r.win ? '本局亮点' : '失败复盘') + '</h4><ul>' +
+    (G.stats.falls && G.stats.falls.length
+      ? '<li><b>关键节点</b>：' + G.stats.falls.map(f => '第 ' + f.round + ' 昼夜 鼠' + ['①','②','③'][f.id-1] + ' ' + f.how).join('；') + '。</li>'
+      : '<li><b>关键节点</b>：三只鼠全程无人掉队。</li>') +
+    review.map(x => '<li>' + x + '</li>').join('') + '</ul></div>';
+  $('#resBody').innerHTML =
+    '<div class="daoline"><span>乐园结算 · 共 <b>30 道</b>，按幸存鼠数均分</span><b>' +
+      (r.win ? '每只 ' + r.dao + ' 道' : '0 道') + '</b></div>' +
+    '<div class="statgrid">' +
+      '<div class="stat"><div class="n">' + G.stats.carried + '</div><div class="l">搬运果实</div></div>' +
+      '<div class="stat"><div class="n">' + G.stats.digs + '</div><div class="l">打洞</div></div>' +
+      '<div class="stat"><div class="n">' + G.stats.rescues + '</div><div class="l">营救</div></div>' +
+      '<div class="stat"><div class="n">' + G.stats.caught + '</div><div class="l">被捕鼠数</div></div>' +
+      '<div class="stat"><div class="n">' + G.stats.traps + '</div><div class="l">触发夹子</div></div>' +
+      '<div class="stat"><div class="n">' + G.stats.satietyLeft + '</div><div class="l">剩余总饱腹</div></div>' +
+    '</div>' +
+    '<div class="rep" style="margin-top:12px"><h4>三只鼠的下场</h4>' + rows + '</div>' +
+    reviewHtml +
+    '<div class="small" style="color:var(--dim);font-size:11.5px;margin-top:8px">本局种子 ' + G.seed + ' · ' +
+      '难度 ' + DIFF[G.difficulty].name + ' · 用时记录仅保存在本机</div>' +
+    '<div class="resbtns">' +
+      '<button class="btn primary" id="btnAgain">重开一局</button>' +
+      '<button class="btn ghost" id="btnChangeDiff">换难度</button>' +
+      '<button class="btn ghost" id="btnBackTitle">回标题</button>' +
+    '</div>';
+  $('#btnAgain').onclick = () => { beginRun(G.difficulty, G.seed); };
+  $('#btnChangeDiff').onclick = () => { showDiff(); };
+  $('#btnBackTitle').onclick = () => { showTitle(); };
+  showScreen('scrResult');
+}
+
+/* ========== 规则速查 / 暂停 ========== */
+function showHelp(){
+  const roomRows = ELEM_ROOMS.map(id => {
+    const rd = ROOM(id);
+    return '<div class="row"><span>' + rd.name + '（' + ELEM[rd.elem].name + '）</span><span>产' + FRUITS[rd.fruit].name + ' · 钥匙' + KEY_NAME(rd.elem) + '</span></div>';
+  }).join('');
+  showModal({
+    lead:'速查 · 随时可看', title:'规则与五行',
+    body:
+      '<div class="rep"><h4>目标</h4><p class="small" style="color:var(--muted);margin:2px 0">三只鼠活过 6 个昼夜。第 6 昼夜结算后仍有自由鼠即胜；三只全被抓／饿死即败。</p></div>' +
+      '<div class="rep"><h4>每个昼夜</h4><ul>' +
+      '<li><b>夜</b>：鼠行动。每只鼠 ' + DIFF[G ? G.difficulty : 'normal'].mouseAP + ' AP，移动/探查/搜寻/搬运/打洞/营救/清扫各 1 AP。</li>' +
+      '<li><b>黎明</b>：没回鼠屋的鼠露宿；没洞的房间会落锁（不能移动），需营救或打洞。</li>' +
+      '<li><b>昼</b>：猫行动。鼠完全不能动，只能看。</li>' +
+      '<li><b>夜尽</b>：所有活着的鼠与猫饱腹 −1；鼠到 0 饿死。</li>' +
+      '</ul></div>' +
+      '<div class="rep"><h4>夜宿与床位</h4><ul>' +
+      '<li>鼠屋床位：简单 3、普通/困难 2；猫不能进鼠屋。</li>' +
+      '<li>普通/困难下，减员不会更安全：鼠屋只收留「存活数 − 1」只，至少 1 只仍要外宿放哨。</li>' +
+      '<li>外宿：有洞＝洞中过夜（命中 −30%）；无洞＝露宿，且黎明落锁不能动。</li>' +
+      '</ul></div>' +
+      '<div class="rep"><h4>痕迹与猫的选目标顺序</h4><ul>' +
+      '<li>探查 / 搜寻 / 搬运各让本房 <b>+1 痕迹</b>（上限 3）；移动、屏息不产生痕迹。</li>' +
+      '<li>痕迹阈值：普通 ≥2、困难 ≥1、简单 ≥3，猫会循迹扑来；清扫花 1 AP 清零，木孔投果全场 −1。</li>' +
+      '<li>猫的顺序：饿了找果 → 看见鼠/红灯/记忆 → 痕迹 → 第 4 昼起守出口（困难轮流守 2 个） → 设卡 / 巡逻。</li>' +
+      '</ul></div>' +
+      '<div class="rep"><h4>五行房间：产果与钥匙</h4>' + roomRows +
+      '<p class="small" style="color:var(--dim);margin-top:6px">规律：木→火→土→金→水→木。房间产「相生」的下一行果实；开门要「相克」它的果实。</p></div>' +
+      '<div class="rep"><h4>动作成本（每只鼠每晚 ' + DIFF[G ? G.difficulty : 'normal'].mouseAP + ' AP）</h4>' +
+      '<div class="row"><span>移动 / 探查 / 搜寻 / 搬运 / 打洞 / 营救 / 清扫</span><span>各 1 AP</span></div>' +
+      '<div class="row"><span>屏息（本夜该鼠被搜 −25%）</span><span>0 AP · 每鼠 1 次</span></div>' +
+      '<div class="row"><span>投果（鼠屋，每鼠每回合 1 次）</span><span>0 AP</span></div>' +
+      '<div class="row"><span>把果子存入储藏（鼠屋）</span><span>0 AP</span></div>' +
+      '<div class="row"><span>从储藏取出 1 颗</span><span>1 AP</span></div>' +
+      '<div class="row"><span>结束这只鼠 / 结束本夜</span><span>0 AP</span></div></div>' +
+      '<div class="rep"><h4>投果（鼠屋，0 AP，每鼠每回合 1 次）</h4><ul>' +
+      '<li>火龙果→火孔：本夜 +1 AP</li><li>石榴→土孔：1 次夹子豁免</li><li>金桔→金孔：获得金锁（任意房门钥匙，占 1 格）</li>' +
+      '<li>水蜜桃→水孔：本昼猫搜寻命中 −10%</li><li>木瓜→木孔：所有房间痕迹 −1</li></ul>' +
+      '<p class="small" style="color:var(--dim);margin-top:4px">投果同时让该鼠饱腹 +1（上限 2）；饱腹满时不能投。</p></div>' +
+      '<div class="rep"><h4>猫的命中</h4><ul>' +
+      '<li>基础 ' + DIFF[G ? G.difficulty : 'normal'].base + '%；同房当日每多搜 1 次 +15%（最多 +45%）</li>' +
+      '<li>踩夹红灯 +20%；房内库存 ≥2 −10%；鼠背果 −10%；屏息 −25%；洞中过夜 −30%；水蜜桃 −10%</li>' +
+      '<li>命中率压制在 10%–95%；搜空后猫会记住该房 2 回合。</li></ul></div>' +
+      '<div class="rep"><h4>三条死路</h4><ul><li>饱腹归零（夜尽饿死）</li><li>踩夹落锁后被猫搜到</li><li>自己走进猫屋（立即淘汰）</li></ul></div>',
+    buttons:[{label:'关闭', cls:'primary', onClick:closeModal}]
+  });
+}
+function showPause(){
+  if(!G || G.phase === 'RESULT') return;
+  showModal({
+    lead:'暂停', title:'歇一口气',
+    body:'<p>当前：第 ' + G.round + ' 昼夜 · ' + phaseLabel().text + '。</p><p class="small" style="color:var(--muted)">存档会自动写入本机浏览器；回标题后可以从「继续上局」恢复。</p>',
+    buttons:[
+      {label:'继续游戏', cls:'primary', onClick:closeModal},
+      {label:'规则速查', cls:'ghost', onClick:showHelp},
+      {label:'保存并回标题', cls:'ghost', onClick:()=>{ saveGame(); closeModal(); showTitle(); }}
+    ]
+  });
+}
+/* ========== 七页新手引导 ========== */
+let tutPage = 0;
+let tutQuiz = {2:false, 4:false};
+let tutFromTitle = false;
+let tutMsg = {2:'', 4:''};
+let selectedDiff = 'normal';
+
+function tutSeen(){
+  try{ return !!localStorage.getItem('dg_maoshu_tut'); }catch(e){ return false; }
+}
+function markTutSeen(){
+  try{ localStorage.setItem('dg_maoshu_tut','1'); }catch(e){}
+}
+function miniMapHtml(){
+  return '<div class="tutmap">' + ROOMS.map(r =>
+    '<div class="' + (r.special ? 'sp ' + r.special : '') + '"><b>' + r.name + '</b><span>' +
+    (r.fruit ? ELEM[r.elem].name + ' · ' + FRUITS[r.fruit].name : (r.special === 'home' ? '安全屋' : (r.special === 'cat' ? '禁地' : '走廊'))) +
+    '</span></div>').join('') + '</div>';
+}
+function tutPages(){
+  return [
+    {
+      title:'你是鼠，不是猫',
+      lead:'三只地鼠住在鼠屋，一只猫住在猫屋。',
+      body:
+        '<p>这是一场<strong>回合制</strong>的捉迷藏。你操控三只鼠，目标是<b>活着撑过六个昼夜</b>。</p>' +
+        '<div class="keys">' +
+        '<div><b>胜利</b><br>第 6 昼夜结算后，至少一只鼠既没被关进猫屋、也没饿死。</div>' +
+        '<div><b>失败</b><br>三只鼠全部被捕或饿死。</div>' +
+        '<div><b>你能做的</b><br>夜里操控三只鼠；白天只能看猫行动。</div>' +
+        '</div>' +
+        '<p style="margin-top:14px"><span class="term" title="每只鼠每晚的行动点数">AP（行动点）</span>：一只鼠一夜 6 点（困难 5 点）。移动、探查、搜寻、搬运、打洞、营救、清扫，各花 1 点。AP 不能留到下一夜。</p>' +
+        '<p><span class="term" title="每只鼠的饥饿值">饱腹</span>：每只鼠 2 格。每过一个昼夜少 1 格，归零就饿死。</p>' +
+        '<p class="small" style="color:var(--muted)">每只鼠的 AP、饱腹、背包都独立。点底部卡片切换当前鼠。</p>'
+    },
+    {
+      title:'一个昼夜怎么走',
+      lead:'夜 → 黎明 → 白天 → 夜尽，重复六次。',
+      body:
+        '<div class="chain"><span class="node">夜：鼠行动</span><span class="arrow">→</span><span class="node">黎明：查铺</span><span class="arrow">→</span><span class="node">白天：猫行动</span><span class="arrow">→</span><span class="node">夜尽：全体饿 1 格</span></div>' +
+        '<p><b>夜</b>：鼠可以移动、找果、投果、打洞。地图只有 3×3，每格就是一间房。</p>' +
+        '<p><b>黎明</b>：鼠屋只有 2 张床（简单 3 张）。没回鼠屋的鼠算<span class="term" title="不在鼠屋过夜，白天会被猫搜">露宿</span>；如果那间房没打过洞，还会被<span class="term" title="房间落锁，鼠不能移动，直到被营救或打洞">封锁</span>。封锁的鼠不能自己走，需要相邻的队友花 1 AP 营救。</p>' +
+        '<p><b>白天</b>：鼠完全不能动，猫按自己的判断搜捕。你只能点「下一动作」看它表演。</p>' +
+        '<p><b>夜尽</b>：所有活着的鼠和猫饱腹 −1。鼠到 0 就饿死。</p>' +
+        miniMapHtml() +
+        '<p class="small" style="color:var(--dim)">鼠屋（安全，猫进不来）、猫屋（禁地，鼠进去立即淘汰）、中央大厅与东廊（没有果实，可以路过）。</p>'
+    },
+    {
+      title:'饱腹：每晚必须带回吃的',
+      lead:'饱腹归零，鼠就饿死。',
+      body:
+        '<p>每只鼠开局 2 格饱腹。每个昼夜结束 −1，回满要回到<b>鼠屋</b>，把背包里的果实投进对应的<b>孔洞</b>。</p>' +
+        '<div class="keys">' +
+        '<div><b>投果</b><br>0 AP，每只鼠每回合限 1 次；饱腹 +1，最多 2 格。</div>' +
+        '<div><b>孔洞</b><br>鼠屋有木、火、土、金、水五个孔。果实必须投进<b>同元素</b>的孔。</div>' +
+        '<div><b>背包</b><br>每只鼠 3 格。果实和「金锁」都占格。</div>' +
+        '</div>' +
+        '<p style="margin-top:12px">例如你在木房找到<b>火龙果</b>——它属于火，所以要投进火孔。</p>' +
+        '<div class="quiz"><div class="q">小测：火龙果应该投进哪个孔？</div>' +
+        '<div class="chips" data-quiz="2">' + ['wood','fire','earth','metal','water'].map(e =>
+          '<button class="chip" data-q="' + e + '">' + ELEM[e].name + '孔</button>').join('') + '</div>' +
+        '<div class="okline" id="qmsg2">' + (tutMsg[2] || '') + '</div></div>' +
+        '<p class="small" style="color:var(--muted)">投果还会触发元素效果：火孔 +1 AP、土孔 1 次夹子豁免、金孔得金锁、水孔本昼猫 −10% 命中、木孔全场痕迹 −1。</p>'
+    },
+    {
+      title:'五行：果从哪来，钥匙是什么',
+      lead:'木生火、火生土、土生金、金生水、水生木。',
+      body:
+        '<div class="chain"><span class="node" style="color:var(--wood)">木</span><span class="arrow">生</span><span class="node" style="color:var(--fire)">火</span><span class="arrow">生</span><span class="node" style="color:var(--earth)">土</span><span class="arrow">生</span><span class="node" style="color:var(--metal)">金</span><span class="arrow">生</span><span class="node" style="color:var(--water)">水</span><span class="arrow">生</span><span class="node" style="color:var(--wood)">木</span></div>' +
+        '<p>每间五行房产出「它相生的下一行」的果实：</p>' +
+        '<div class="keys">' +
+        ELEM_ROOMS.map(id => {
+          const rd = ROOM(id);
+          return '<div><b>' + rd.name + '</b>（' + ELEM[rd.elem].name + '）→ 产 <b>' + FRUITS[rd.fruit].name + '</b>（' + ELEM[FRUITS[rd.fruit].elem].name + '）</div>';
+        }).join('') +
+        '</div>' +
+        '<p style="margin-top:12px">所以：<b>本房产的果实，永远不是本房的钥匙</b>。木房产火龙果（火），而木房的钥匙是金桔（金）。</p>' +
+        '<p class="small" style="color:var(--muted)">果实有两个用途：带回鼠屋投进同元素孔（加饱腹 + 效果），或者拿去开对应房间的洞。两种用途会抢同一颗果，夜里要算清楚。</p>'
+    },
+    {
+      title:'打洞：把危险房间变成安全屋',
+      lead:'相克：木克土、土克水、水克火、火克金、金克木。',
+      body:
+        '<div class="chain"><span class="node" style="color:var(--wood)">木</span><span class="arrow">克</span><span class="node" style="color:var(--earth)">土</span><span class="arrow">克</span><span class="node" style="color:var(--water)">水</span><span class="arrow">克</span><span class="node" style="color:var(--fire)">火</span><span class="arrow">克</span><span class="node" style="color:var(--metal)">金</span><span class="arrow">克</span><span class="node" style="color:var(--wood)">木</span></div>' +
+        '<p>开一间房的洞，要带<b>能克它</b>的果实（或金锁）：</p>' +
+        '<div class="keys">' + ELEM_ROOMS.map(id => {
+          const rd = ROOM(id);
+          return '<div><b>' + rd.name + '</b> 需要 <b>' + KEY_NAME(rd.elem) + '</b>（' + ELEM[COUNTERED_BY[rd.elem]].name + '）</div>';
+        }).join('') + '</div>' +
+        '<p style="margin-top:12px">打洞花 1 AP + 1 把钥匙，效果是<b>永久</b>的：这间房不再封锁，鼠可以在这里过夜；猫搜到这里时，如果鼠在此过夜，命中 −30%。</p>' +
+        '<div class="quiz"><div class="q">小测：木房的钥匙是哪一颗？</div>' +
+        '<div class="chips" data-quiz="4">' + Object.keys(FRUITS).map(f =>
+          '<button class="chip" data-q="' + f + '">' + FRUITS[f].name + '（' + ELEM[FRUITS[f].elem].name + '）</button>').join('') +
+        '</div><div class="okline" id="qmsg4">' + (tutMsg[4] || '') + '</div></div>' +
+        '<p class="small" style="color:var(--muted)">金锁是金孔给的道具，能开任意房门；但它占背包 1 格，而且用了就没了。</p>'
+    },
+    {
+      title:'猫：白天它只做四件事',
+      lead:'吃果、追线索、守出口、设卡。',
+      body:
+        '<p>猫在猫屋过夜，白天才有 AP。<b>猫的 AP 等于它的饱腹</b>（简单少 1、困难多 1），最多再靠吃果多 1 个动作，当日总动作不超过 4。</p>' +
+        '<div class="keys">' +
+        '<div><b>吃果</b><br>饿了会去有果的房间吃 1 颗：饱腹 +1、多 1 动作。把房间搬空能拖慢它。</div>' +
+        '<div><b>追线索</b><br>踩夹的红灯、<span class="term" title="鼠在房内做非移动动作会留下痕迹，最多 3">痕迹</span>、以及它搜寻扑空后的记忆，都会把它引过去。</div>' +
+        '<div><b>守出口</b><br>第 4 昼起，它会蹲守鼠屋出口（木房／水房／中央），优先高痕迹的房间；困难会轮流守 2 个出口。</div>' +
+        '<div><b>设卡</b><br>第 3 回合起，在木房或水房门口设卡：卡持续到下一次入夜后失效，期间鼠不能进那间房。</div>' +
+        '</div>' +
+        '<p style="margin-top:12px"><b>痕迹</b>：在房内「探查 / 搜寻 / 搬运」都会留下痕迹（最多 3 格），<b>移动不会</b>。普通难度痕迹 ≥2、困难 ≥1 时，猫就会循迹扑过来——所以探查不是免费的安全动作；「清扫痕迹」花 1 AP 清零，木孔投果则全场 −1。</p>' +
+        '<div class="rep" style="margin-top:10px"><h4>猫挑目标的顺序</h4><ul>' +
+        '<li>饿了 → 找有果的房（只找它所在与相邻的房）</li>' +
+        '<li>看见鼠 / 红灯 / 搜寻记忆 → 直奔那间房搜寻</li>' +
+        '<li>痕迹达到难度阈值 → 循迹</li>' +
+        '<li>第 4 昼起守出口 → 再往后才按固定路线巡逻、设卡</li>' +
+        '</ul></div>' +
+        '<p style="margin-top:12px">被搜到的基础命中率 ' + DIFF.normal.base + '%：同房当天每多搜一次 +15%；踩夹红灯 +20%；库存 ≥2、背果、屏息、洞中过夜、水蜜桃都会降低命中。命中率最低 10%，最高 95%。</p>' +
+        '<p><b>猫不能进鼠屋；鼠不能进猫屋。</b>鼠屋只有 2 张床——第三只鼠必须露宿。普通/困难下减员也不会变安全：鼠屋只收留「存活数 − 1」只，至少 1 只仍要在外放哨。</p>'
+    },
+    {
+      title:'活过六夜：第一夜怎么打',
+      lead:'先学走路，再学打洞。',
+      body:
+        '<p><b>胜利</b>：第 6 昼夜的夜尽结算后，至少还有 1 只自由鼠。<br><b>失败</b>：三只鼠都被关进猫屋，或全部饿死。最后一只鼠被捕的瞬间就会结束。</p>' +
+        '<p>结算按幸存鼠数分 30 道：3 只各 10、2 只各 15、1 只 30。评级 S 需要三鼠齐活且一次夹子都没踩，A 三鼠齐活，B 剩两只，C 剩一只。</p>' +
+        '<div class="rep"><h4>第一夜推荐顺序</h4><ul>' +
+        '<li>先让三只鼠分别去不同方向：木房、火房、水房，顺便「探查」确认夹子。</li>' +
+        '<li>每只鼠至少带回 1 颗果；投果只看「元素是否同孔」，没有「自己的果」。</li>' +
+        '<li><b>第 1 夜饱腹是满的，投果会被拒绝</b>：这一夜的重点是把果实存进储藏，供第 2 夜投果。</li>' +
+        '<li>有余力就凑钥匙：木房要金桔，水房要石榴，给第三只鼠打一个安全的过夜洞。</li>' +
+        '<li>回鼠屋后「投果」加饱腹；用不完的果「存入」储藏，别占背包。</li>' +
+        '<li>最后点「结束夜晚」。没回屋的鼠会露宿、落锁，白天可能被猫搜。</li>' +
+        '</ul></div>' +
+        '<p class="small" style="color:var(--gold2)">提示：投果是 0 AP，回屋后先投果再决定要不要再出门。饱腹满 2 格时投果会被拒绝——别浪费。</p>' +
+        '<p class="small" style="color:var(--dim)">第一次玩建议选「简单」：猫少 1 AP、命中 45%、床位 3 张。熟悉后再挑战普通。</p>'
+    }
+  ];
+}
+function showTutorial(fromTitle){
+  tutFromTitle = !!fromTitle;
+  tutPage = 0;
+  tutQuiz = {2:false, 4:false};
+  tutMsg = {2:'', 4:''};
+  renderTut();
+  showScreen('scrTut');
+}
+function renderTut(){
+  const pages = tutPages();
+  const p = pages[tutPage];
+  $('#tutBody').innerHTML = '<h2>' + p.title + '</h2><p class="lead">' + p.lead + '</p>' + p.body;
+  $('#tutNo').textContent = '教学 ' + (tutPage + 1) + ' / 7';
+  $('#tutDots').innerHTML = pages.map((_, i) => '<i class="' + (i === tutPage ? 'on' : '') + '"></i>').join('');
+  $('#btnTutPrev').disabled = tutPage === 0;
+  const next = $('#btnTutNext');
+  next.textContent = tutPage === 0 ? '知道了' : (tutPage === 6 ? (tutFromTitle ? '返回标题' : '进入第 1 夜') : '下一步');
+  const gated = (tutPage === 2 && !tutQuiz[2]) || (tutPage === 4 && !tutQuiz[4]);
+  next.disabled = gated;
+  const skip = $('#btnTutSkip');
+  if(tutFromTitle){
+    skip.textContent = '关闭'; skip.disabled = false;
+  }else{
+    skip.textContent = '跳过'; skip.disabled = !tutSeen();
+  }
+}
+function tutAnswer(page, val){
+  const right = page === 2 ? 'fire' : 'kumquat';
+  if(val === right){
+    tutQuiz[page] = true;
+    tutMsg[page] = page === 2 ? '答对了：火龙果属火，进火孔。' : '答对了：金克木，金桔是木房的钥匙。';
+  }else{
+    tutMsg[page] = page === 2
+      ? '再想想：火龙果长在木房，但它的元素是「火」。'
+      : '再想想：钥匙要能克房间。木克土，所以木房不需要木瓜；金克木。';
+  }
+  const chips = $$('[data-quiz="' + page + '"] .chip');
+  chips.forEach(c => {
+    c.classList.remove('right','wrong');
+    if(c.dataset.q === val) c.classList.add(tutQuiz[page] ? 'right' : 'wrong');
+  });
+  const msg = $('#qmsg' + page);
+  if(msg){
+    msg.textContent = tutMsg[page];
+    msg.style.color = tutQuiz[page] ? 'var(--green)' : '#f0b3a7';
+  }
+  if(tutQuiz[page]){
+    const nb = $('#btnTutNext');
+    if(nb) nb.disabled = false;
+  }
+}
+function finishTutorial(){
+  markTutSeen();
+  tutFromTitle = false;
+  if(!G || G.result){ showTitle(); return; }
+  G.tutorial = true;
+  showScreen('scrGame');
+  startNight();
+}
+/* ========== 流程 ========== */
+function showTitle(){
+  closeModal();
+  showScreen('scrTitle');
+  const btn = $('#btnContinue');
+  btn.disabled = !hasSave();
+  btn.style.opacity = hasSave() ? '1' : '.4';
+}
+function showDiff(){
+  closeModal();
+  $$('#diffGrid .diffcard').forEach(c => c.classList.toggle('on', c.dataset.diff === selectedDiff));
+  showScreen('scrDiff');
+}
+function beginRun(diff, seed){
+  closeModal();
+  selectedDiff = diff || 'normal';
+  newGame(selectedDiff, seed);
+  showTutorial(false);
+}
+function resumeSaved(){
+  if(!loadSaved()){ toast('没有找到可继续的存档', 'bad'); return; }
+  closeModal();
+  showScreen('scrGame');
+  if(G.phase === 'DAY_ACTION'){
+    renderGame();
+    renderDayModal();
+  }else{
+    if(G.phase !== 'NIGHT_ACTION') G.phase = 'NIGHT_ACTION';
+    renderGame();
+  }
+}
+
+/* ========== 事件绑定 ========== */
+function bindUi(){
+  $('#btnStart').onclick = () => showDiff();
+  $('#btnContinue').onclick = resumeSaved;
+  $('#btnRules').onclick = () => showTutorial(true);
+  $('#btnDiffBack').onclick = showTitle;
+  $('#btnBegin').onclick = () => {
+    const raw = $('#seedInput').value.trim();
+    let seed;
+    if(raw){
+      const n = Number(raw);
+      if(!Number.isFinite(n) || n < 0){ toast('种子必须是非负整数', 'bad'); return; }
+      seed = n >>> 0;
+    }
+    beginRun(selectedDiff, seed);
+  };
+  $('#diffGrid').addEventListener('click', e => {
+    const card = e.target.closest('.diffcard');
+    if(!card) return;
+    selectedDiff = card.dataset.diff;
+    $$('#diffGrid .diffcard').forEach(c => c.classList.toggle('on', c === card));
+  });
+
+  $('#btnTutPrev').onclick = () => { if(tutPage > 0){ tutPage--; renderTut(); } };
+  $('#btnTutNext').onclick = () => {
+    if(tutPage < 6){ tutPage++; renderTut(); }
+    else if(tutFromTitle){ showTitle(); }
+    else finishTutorial();
+  };
+  $('#btnTutSkip').onclick = () => {
+    if(tutFromTitle){ showTitle(); }
+    else if(tutSeen()){ finishTutorial(); }
+  };
+  $('#tutBody').addEventListener('click', e => {
+    const chip = e.target.closest('.chip[data-q]');
+    if(!chip) return;
+    const holder = chip.closest('[data-quiz]');
+    if(!holder) return;
+    tutAnswer(Number(holder.dataset.quiz), chip.dataset.q);
+  });
+
+  $('#btnHelp').onclick = showHelp;
+  $('#btnPause').onclick = showPause;
+  $('#map').addEventListener('click', e => {
+    const cell = e.target.closest('.cell');
+    if(cell) selectRoom(Number(cell.dataset.id));
+  });
+  $('#mouseCards').addEventListener('click', e => {
+    const card = e.target.closest('.mcard');
+    if(card) selectMouse(Number(card.dataset.mouse));
+  });
+  $('#actPanel').addEventListener('click', e => {
+    const btn = e.target.closest('[data-act]');
+    if(btn && !btn.disabled) doAction(btn.dataset.act);
+  });
+  $('#mFoot').addEventListener('click', e => {
+    const btn = e.target.closest('[data-mact]');
+    if(!btn) return;
+    const fn = modalFns[Number(btn.dataset.mact)];
+    if(fn) fn();
+  });
+  $('#mBody').addEventListener('click', e => {
+    const take = e.target.closest('[data-take]');
+    if(take){
+      const m = curMouse();
+      if(!m || m.roomId !== 3){ closeModal(); return; }
+      if(m.ap <= 0 || m.backpack.length >= 3){ toast('AP 或背包不足', 'bad'); return; }
+      const idx = G.stash.indexOf(take.dataset.take);
+      if(idx < 0) return;
+      const f = G.stash.splice(idx,1)[0];
+      m.backpack.push(f); m.ap--;
+      closeModal();
+      log('鼠' + ['①','②','③'][m.id-1] + ' 从储藏取出 1 颗' + FRUITS[f].name + '。');
+      afterAction();
+      return;
+    }
+    const fb = e.target.closest('[data-fruit]');
+    if(fb){ G.feedPick = fb.dataset.fruit; renderFeedModal(curMouse()); return; }
+    const hb = e.target.closest('[data-hole]');
+    if(hb){ const m = curMouse(); if(m) feedToHole(m, hb.dataset.hole); }
+  });
+  $('#modal').addEventListener('click', e => {
+    if(e.target === $('#modal')) closeModal();
+  });
+  window.addEventListener('keydown', e => {
+    if(e.key === '1' || e.key === '2' || e.key === '3'){
+      if(G && G.phase === 'NIGHT_ACTION') selectMouse(Number(e.key));
+    }
+  });
+}
+
+/* ========== 测试钩子 ========== */
+window.DG = {
+  get S(){ return G; },
+  newGame:(d, s) => newGame(d, s),
+  startNight: () => startNight(),
+  startDawn: () => startDawn(),
+  finalizeDawn: (id) => finalizeDawn(id),
+  startDay: () => startDay(),
+  catStep: () => catStep(),
+  roundEnd: () => roundEnd(),
+  endGame: (w, r) => endGame(w, r),
+  doAction: (a) => doAction(a),
+  selectRoom: (id) => selectRoom(id),
+  selectMouse: (id) => selectMouse(id),
+  render: () => renderGame(),
+  hitParts: (mid, rid) => hitParts(G.mice[mid-1], rid),
+  catIntel: () => catIntel(),
+  homeBeds: () => homeBeds(),
+  guardTarget: () => catGuardTarget(),
+  markTutorialSeen: () => markTutSeen(),
+  fastStart: (d, s) => {
+    markTutSeen();
+    newGame(d || 'normal', s);
+    G.round = 1;
+    G.phase = 'NIGHT_ACTION';
+    G.tutorial = true;
+    closeModal();
+    showScreen('scrGame');
+    renderGame();
+    saveGame();
+  }
+};
+
+bindUi();
+showTitle();
+</script>
+</body>
+</html>

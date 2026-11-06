@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#0b0a08">
+<link rel="icon" href="data:,">
+<title>十日终焉 · 生肖游戏</title>
+<style>
+  :root{
+    --ink:#0b0a08; --panel:#17130f; --panel2:#1f1a14;
+    --line:#3b3122; --line2:#5a4a2c;
+    --gold:#c9a227; --gold2:#e2c05a;
+    --paper:#efe3c8; --dim:#9c8f76;
+    --zhu:#bf4237; --spring:#e6a3bd; --summer:#7fbf7a; --autumn:#dda447; --winter:#7faed6;
+  }
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  html,body{margin:0;padding:0}
+  body{
+    min-height:100vh;
+    background:
+      radial-gradient(120% 60% at 50% -10%, rgba(201,162,39,.13), transparent 60%),
+      radial-gradient(80% 50% at 50% 110%, rgba(168,51,43,.10), transparent 65%),
+      var(--ink);
+    color:var(--paper);
+    font-family:"Noto Serif SC","Songti SC","STSong","SimSun",serif;
+    font-size:16px;line-height:1.6;
+    overflow-x:hidden;
+  }
+  .wrap{max-width:980px;margin:0 auto;padding:34px 18px 40px}
+
+  /* 头部 */
+  header{text-align:center;position:relative;padding-bottom:26px}
+  header::after{
+    content:"";display:block;width:56px;height:1px;margin:20px auto 0;
+    background:linear-gradient(90deg,transparent,var(--line2),transparent);
+  }
+  .kicker{
+    display:inline-block;font-size:11px;letter-spacing:.34em;color:var(--gold);
+    border:1px solid var(--line2);border-radius:999px;padding:5px 14px 5px 16px;
+    background:rgba(0,0,0,.28);
+  }
+  h1{
+    margin:16px 0 0;font-size:clamp(26px,7.4vw,40px);font-weight:700;
+    letter-spacing:.16em;color:var(--paper);text-shadow:0 2px 0 #000;
+  }
+  h1 .dot{color:var(--gold2);padding:0 .12em}
+  .sub{
+    margin:10px auto 0;max-width:34em;font-size:13px;color:var(--dim);letter-spacing:.06em;
+  }
+
+  /* 卡片 */
+  .cards{display:grid;grid-template-columns:1fr;gap:16px}
+  @media (min-width:640px){.cards{grid-template-columns:repeat(2,minmax(0,1fr))}}
+  @media (min-width:900px){.cards{grid-template-columns:repeat(4,minmax(0,1fr))}}
+
+  .card{
+    position:relative;display:block;text-decoration:none;color:inherit;
+    border:1px solid var(--line);border-radius:12px;overflow:hidden;
+    background:linear-gradient(180deg,var(--panel2),var(--panel) 70%);
+    box-shadow:0 2px 0 rgba(0,0,0,.5),0 12px 28px rgba(0,0,0,.35);
+    transition:border-color .25s,transform .25s,box-shadow .25s;
+    padding:18px 18px 16px;
+  }
+  .card::before{
+    content:"";position:absolute;left:0;right:0;top:0;height:3px;
+    background:var(--accent,var(--gold));
+  }
+  .card:hover,.card:focus-visible{
+    border-color:var(--line2);transform:translateY(-2px);
+    box-shadow:0 2px 0 rgba(0,0,0,.5),0 18px 34px rgba(0,0,0,.45);
+  }
+  .card:focus-visible{outline:2px solid var(--gold2);outline-offset:3px}
+
+  .row{display:flex;align-items:baseline;gap:10px}
+  .seal{
+    font-size:11px;letter-spacing:.18em;color:var(--gold2);
+    border:1px solid rgba(201,162,39,.42);border-radius:4px;
+    padding:2px 7px 2px 9px;white-space:nowrap;
+  }
+  .idx{font-size:11px;color:#6f6552;letter-spacing:.2em;margin-left:auto}
+  h2{
+    margin:12px 0 0;font-size:22px;font-weight:700;letter-spacing:.14em;
+    color:var(--paper);
+  }
+  .desc{margin:8px 0 0;font-size:13px;line-height:1.75;color:#b9ab90;min-height:4.5em}
+  .tags{list-style:none;display:flex;flex-wrap:wrap;gap:6px;margin:14px 0 0;padding:0}
+  .tags li{
+    font-size:11px;letter-spacing:.1em;color:var(--dim);
+    border:1px solid #322a1d;border-radius:999px;padding:3px 9px;
+    background:rgba(0,0,0,.24);
+  }
+  .go{
+    display:flex;align-items:center;justify-content:space-between;
+    margin-top:16px;padding-top:12px;border-top:1px solid #2a2318;
+    font-size:12px;letter-spacing:.2em;color:var(--gold2);
+  }
+  .go .arrow{letter-spacing:0;font-size:14px;transition:transform .25s}
+  .card:hover .go .arrow{transform:translateX(4px)}
+
+  footer{
+    margin-top:30px;text-align:center;font-size:11px;color:#6c6250;letter-spacing:.14em;line-height:2;
+  }
+  @media (prefers-reduced-motion:reduce){
+    *{transition:none!important;animation:none!important}
+    .card:hover{transform:none}
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header>
+    <span class="kicker">生 肖 游 戏</span>
+    <h1>十日终焉<span class="dot">·</span>生肖游戏</h1>
+    <p class="sub">八局人级与地级生肖的游戏，皆可单机游玩。点开任一局，即为入局。</p>
+  </header>
+
+  <main class="cards">
+
+    <a class="card" href="shuowangyue/index.html" style="--accent:var(--gold2)">
+      <div class="row">
+        <span class="seal">地猴</span>
+        <span class="idx">壹</span>
+      </div>
+      <h2>朔望月</h2>
+      <p class="desc">八轮牌局，用节气与节日的日期拼出点数，和能看穿暗牌的地猴比大小；筹码只够撑到赎身线，就得靠下注与诈唬。</p>
+      <ul class="tags"><li>比点数</li><li>下注</li><li>诈唬</li></ul>
+      <div class="go"><span>入 局</span><span class="arrow">→</span></div>
+    </a>
+
+    <a class="card" href="sixiangshan/index.html" style="--accent:var(--zhu)">
+      <div class="row">
+        <span class="seal">地羊</span>
+        <span class="idx">贰</span>
+      </div>
+      <h2>四情扇</h2>
+      <p class="desc">手里三把扇，缺哪一情就得去摊子上找。与地羊凑齐喜、怒、哀、乐四情即可离场，三次配对机会用完便留在厅里。</p>
+      <ul class="tags"><li>凑四情配对</li><li>抢人</li></ul>
+      <div class="go"><span>入 局</span><span class="arrow">→</span></div>
+    </a>
+
+    <a class="card" href="zaiinian/index.html" style="--accent:linear-gradient(90deg,var(--spring),var(--summer),var(--autumn),var(--winter))">
+      <div class="row">
+        <span class="seal">地狗</span>
+        <span class="idx">叁</span>
+      </div>
+      <h2>灾厄年</h2>
+      <p class="desc">四人各守春、夏、秋、冬一间房，签只能在对应的季节生效。八回合之内点掉年兽头顶三盏灯，才算过完这一年。</p>
+      <ul class="tags"><li>四季合作</li><li>8 回合打年兽</li></ul>
+      <div class="go"><span>入 局</span><span class="arrow">→</span></div>
+    </a>
+
+    <a class="card" href="renshe_shiyufei/index.html" style="--accent:#8fa3b8">
+      <div class="row">
+        <span class="seal">人蛇</span>
+        <span class="idx">肆</span>
+      </div>
+      <h2>是与非</h2>
+      <p class="desc">只有三次提问，它只答「是」或「否」。用一句话把两个答案都堵死，它便只能自己拉下那根杆。</p>
+      <ul class="tags"><li>三问</li><li>自指悖论</li><li>逻辑锁死</li></ul>
+      <div class="go"><span>入 局</span><span class="arrow">→</span></div>
+    </a>
+
+    <a class="card" href="renzhu_heibaiqi/index.html" style="--accent:#d9cbb0">
+      <div class="row">
+        <span class="seal">人猪</span>
+        <span class="idx">伍</span>
+      </div>
+      <h2>黑白棋</h2>
+      <p class="desc">五十黑五十白，全分进两只碗，蒙眼摸一颗，摸到黑才算赢。摆法与押注，决定你离概率天花板还差多少。</p>
+      <ul class="tags"><li>概率分配</li><li>押注</li><li>五局加码</li></ul>
+      <div class="go"><span>入 局</span><span class="arrow">→</span></div>
+    </a>
+
+    <a class="card" href="renhou_xiangzhongdao/index.html" style="--accent:#c98a4b">
+      <div class="row">
+        <span class="seal">人猴</span>
+        <span class="idx">陆</span>
+      </div>
+      <h2>箱中道</h2>
+      <p class="desc">猜拳赢的先取，输的却来选箱。每次取一到三颗，取走最后一颗即赢下整箱——选箱那一步，就已经定了胜负。</p>
+      <ul class="tags"><li>猜拳选箱</li><li>取子博弈</li><li>凑四锁胜</li></ul>
+      <div class="go"><span>入 局</span><span class="arrow">→</span></div>
+    </a>
+
+    <a class="card" href="dilong_cangjieqi/index.html" style="--accent:#86a86b">
+      <div class="row">
+        <span class="seal">地龙</span>
+        <span class="idx">柒</span>
+      </div>
+      <h2>仓颉棋</h2>
+      <p class="desc">把汉字拆成偏旁，再把偏旁拼回字。与地龙同步竞速，先成二十八字者占先手，还要在墨线爬满前抢下数道门。</p>
+      <ul class="tags"><li>汉字拆合</li><li>竞速</li><li>抢门</li></ul>
+      <div class="go"><span>入 局</span><span class="arrow">→</span></div>
+    </a>
+
+    <a class="card" href="dishu_maoshu/index.html" style="--accent:#a9765e">
+      <div class="row">
+        <span class="seal">地鼠</span>
+        <span class="idx">捌</span>
+      </div>
+      <h2>猫鼠游戏</h2>
+      <p class="desc">六昼夜循环，三只鼠采集果实、投果续命、凑五行钥匙打洞，还要躲一只会巡逻、搜捕、设卡的猫。撑到第六夜尽仍有余鼠，才算过关。</p>
+      <ul class="tags"><li>六昼夜</li><li>三鼠协作</li><li>躲猫设卡</li><li>长项目</li></ul>
+      <div class="go"><span>入 局</span><span class="arrow">→</span></div>
+    </a>
+
+  </main>
+
+  <footer>
+    单页离线运行 · 无外部字体与网络请求<br>
+    题材取自《十日终焉》，仅供同好交流
+  </footer>
+
+</div>
+</body>
+</html>

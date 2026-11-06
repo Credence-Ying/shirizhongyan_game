@@ -1,0 +1,1051 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>朔望月 · 地猴的赌桌</title>
+<style>
+:root{
+  --ink:#0e0c0a; --panel:#1a1613; --panel2:#221c16;
+  --paper:#efe3c8; --paper2:#e2d3ae; --line:#4a3d28;
+  --gold:#c9a227; --gold2:#e2c05a; --red:#a8332b;
+  --txt:#e8dcc4; --dim:#9c8f76;
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;padding:0}
+body{
+  background:#0b0a08;color:var(--txt);
+  font-family:"Noto Serif SC","Songti SC","STSong","SimSun",serif;
+  overflow-x:hidden;
+}
+#app{
+  max-width:540px;margin:0 auto;min-height:100vh;
+  padding:10px 12px 168px;
+  background:
+    radial-gradient(120% 60% at 50% 0%,rgba(201,162,39,.14),transparent 60%),
+    radial-gradient(90% 50% at 50% 100%,rgba(168,51,43,.10),transparent 65%),
+    #0e0c0a;
+}
+.hud{
+  display:flex;align-items:stretch;gap:6px;
+  border:1px solid var(--line);border-radius:10px;overflow:hidden;
+  background:linear-gradient(180deg,#1c1712,#141110);
+}
+.hud .cell{flex:1;padding:7px 6px 6px;text-align:center;border-right:1px solid #2c2419}
+.hud .cell:last-child{border-right:0}
+.hud .k{display:block;font-size:10px;color:var(--dim);letter-spacing:1px}
+.hud .v{display:block;font-size:17px;font-weight:700;color:var(--gold2);line-height:1.35}
+.hud .v.gap.warn{color:#e0704f;font-size:13px;padding-top:2px}
+.hud .v.gap.ok{color:#6fbf8a;font-size:13px;padding-top:2px}
+
+.progress{display:flex;align-items:center;gap:5px;margin:9px 2px 8px}
+.progress .dot{
+  flex:1;height:6px;border-radius:3px;background:#2b2318;position:relative;transition:background .3s;
+}
+.progress .dot.done{background:#6b5620}
+.progress .dot.now{background:var(--gold);box-shadow:0 0 8px rgba(201,162,39,.7)}
+.progress .dot .mk{position:absolute;right:-2px;top:-7px;width:2px;height:20px;background:#5c4a2a}
+.progress .lbl{font-size:10px;color:var(--dim);margin-left:4px;white-space:nowrap}
+
+.stagebar{
+  display:flex;align-items:center;gap:8px;min-height:34px;margin-bottom:8px;
+}
+.stage-banner{
+  flex:0 0 auto;font-size:11px;letter-spacing:2px;color:#0e0c0a;
+  background:linear-gradient(180deg,var(--gold2),var(--gold));
+  padding:3px 9px;border-radius:4px;font-weight:700;
+}
+.stage-banner.deal{background:linear-gradient(180deg,#9fb5c9,#7d94aa);color:#10151a}
+.stage-banner.show{background:linear-gradient(180deg,#e3a45a,#c4762a)}
+.stage-banner.over{background:linear-gradient(180deg,#9c9c9c,#777)}
+.speech{flex:1;font-size:12px;color:#c9bda4;font-style:italic;line-height:1.5;min-height:18px}
+.speech.talk{animation:talkIn .35s ease-out}
+
+.table{
+  border:1px solid #3a3025;border-radius:12px;padding:10px 10px 8px;
+  background:
+    repeating-linear-gradient(45deg,rgba(255,255,255,.012) 0 6px,transparent 6px 12px),
+    linear-gradient(170deg,#1d1813,#131009 80%);
+  box-shadow:inset 0 0 40px rgba(0,0,0,.6);
+}
+.row{display:flex;align-items:center;gap:8px;margin:4px 0}
+.who{flex:0 0 44px;text-align:center}
+.who .avatar{
+  display:block;width:34px;height:34px;margin:0 auto 3px;border-radius:50%;
+  border:1px solid #6b5a33;background:radial-gradient(circle at 35% 30%,#3a2f21,#191410);
+  color:var(--gold2);font-size:20px;line-height:32px;font-weight:700;letter-spacing:1px;
+}
+.who .avatar.me{border-color:#5d6b52;color:#a8c19a;background:radial-gradient(circle at 35% 30%,#2c3527,#141810)}
+.who .who-t{font-size:11px;color:var(--dim);letter-spacing:1px}
+.cards{display:flex;gap:8px;flex:1 1 auto;min-width:0}
+.pt-tag{flex:0 0 auto;font-size:11px;color:var(--dim);text-align:right;min-width:60px;line-height:1.5}
+.pt-tag b{display:block;font-size:16px;color:var(--gold2)}
+
+.card{
+  width:66px;height:92px;flex:0 0 auto;border-radius:7px;position:relative;
+  background:linear-gradient(158deg,#f7ecd5,#e2d2ac);
+  border:1px solid #b9a06a;color:#2a2115;
+  box-shadow:0 5px 12px rgba(0,0,0,.5),inset 0 0 18px rgba(180,150,90,.25);
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;
+}
+.card .tag{font-size:10px;color:#8a7444;letter-spacing:1px}
+.card .nm{font-size:19px;font-weight:700;letter-spacing:1px;line-height:1.15}
+.card .dt{font-size:11px;color:#6a5a3c}
+.card .pt{position:absolute;right:5px;bottom:3px;font-size:14px;font-weight:700;color:#8c2f25}
+.card.back{
+  background:
+    repeating-linear-gradient(45deg,rgba(201,162,39,.10) 0 3px,transparent 3px 7px),
+    linear-gradient(150deg,#2c2318,#17120d);
+  border-color:#6b5a33;
+}
+.card.back .seal{
+  writing-mode:vertical-rl;font-size:15px;letter-spacing:4px;color:#b99b4e;opacity:.9;
+}
+.card.ph{
+  background:linear-gradient(160deg,#1b1611,#12100c);border:1px dashed #3d3324;box-shadow:none;
+}
+.card.ph .ph-t{font-size:11px;color:#5c5140}
+
+@keyframes dealIn{from{opacity:0;transform:translateY(-16px) rotate(-5deg) scale(.94)}to{opacity:1;transform:none}}
+.card.enter{animation:dealIn .4s cubic-bezier(.2,.8,.3,1) both}
+@keyframes flipIn{from{transform:rotateY(88deg) scale(.96)}to{transform:none}}
+.card.flip{animation:flipIn .42s ease-out both}
+
+.potrow{justify-content:space-between;margin:8px 0 6px;padding:5px 2px;border-top:1px dashed #3a3025;border-bottom:1px dashed #3a3025}
+.pot-tag{font-size:12px;color:var(--dim);letter-spacing:1px}
+.pot-tag b{font-size:19px;color:var(--gold2);margin:0 3px}
+.pot-tag .unit{font-size:11px}
+.bump{animation:pop .42s ease-out}
+@keyframes pop{0%{transform:scale(1)}42%{transform:scale(1.25)}100%{transform:scale(1)}}
+
+.logbox{margin:10px 2px 0}
+.logbox h3{
+  margin:0 0 5px;font-size:11px;font-weight:400;letter-spacing:2px;color:var(--dim);
+  display:flex;justify-content:space-between;align-items:center;
+}
+.logbox h3 span{font-size:10px;color:#6c6150;letter-spacing:0}
+#log{
+  max-height:132px;overflow-y:auto;font-size:12px;line-height:1.65;color:#b6a98e;
+  border-left:2px solid #332b1f;padding:2px 0 2px 9px;
+}
+#log .it{padding:1px 0}
+#log .it.rnd{color:var(--gold);font-size:11px;letter-spacing:1px;margin-top:3px}
+#log .it.hi{color:#d9a05f}
+#log .it.say{color:#8e8471;font-style:italic}
+#log .empty{color:#5f5748}
+
+.actionbar{
+  position:fixed;left:0;right:0;bottom:0;z-index:9;
+  background:linear-gradient(180deg,rgba(11,10,8,.55),#0b0a08 42%);
+  border-top:1px solid #3a3025;padding:8px 12px calc(10px + env(safe-area-inset-bottom));
+}
+#act{max-width:516px;margin:0 auto}
+#act-title{font-size:12px;color:var(--gold2);letter-spacing:1px;margin-bottom:4px}
+#act-title.small{color:var(--dim);letter-spacing:0;font-size:11px}
+#act-sub{font-size:11px;color:#b6a98e;margin:0 0 6px;line-height:1.5;min-height:14px}
+.btnrow{display:flex;gap:7px;flex-wrap:wrap}
+.betnums{display:flex;gap:6px;overflow-x:auto;padding:2px 0 6px;-webkit-overflow-scrolling:touch}
+.betnums button{
+  flex:0 0 auto;min-width:38px;height:36px;border-radius:7px;
+  border:1px solid #4a3d28;background:#1c1712;color:#c9bda4;font-size:14px;font-family:inherit;
+}
+.betnums button[aria-pressed="true"]{background:linear-gradient(180deg,#3a2f1c,#2a2214);border-color:var(--gold);color:var(--gold2);font-weight:700}
+.betnums button:disabled{opacity:.35}
+.btn{
+  flex:1 1 auto;min-height:42px;padding:8px 12px;border-radius:8px;cursor:pointer;
+  font-family:inherit;font-size:14px;letter-spacing:1px;
+  border:1px solid #4a3d28;background:linear-gradient(180deg,#231c15,#181310);color:var(--txt);
+  transition:transform .12s,filter .12s;
+}
+.btn:active{transform:translateY(1px)}
+.btn.primary{
+  background:linear-gradient(180deg,#d9b64a,#b18c21);border-color:#e2c05a;color:#141008;font-weight:700;
+}
+.btn.gold{background:linear-gradient(180deg,#3a2f1c,#2a2214);border-color:#8a7030;color:var(--gold2)}
+.btn.danger{background:linear-gradient(180deg,#33201c,#221513);border-color:#6a3b32;color:#dba79b}
+.btn.ghost{background:transparent;border-color:#3a3025;color:var(--dim);flex:0 0 auto;font-size:13px;min-height:38px}
+.btn:disabled{opacity:.4;filter:grayscale(.5);cursor:not-allowed}
+.btn.big{width:100%;flex:none;min-height:48px;font-size:16px;margin-top:2px}
+
+.ov{
+  position:fixed;inset:0;z-index:20;display:none;align-items:center;justify-content:center;
+  padding:14px;background:rgba(6,5,4,.84);
+}
+.ov.show{display:flex}
+.sheet{
+  width:100%;max-width:430px;max-height:92vh;overflow-y:auto;
+  background:linear-gradient(172deg,#1e1813,#12100d);
+  border:1px solid var(--line);border-radius:14px;padding:18px 16px 16px;
+  box-shadow:0 24px 70px rgba(0,0,0,.75),inset 0 0 40px rgba(201,162,39,.05);
+  animation:sheetIn .32s ease-out;
+}
+@keyframes sheetIn{from{opacity:0;transform:translateY(12px) scale(.98)}to{opacity:1;transform:none}}
+.brand{font-size:34px;letter-spacing:8px;color:var(--gold2);text-align:center;line-height:1.2;font-weight:700}
+.sub{font-size:11px;letter-spacing:3px;color:var(--dim);text-align:center;margin:4px 0 14px}
+.story{font-size:13px;line-height:1.9;color:#c4b79c;margin:0 0 14px}
+.story p{margin:0 0 9px}
+.story .mono{color:#d8b464;border-left:2px solid #6b5a33;padding-left:9px;font-style:italic}
+.diffs{display:flex;gap:8px;margin:4px 0 10px}
+.diffs .btn{min-height:56px;font-size:13px;line-height:1.5;text-align:left;padding:8px 10px}
+.diffs .btn.on{border-color:var(--gold);background:linear-gradient(180deg,#33280f,#241d0c);color:var(--gold2)}
+.diffs .btn small{display:block;font-size:10px;color:var(--dim);letter-spacing:0;margin-top:2px}
+.rules{font-size:12px;line-height:1.85;color:#c1b49a}
+.rules h4{margin:12px 0 5px;font-size:12px;color:var(--gold2);letter-spacing:1px;font-weight:700}
+.rules ul{margin:0;padding-left:17px}
+.rules li{margin:3px 0}
+.rules .tag2{display:inline-block;font-size:9px;color:#0e0c0a;background:#8a7030;border-radius:3px;padding:1px 4px;margin-left:3px;vertical-align:1px}
+.rules .tag2.ori{background:#6f7f5a;color:#0f130c}
+.ptgrid{display:grid;grid-template-columns:repeat(2,1fr);gap:3px 8px;font-size:10.5px;color:#a99c82;margin-top:6px}
+.ptgrid span{display:flex;justify-content:space-between;border-bottom:1px dotted #332b1f;padding:2px 0}
+.ptgrid b{color:#cfa94a;font-weight:400}
+.r-title{font-size:24px;letter-spacing:3px;text-align:center;color:var(--gold2);line-height:1.3}
+.r-title.lose{color:#c9705f}
+.r-title.win{color:#9ec98a}
+.r-sub{font-size:12px;color:#b6a98e;text-align:center;margin:6px 0 12px;line-height:1.7}
+.reveal-row{display:flex;justify-content:center;gap:14px;margin:4px 0 12px;flex-wrap:wrap}
+.reveal-col{text-align:center}
+.reveal-col .who2{font-size:10px;color:var(--dim);letter-spacing:2px;margin-bottom:4px}
+.reveal-col .mini{display:flex;gap:5px;justify-content:center}
+.reveal-col .pt2{font-size:13px;color:var(--gold2);margin-top:4px}
+.mini-card{
+  width:44px;height:60px;border-radius:5px;background:linear-gradient(158deg,#f3e7ce,#dfcfa9);
+  border:1px solid #b9a06a;color:#241c12;display:flex;flex-direction:column;align-items:center;justify-content:center;
+}
+.mini-card .mn{font-size:12px;font-weight:700}
+.mini-card .mm{font-size:9px;color:#6a5a3c}
+.unlit{
+  width:44px;height:60px;border:1px dashed #6b5a33;border-radius:5px;background:#17120d;
+  display:flex;align-items:center;justify-content:center;color:#8a7030;font-size:11px;
+}
+.r-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:6px;margin:2px 0 14px}
+.r-grid > div{
+  border:1px solid #332b1f;border-radius:8px;padding:6px 9px;background:#161310;
+  display:flex;justify-content:space-between;align-items:baseline;
+}
+.r-grid span{font-size:11px;color:var(--dim)}
+.r-grid b{font-size:16px;color:var(--gold2)}
+.r-grid b.minus{color:#d07a68}
+.r-hint{font-size:11.5px;line-height:1.6;color:#bfa978;text-align:center;margin:-6px 0 12px;min-height:0}
+
+.o-stats{margin:2px 0 14px}
+.st-row{display:flex;justify-content:space-between;font-size:12.5px;padding:6px 2px;border-bottom:1px dotted #332b1f}
+.st-row span{color:var(--dim)}
+.st-row b{color:var(--gold2)}
+.st-note{font-size:10px;color:#7c7160;line-height:1.6;margin-top:5px}
+.o-actions{display:flex;gap:8px}
+.o-actions .btn{min-height:46px}
+.tip{
+  position:fixed;z-index:30;transform:translate(-50%,0);pointer-events:none;
+  font-size:14px;font-weight:700;letter-spacing:1px;color:var(--gold2);
+  text-shadow:0 2px 8px rgba(0,0,0,.8);animation:floatUp 1.05s ease-out forwards;
+}
+.tip.out{color:#e8a08c}
+@keyframes floatUp{0%{opacity:0;transform:translate(-50%,8px)}18%{opacity:1}100%{opacity:0;transform:translate(-50%,-36px)}}
+
+@media (min-width:480px){
+  #app{padding:14px 16px 176px}
+  .card{width:78px;height:108px}
+  .card .nm{font-size:22px}
+  .card .dt{font-size:12px}
+  .card .pt{font-size:16px}
+  .who .avatar{width:40px;height:40px;line-height:38px;font-size:22px}
+  #log{max-height:170px}
+}
+</style>
+</head>
+<body>
+<div id="app">
+
+  <header class="hud">
+    <div class="cell"><span class="k">手上</span><span class="v" id="h-chips" data-v="0">0</span></div>
+    <div class="cell"><span class="k">轮次</span><span class="v" id="h-round">0/8</span></div>
+    <div class="cell"><span class="k">月相</span><span class="v" id="h-phase">月轮</span></div>
+    <div class="cell"><span class="k">赎身线</span><span class="v" id="h-bail">12</span></div>
+    <div class="cell"><span class="k">差</span><span class="v gap warn" id="h-gap">—</span></div>
+  </header>
+
+  <div class="progress" id="progress"></div>
+
+  <div class="stagebar">
+    <span class="stage-banner" id="stage-banner">待入局</span>
+    <span class="speech" id="speech">地猴坐在灯影里，牌背朝上。</span>
+  </div>
+
+  <section class="table">
+    <div class="row">
+      <div class="who"><span class="avatar">猴</span><span class="who-t">地猴</span></div>
+      <div class="cards" id="r-mon"></div>
+      <div class="pt-tag"><span id="p-mon-k">明牌</span><b id="p-mon">—</b></div>
+    </div>
+
+    <div class="row potrow">
+      <div class="pot-tag">底池 <b id="pot">0</b><span class="unit">道</span></div>
+      <div class="cards" id="r-pub"></div>
+      <div class="pt-tag"><span>公共</span><b id="p-pub">—</b></div>
+    </div>
+
+    <div class="row">
+      <div class="who"><span class="avatar me">你</span><span class="who-t">你</span></div>
+      <div class="cards" id="r-me"></div>
+      <div class="pt-tag"><span>你的点数</span><b id="p-me">—</b></div>
+    </div>
+  </section>
+
+  <div class="logbox">
+    <h3><span>本局流水</span><span>只记看得见的动作</span></h3>
+    <div id="log"><div class="empty">还没有动作。</div></div>
+  </div>
+
+  <div class="actionbar">
+    <div id="act">
+      <div id="act-title">等待开始</div>
+      <div id="act-sub"></div>
+      <div class="btnrow" id="btnrow"></div>
+    </div>
+  </div>
+
+</div>
+
+<!-- 开始页 -->
+<div class="ov show" id="ov-start">
+  <div class="sheet">
+    <div class="brand">朔望月</div>
+    <div class="sub">生 肖 游 戏 · 地 猴 的 赌 桌</div>
+    <div class="story">
+      <p>终焉之地的夜没有月亮。你被留了下来，身上只剩几枚「道」。</p>
+      <p>地猴坐在对面，牌背朝上，眼睛却没看牌——它在看你。</p>
+      <p class="mono">「八轮。朔三段，望五段。凑够赎身的道，你就走。」</p>
+      <p>牌面点数＝卡上的「月＋日」。三张牌比大小，大的收底池。它看得见你袖里的牌。</p>
+    </div>
+    <div class="diffs">
+      <button class="btn on" id="d-easy">简单<small>他懒得诈，加注也少</small></button>
+      <button class="btn" id="d-hard">困难<small>他一直在诈，加注凶狠</small></button>
+    </div>
+    <button class="btn primary big" id="btn-start">入局（交 2 道入场费）</button>
+    <div style="text-align:center;margin-top:8px">
+      <button class="btn ghost" id="btn-rules-start">规则与点数表</button>
+    </div>
+  </div>
+</div>
+
+<!-- 规则 -->
+<div class="ov" id="ov-rules">
+  <div class="sheet">
+    <div class="r-title" style="font-size:20px">规则 · 点数 · 本作设定</div>
+    <div class="rules">
+      <h4>一局的骨架</h4>
+      <ul>
+        <li>8 轮，前 3 轮「月」、后 5 轮「望」；每轮 1 张公共牌，双方各 2 张（一明一暗）。</li>
+        <li>三张牌点数相加比大小；点数＝卡面月份＋日期。</li>
+        <li>每轮双方各交底注进底池（数额随轮次上涨，见下文「钱与赎身」）；你在对手之前行动：过牌 / 下注 / 弃牌。</li>
+        <li>对手下注或加注后，你只能跟注或弃牌；跟不起时只能弃牌。</li>
+        <li>摊牌时点数大的一方收走底池；相同则退回你本轮投入，底池不结算。</li>
+        <li>弃牌：本轮已投入的道拿不回，直接判负。</li>
+      </ul>
+      <h4>钱与赎身<span class="tag2">本作设定</span></h4>
+      <ul>
+        <li>起始 20 道，入场扣 2 道，手上 18 道。</li>
+        <li>底注逐段上涨：1–3 轮各 1 道，4–6 轮各 2 道，7–8 轮各 3 道（每轮必付，双方同额进底池）。</li>
+        <li>赎身线逐段上涨：1–3 轮 12 道，4–5 轮 14 道，6–7 轮 16 道，第 8 轮 20 道。</li>
+        <li>第 8 轮结束手上 ≥20 道＝活着离场；不足＝被留下；中途凑不齐下一轮底注＝当场破产。</li>
+        <li>月轮下注上限 1–3 道，望轮 1–5 道；加注固定 +1 道。</li>
+      </ul>
+      <h4>地猴<span class="tag2 ori">原文</span><span class="tag2">本作设定</span></h4>
+      <ul>
+        <li>它看得见所有人的暗牌，所以它的下注和弃牌都有依据。</li>
+        <li>难度只改它的诈唬率与加注率，不改发牌概率。</li>
+        <li>第 4、6、8 轮它会「加压」：赎身线抬高的同时，诈唬与加注更凶（提前告知，不暗改）。</li>
+        <li>对局中你只能看到它做了什么，看不到它为什么这么做。</li>
+      </ul>
+      <h4>点数表（36 张）</h4>
+      <div class="ptgrid" id="pt-table"></div>
+    </div>
+    <button class="btn primary big" id="btn-close-rules" style="margin-top:14px">知道了</button>
+  </div>
+</div>
+
+<!-- 单轮结算 -->
+<div class="ov" id="ov-round">
+  <div class="sheet">
+    <div class="r-title" id="r-hero">这一轮</div>
+    <div class="r-sub" id="r-sub"></div>
+    <div class="reveal-row" id="r-cards"></div>
+    <div class="r-grid">
+      <div><span>底池</span><b id="r-pot">0</b></div>
+      <div><span>本轮收支</span><b id="r-net">0</b></div>
+      <div><span>手上</span><b id="r-chips">0</b></div>
+      <div><span>赎身线</span><b id="r-bail">0</b></div>
+    </div>
+    <div class="r-hint" id="r-hint"></div>
+    <button class="btn primary big" id="btn-next">继续</button>
+  </div>
+</div>
+
+<!-- 结局 -->
+<div class="ov" id="ov-over">
+  <div class="sheet">
+    <div class="r-title" id="o-hero">结局</div>
+    <div class="r-sub" id="o-sub"></div>
+    <div class="o-stats" id="o-stats"></div>
+    <div class="o-actions">
+      <button class="btn primary" id="btn-again">再开一局</button>
+      <button class="btn ghost" id="btn-change" style="flex:1">换难度</button>
+    </div>
+  </div>
+</div>
+
+<script>
+(function(){
+"use strict";
+
+/* ---------- 牌库：24 节气 + 12 节日，点数 = 月 + 日 ---------- */
+var CARDS = [];
+function addC(tag, nm, m, d){ CARDS.push({ tag: tag, nm: nm, m: m, d: d, pt: m + d }); }
+addC("节气","小寒",1,5);  addC("节气","大寒",1,20); addC("节气","立春",2,4);
+addC("节气","雨水",2,19); addC("节气","惊蛰",3,5);  addC("节气","春分",3,20);
+addC("节气","清明",4,4);  addC("节气","谷雨",4,20); addC("节气","立夏",5,5);
+addC("节气","小满",5,21); addC("节气","芒种",6,5);  addC("节气","夏至",6,21);
+addC("节气","小暑",7,7);  addC("节气","大暑",7,22); addC("节气","立秋",8,7);
+addC("节气","处暑",8,23); addC("节气","白露",9,7);  addC("节气","秋分",9,23);
+addC("节气","寒露",10,8); addC("节气","霜降",10,23); addC("节气","立冬",11,7);
+addC("节气","小雪",11,22); addC("节气","大雪",12,7); addC("节气","冬至",12,21);
+addC("节日","春节",1,1);  addC("节日","元宵",1,15); addC("节日","龙抬头",2,2);
+addC("节日","上巳",3,3);  addC("节日","端午",5,5);  addC("节日","七夕",7,7);
+addC("节日","中元",7,15); addC("节日","中秋",8,15); addC("节日","重阳",9,9);
+addC("节日","寒衣",10,1); addC("节日","腊八",12,8); addC("节日","小年",12,23);
+
+/* ---------- 数值 ---------- */
+var CFG = {
+  startChips: 20, entry: 2, rounds: 8, monthEnd: 3,
+  ante: [1, 1, 1, 2, 2, 2, 3, 3], limitMonth: 3, limitWait: 5, raiseStep: 1,
+  bail: [12, 12, 12, 14, 14, 16, 16, 20],
+  dealMs: 700, thinkMs: 340, actMs: 560, flipMs: 520, settleMs: 560
+};
+
+var S = {
+  token: 0, chips: 0, round: 0, phase: "月", diff: "easy", bail: 0,
+  pub: null, me: [], mon: [], pot: 0, playerIn: 0, monIn: 0,
+  need: 0, stage: "idle", revealed: false, betSel: 1, over: false,
+  justDealt: false, flipAnim: false, lastMonBluff: false, roundOpen: false,
+  stats: { win:0, lose:0, tie:0, bluff:0, maxGain:0 },
+  log: []
+};
+
+function $(id){ return document.getElementById(id); }
+function clamp(v,a,b){ return v < a ? a : (v > b ? b : v); }
+function rand(a, b){ return a + Math.random() * (b - a); }
+function shuffle(a){
+  for (var i = a.length - 1; i > 0; i--){
+    var j = Math.floor(Math.random() * (i + 1));
+    var t = a[i]; a[i] = a[j]; a[j] = t;
+  }
+  return a;
+}
+function sumPts(list){
+  var t = 0;
+  for (var i = 0; i < list.length; i++) if (list[i]) t += list[i].pt;
+  return t;
+}
+function meTotal(){ var l = S.me.slice(); if (S.pub) l.push(S.pub); return sumPts(l); }
+function monTotal(){ var l = S.mon.slice(); if (S.pub) l.push(S.pub); return sumPts(l); }
+function monOpen(){ var l = S.mon.length ? [S.mon[0]] : []; if (S.pub) l.push(S.pub); return sumPts(l); }
+function cardName(c){ return c.nm + "（" + c.m + "月" + c.d + "日，" + c.pt + "点）"; }
+function limit(){ return S.phase === "月" ? CFG.limitMonth : CFG.limitWait; }
+function ante(){ return CFG.ante[Math.max(0, Math.min(S.round, CFG.rounds) - 1)]; }
+
+/* ---------- 计时器（可被重开打断） ---------- */
+function later(fn, ms){
+  var tk = S.token;
+  setTimeout(function(){ if (S.token === tk) fn(); }, ms);
+}
+
+/* ---------- 渲染 ---------- */
+var chipAnimId = 0;
+function setChipsEl(v, animate){
+  var el = $("h-chips");
+  var id = ++chipAnimId;
+  var from = parseInt(el.getAttribute("data-v") || "0", 10);
+  el.setAttribute("data-v", v);
+  if (!animate || from === v || Math.abs(from - v) < 1){ el.textContent = v; return; }
+  var t0 = performance.now();
+  function step(t){
+    if (id !== chipAnimId) return;
+    var k = Math.max(0, Math.min(1, (t - t0) / 420));
+    el.textContent = Math.round(from + (v - from) * k);
+    if (k < 1) requestAnimationFrame(step);
+  }
+  requestAnimationFrame(step);
+}
+function cardEl(c, opt){
+  if (!c){
+    var ph = document.createElement("div");
+    ph.className = "card ph";
+    ph.innerHTML = '<span class="ph-t">待发</span>';
+    return ph;
+  }
+  var d = document.createElement("div");
+  d.className = "card";
+  if (opt && opt.hidden) d.classList.add("back");
+  if (opt && opt.enter) d.classList.add("enter");
+  if (opt && opt.flip) d.classList.add("flip");
+  if (opt && opt.hidden){
+    d.innerHTML = '<span class="seal">地猴</span>';
+  } else {
+    d.innerHTML = '<span class="tag">' + c.tag + '</span>' +
+      '<span class="nm">' + c.nm + '</span>' +
+      '<span class="dt">' + c.m + '月' + c.d + '日</span>' +
+      '<span class="pt">' + c.pt + '</span>';
+  }
+  return d;
+}
+function fillRow(row, cards, hiddenIdx, opts){
+  row.innerHTML = "";
+  if (!cards || !cards.length){
+    row.appendChild(cardEl(null));
+    row.appendChild(cardEl(null));
+    return;
+  }
+  for (var i = 0; i < cards.length; i++){
+    row.appendChild(cardEl(cards[i], {
+      hidden: hiddenIdx.indexOf(i) >= 0,
+      enter: opts && opts.enter,
+      flip: opts && opts.flip && hiddenIdx.indexOf(i) < 0
+    }));
+  }
+}
+function renderProgress(){
+  var p = $("progress");
+  var html = "";
+  for (var i = 1; i <= CFG.rounds; i++){
+    var cls = "dot";
+    if (i < S.round) cls += " done";
+    else if (i === S.round) cls += " now";
+    html += '<span class="' + cls + '">';
+    if (i === 4 || i === 6 || i === 8) html += '<i class="mk"></i>';
+    html += '</span>';
+  }
+  html += '<span class="lbl">' + (S.round ? S.round + "/" + CFG.rounds : "未开局") + '</span>';
+  p.innerHTML = html;
+}
+function render(){
+  setChipsEl(S.chips, true);
+  $("h-round").textContent = Math.min(S.round, CFG.rounds) + "/" + CFG.rounds;
+  $("h-phase").textContent = S.phase + "轮";
+  var bail = S.bail || CFG.bail[0];
+  $("h-bail").textContent = bail;
+  var gap = bail - S.chips;
+  var g = $("h-gap");
+  g.textContent = gap > 0 ? ("还差 " + gap + " 道") : "已够赎身";
+  g.className = "v gap " + (gap > 0 ? "warn" : "ok");
+
+  $("pot").textContent = S.pot;
+
+  var enter = S.justDealt;
+  var flip = S.flipAnim;
+  fillRow($("r-mon"), S.mon, S.revealed ? [] : [1], { enter: enter, flip: flip });
+  fillRow($("r-pub"), S.pub ? [S.pub] : [], [], { enter: enter });
+  fillRow($("r-me"), S.me, [], { enter: enter });
+
+  if (S.chips >= 0 && S.mon.length){
+    $("p-mon").textContent = S.revealed ? monTotal() : monOpen();
+    $("p-mon-k").textContent = S.revealed ? "全部" : "明牌";
+    $("p-me").textContent = meTotal();
+  } else {
+    $("p-mon").textContent = "—";
+    $("p-me").textContent = "—";
+  }
+  $("p-pub").textContent = S.pub ? S.pub.pt : "—";
+
+  var labels = { idle:"待入局", deal:"发牌", act:"下注", wait:"…", respond:"应注", show:"摊牌", settle:"结算", over:"结算" };
+  var banner = $("stage-banner");
+  banner.textContent = labels[S.stage] || "—";
+  banner.className = "stage-banner " + (S.stage === "deal" ? "deal" : (S.stage === "show" ? "show" : (S.stage === "over" || S.stage === "settle" ? "over" : "")));
+
+  renderProgress();
+}
+
+/* ---------- 日志：只写看得见的动作 ---------- */
+function log(t, kind){
+  S.log.unshift({ t: t, kind: kind || "" });
+  if (S.log.length > 90) S.log.pop();
+  renderLog();
+}
+function renderLog(){
+  var box = $("log");
+  if (!S.log.length){ box.innerHTML = '<div class="empty">还没有动作。</div>'; return; }
+  var html = "";
+  for (var i = 0; i < S.log.length; i++){
+    html += '<div class="it ' + S.log[i].kind + '">' + S.log[i].t + '</div>';
+  }
+  box.innerHTML = html;
+}
+function say(t){
+  var s = $("speech");
+  s.textContent = t;
+  s.classList.remove("talk");
+  void s.offsetWidth;
+  s.classList.add("talk");
+}
+function tip(el, txt, cls){
+  var r = el.getBoundingClientRect();
+  var d = document.createElement("div");
+  d.className = "tip " + (cls || "");
+  d.textContent = txt;
+  d.style.left = (r.left + r.width / 2) + "px";
+  d.style.top = (r.top - 6) + "px";
+  document.body.appendChild(d);
+  setTimeout(function(){ if (d.parentNode) d.parentNode.removeChild(d); }, 1100);
+}
+function bump(el){
+  el.classList.remove("bump");
+  void el.offsetWidth;
+  el.classList.add("bump");
+}
+
+/* ---------- 操作区 ---------- */
+function btn(label, cls, fn, disabled){
+  var b = document.createElement("button");
+  b.className = "btn " + (cls || "");
+  b.textContent = label;
+  b.disabled = !!disabled;
+  b.addEventListener("click", fn);
+  return b;
+}
+function renderActions(){
+  var title = $("act-title"), sub = $("act-sub"), row = $("btnrow");
+  row.innerHTML = "";
+  title.className = "";
+  if (S.stage === "act"){
+    title.textContent = "你的下注";
+    sub.textContent = "第 " + S.round + " 轮 · 赎身线 " + (S.bail || CFG.bail[0]) + " 道 · 你已投入 " + S.playerIn + " 道";
+    var nums = document.createElement("div");
+    nums.className = "betnums";
+    var lim = Math.min(limit(), Math.max(1, S.chips));
+    for (var i = 1; i <= limit(); i++){
+      var b = document.createElement("button");
+      b.textContent = i;
+      b.setAttribute("aria-pressed", S.betSel === i ? "true" : "false");
+      b.disabled = i > S.chips;
+      (function(v){
+        b.addEventListener("click", function(){
+          S.betSel = v;
+          renderActions();
+        });
+      })(i);
+      nums.appendChild(b);
+    }
+    row.appendChild(nums);
+    var wrap = document.createElement("div");
+    wrap.className = "btnrow";
+    wrap.style.marginTop = "0";
+    var x = Math.min(S.betSel, S.chips, limit());
+    wrap.appendChild(btn("过牌", "gold", onCheck));
+    wrap.appendChild(btn("下注 " + x + " 道", "primary", onBet, S.chips < 1));
+    wrap.appendChild(btn("弃牌", "danger", onFoldMe));
+    row.appendChild(wrap);
+  } else if (S.stage === "respond"){
+    title.textContent = "地猴出手了";
+    sub.textContent = "需再补 " + S.need + " 道才能摊牌";
+    row.appendChild(btn("跟注 " + S.need + " 道", "primary", onCall, S.chips < S.need));
+    row.appendChild(btn("弃牌", "danger", onFoldMe));
+    if (S.chips < S.need){
+      var warn = document.createElement("div");
+      warn.id = "no-money";
+      warn.style.cssText = "font-size:11px;color:#c9705f;margin-top:6px;width:100%";
+      warn.textContent = "道不够跟注，只能弃牌。";
+      row.appendChild(warn);
+    }
+  } else if (S.stage === "deal"){
+    title.className = "small";
+    title.textContent = "发牌中…";
+    sub.textContent = "";
+  } else if (S.stage === "wait"){
+    title.className = "small";
+    title.textContent = "地猴在想…";
+    sub.textContent = "";
+  } else if (S.stage === "show"){
+    title.className = "small";
+    title.textContent = "亮牌";
+    sub.textContent = "";
+  } else if (S.stage === "over"){
+    title.className = "small";
+    title.textContent = "本局已结束";
+    sub.textContent = "";
+  } else {
+    title.className = "small";
+    title.textContent = "等待开始";
+    sub.textContent = "";
+  }
+}
+
+/* ---------- 遮罩 ---------- */
+function showOv(id){ $(id).classList.add("show"); }
+function hideOv(id){ $(id).classList.remove("show"); }
+function hideAll(){
+  hideOv("ov-start"); hideOv("ov-rules"); hideOv("ov-round"); hideOv("ov-over");
+}
+
+/* ---------- 开局 ---------- */
+function startGame(){
+  S.token++;
+  S.chips = CFG.startChips - CFG.entry;
+  S.round = 0; S.over = false; S.bail = CFG.bail[0]; S.phase = "月";
+  S.pub = null; S.me = []; S.mon = []; S.pot = 0; S.playerIn = 0; S.monIn = 0;
+  S.need = 0; S.revealed = false; S.betSel = 1; S.stage = "idle";
+  S.justDealt = false; S.flipAnim = false; S.lastMonBluff = false; S.roundOpen = false;
+  S.stats = { win:0, lose:0, tie:0, bluff:0, maxGain:0 };
+  S.log = [];
+  $("h-chips").setAttribute("data-v", S.chips);
+  hideAll();
+  renderLog();
+  log("入局：交入场费 " + CFG.entry + " 道，手上 " + S.chips + " 道。赎身线第 8 轮涨到 " + CFG.bail[CFG.rounds - 1] + " 道。");
+  say("地猴：坐。八轮，看你撑不撑得住。");
+  render(); renderActions();
+  later(nextRound, 420);
+}
+
+/* ---------- 一轮 ---------- */
+function nextRound(){
+  if (S.over) return;
+  if (S.round >= CFG.rounds){ finish(); return; }
+  if (S.chips < CFG.ante[S.round]){ finish(); return; }
+  S.round++;
+  S.phase = S.round <= CFG.monthEnd ? "月" : "望";
+  S.bail = CFG.bail[S.round - 1];
+  S.pub = null; S.me = []; S.mon = []; S.pot = 0;
+  S.playerIn = 0; S.monIn = 0; S.need = 0; S.revealed = false;
+  S.betSel = 1; S.lastMonBluff = false; S.roundOpen = false;
+  S.stage = "deal"; S.justDealt = true; S.flipAnim = false;
+
+  log("—— 第 " + S.round + " 轮 · " + S.phase + "轮 · 赎身线 " + S.bail + " 道 ——", "rnd");
+  if (S.round === 4 || S.round === 6 || S.round === 8){
+    log("地猴抬价：本轮起赎身线 " + S.bail + " 道、底注 " + ante() + " 道，他也更凶了。", "hi");
+    say("地猴：价涨了。" + S.bail + " 道。我也没耐心了。");
+  } else {
+    say(S.round <= 3 ? "地猴：朔日，先摸摸底。" : "地猴：望日了，牌该更贵些。");
+  }
+  render(); renderActions();
+
+  later(function(){
+    var deck = shuffle(CARDS.slice());
+    S.pub = deck[0];
+    S.me = [deck[1], deck[2]];
+    S.mon = [deck[3], deck[4]];
+    var a = ante();
+    S.pot = a * 2;
+    S.monIn = a;
+    S.playerIn = a;
+    S.chips -= a;
+    S.stage = "act";
+    log("发牌：底注各 " + a + " 道；公共牌 " + cardName(S.pub) + "。你抽到 " + cardName(S.me[0]) + "、 " + cardName(S.me[1]) + "。");
+    if (S.chips <= 0) log("你的道见底了。", "hi");
+    render(); renderActions();
+    later(function(){ S.justDealt = false; render(); }, 700);
+  }, CFG.dealMs);
+}
+
+/* ---------- 玩家动作 ---------- */
+function onCheck(){
+  if (S.stage !== "act") return;
+  log("你过牌。");
+  say("地猴：那我看看。");
+  S.stage = "wait"; render(); renderActions();
+  later(function(){ monkeyTurn(0); }, CFG.actMs);
+}
+function onBet(){
+  if (S.stage !== "act") return;
+  var x = Math.min(S.betSel, limit(), S.chips);
+  if (x < 1) return;
+  S.chips -= x; S.pot += x; S.playerIn += x;
+  log("你下注 " + x + " 道（底池 " + S.pot + "）。");
+  tip($("h-chips"), "-" + x + " 道", "out");
+  bump($("pot"));
+  S.stage = "wait"; render(); renderActions();
+  later(function(){ render(); }, 120);
+  later(function(){ monkeyTurn(x); }, CFG.actMs);
+}
+function onFoldMe(){
+  if (S.stage !== "act" && S.stage !== "respond") return;
+  log("你弃牌。");
+  say("地猴：可惜。");
+  S.stage = "wait"; render(); renderActions();
+  later(function(){ endRound("fold-me"); }, 420);
+}
+function onCall(){
+  if (S.stage !== "respond") return;
+  var n = S.need;
+  if (S.chips < n) return;
+  S.chips -= n; S.pot += n; S.playerIn += n;
+  log("你跟注 " + n + " 道（底池 " + S.pot + "）。");
+  tip($("h-chips"), "-" + n + " 道", "out");
+  bump($("pot"));
+  S.stage = "wait"; render(); renderActions();
+  later(toShowdown, 380);
+}
+
+/* ---------- 地猴 ---------- */
+function monkeyTurn(playerBet){
+  if (S.over) return;
+  S.stage = "wait"; say("地猴：……"); renderActions();
+  later(function(){ decide(playerBet); }, CFG.thinkMs);
+}
+function decide(playerBet){
+  var st = monTotal() - meTotal();
+  var hard = S.diff === "hard";
+  var bluff = (hard ? 0.28 : 0.12) + (S.round >= 4 ? 0.06 : 0) + (S.round >= 6 ? 0.06 : 0) + (S.round >= 8 ? 0.06 : 0);
+  var r = Math.random();
+
+  if (playerBet === 0){
+    if (st >= 12 && r < 0.88) return mBet(2, st < 0);
+    if (st > 0 && r < 0.66) return mBet(1, st < 0);
+    if (r < bluff) return mBet(1, true);
+    log("地猴过牌。");
+    say("地猴：你先请。");
+    return toShowdown();
+  }
+  if (st >= 8){
+    if (r < (hard ? 0.60 : 0.35)) return mRaise(playerBet, false);
+    return mCall(playerBet, false);
+  }
+  if (st >= 0){
+    if (r < 0.85) return mCall(playerBet, false);
+    return mFoldMon();
+  }
+  if (r < 0.28 + bluff * 0.5) return mCall(playerBet, true);
+  if (r < 0.28 + bluff * 1.5) return mRaise(playerBet, true);
+  return mFoldMon();
+}
+function mBet(b, isBluff){
+  S.lastMonBluff = isBluff;
+  S.monIn += b; S.pot += b; S.need = b;
+  log("地猴下注 " + b + " 道（底池 " + S.pot + "）。");
+  say("地猴：加点彩头。");
+  bump($("pot"));
+  S.stage = "respond"; render(); renderActions();
+}
+function mRaise(playerBet, isBluff){
+  S.lastMonBluff = isBluff;
+  var step = CFG.raiseStep;
+  S.monIn += playerBet + step;
+  S.pot += playerBet + step;
+  S.need = step;
+  log("地猴加注：先补 " + playerBet + " 道，再添 " + step + " 道（底池 " + S.pot + "）。");
+  say("地猴：我再添一道。");
+  bump($("pot"));
+  S.stage = "respond"; render(); renderActions();
+}
+function mCall(playerBet){
+  S.monIn += playerBet; S.pot += playerBet;
+  log("地猴跟注 " + playerBet + " 道（底池 " + S.pot + "）。");
+  say("地猴：跟。");
+  S.stage = "wait"; render(); renderActions();
+  later(toShowdown, 380);
+}
+function mFoldMon(){
+  log("地猴弃牌。");
+  say("地猴：这轮归你。");
+  S.stage = "wait"; render(); renderActions();
+  later(function(){ endRound("fold-mon"); }, 420);
+}
+
+/* ---------- 摊牌 ---------- */
+function toShowdown(){
+  if (S.stage === "show" || S.stage === "settle" || S.over) return;
+  S.stage = "show";
+  S.revealed = true;
+  S.flipAnim = true;
+  render(); renderActions();
+  say("地猴：亮牌。");
+  later(function(){
+    S.flipAnim = false; render();
+    log("摊牌：你 " + meTotal() + " 点，地猴 " + monTotal() + " 点。");
+    later(resolveShowdown, CFG.settleMs);
+  }, CFG.flipMs);
+}
+function resolveShowdown(){
+  var mine = meTotal(), his = monTotal();
+  if (mine > his){
+    S.chips += S.pot;
+    S.stats.win++;
+    S.stats.maxGain = Math.max(S.stats.maxGain, S.pot - S.playerIn);
+    log("你收下底池 " + S.pot + " 道（净赚 " + (S.pot - S.playerIn) + " 道）。", "hi");
+    endRound("win-show", mine, his);
+  } else if (mine < his){
+    S.stats.lose++;
+    log("地猴收走底池 " + S.pot + " 道（你亏 " + S.playerIn + " 道）。", "hi");
+    endRound("lose-show", mine, his);
+  } else {
+    S.chips += S.playerIn;
+    S.stats.tie++;
+    log("点数相同，你本轮投入的 " + S.playerIn + " 道退回。");
+    endRound("tie-show", mine, his);
+  }
+}
+
+/* ---------- 单轮结算 ---------- */
+function endRound(kind, mine, his){
+  if (S.stage === "settle" || S.over) return;
+  var gain = 0;
+  if (kind === "win-show"){
+    gain = S.pot - S.playerIn;
+  } else if (kind === "lose-show"){
+    gain = -S.playerIn;
+  } else if (kind === "tie-show"){
+    gain = 0;
+  } else if (kind === "fold-mon"){
+    S.chips += S.pot;
+    gain = S.pot - S.playerIn;
+    S.stats.win++;
+    S.stats.maxGain = Math.max(S.stats.maxGain, gain);
+    log("地猴弃牌，底池 " + S.pot + " 道归你（净赚 " + gain + " 道）。", "hi");
+    kind = "win-fold";
+  } else if (kind === "fold-me"){
+    gain = -S.playerIn;
+    S.stats.lose++;
+    if (S.lastMonBluff) S.stats.bluff++;
+    log("你弃牌，底池归地猴（你亏 " + S.playerIn + " 道）。", "hi");
+  }
+  S.stage = "settle";
+  S.roundOpen = true;
+  render(); renderActions();
+  later(function(){ showRoundOverlay(kind, gain, mine, his); }, 260);
+}
+
+function showRoundOverlay(kind, gain, mine, his){
+  if (S.stage !== "settle") return;
+  var hero = $("r-hero"), sub = $("r-sub"), cards = $("r-cards");
+  hero.className = "r-title";
+  cards.innerHTML = "";
+  if (kind === "win-show" || kind === "lose-show" || kind === "tie-show"){
+    hero.textContent = kind === "win-show" ? "你赢了这一轮" : (kind === "lose-show" ? "你输了这一轮" : "点数相同");
+    if (kind === "win-show") hero.classList.add("win");
+    if (kind === "lose-show") hero.classList.add("lose");
+    sub.textContent = kind === "tie-show" ? "同点，投入的道退回，底池不结算。" : (kind === "win-show" ? "三张牌点数更大，底池归你。" : "三张牌点数更小，底池归地猴。");
+    cards.appendChild(revealCol("你", S.me, meTotal()));
+    cards.appendChild(revealCol("地猴", S.mon, monTotal()));
+    var c = $("r-cards").querySelectorAll(".mini-card");
+    for (var i = 0; i < c.length; i++){ c[i].classList.add("flip"); c[i].style.animationDelay = (0.06 * i) + "s"; }
+  } else if (kind === "win-fold"){
+    hero.textContent = "他收手了";
+    hero.classList.add("win");
+    sub.textContent = "地猴弃牌，这一轮的底池归你。他为什么弃，他不会说。";
+    cards.innerHTML = '<div class="reveal-col"><div class="who2">地猴</div><div class="unlit">未亮</div></div>';
+  } else if (kind === "fold-me"){
+    hero.textContent = "他收走了这一轮";
+    hero.classList.add("lose");
+    sub.textContent = "你弃了牌，底池归地猴。桌上的牌被收走，没有翻开。";
+  }
+
+  $("r-pot").textContent = S.pot;
+  var net = $("r-net");
+  net.textContent = (gain > 0 ? "+" : "") + gain;
+  net.className = gain < 0 ? "minus" : "";
+  $("r-chips").textContent = S.chips;
+  $("r-bail").textContent = S.bail;
+  var nx = S.round + 1;
+  var hint = $("r-hint");
+  hint.textContent = "";
+  if (S.chips >= 1 && S.round < CFG.rounds && (nx === 4 || nx === 6 || nx === 8)){
+    hint.textContent = "下一轮是第 " + nx + " 轮：赎身线抬到 " + CFG.bail[nx - 1] + " 道，地猴下手也会更重。";
+  }
+  $("btn-next").textContent = (S.chips < 1 || S.round >= CFG.rounds) ? "查看结局" : "继续";
+  showOv("ov-round");
+}
+function revealCol(who, cards, total){
+  var d = document.createElement("div");
+  d.className = "reveal-col";
+  var html = '<div class="who2">' + who + '</div><div class="mini">';
+  for (var i = 0; i < cards.length; i++){
+    html += '<div class="mini-card"><span class="mn">' + cards[i].nm + '</span><span class="mm">' + cards[i].pt + ' 点</span></div>';
+  }
+  html += '</div><div class="pt2">' + total + ' 点</div>';
+  d.innerHTML = html;
+  return d;
+}
+
+/* ---------- 推进 ---------- */
+function continueRound(){
+  if (!S.roundOpen) return;
+  S.roundOpen = false;
+  hideOv("ov-round");
+  if (S.chips < 1){ finish(true); return; }
+  if (S.round >= CFG.rounds){ finish(false); return; }
+  nextRound();
+}
+
+/* ---------- 结局 ---------- */
+function finish(broke){
+  S.over = true;
+  S.stage = "over";
+  S.roundOpen = false;
+  var finalBail = CFG.bail[CFG.rounds - 1];
+  var win = S.chips >= finalBail && S.chips > 0;
+  var hero = $("o-hero"), sub = $("o-sub");
+  hero.className = "r-title " + (win ? "win" : "lose");
+
+  if (win){
+    hero.textContent = "活着离场";
+    sub.textContent = "你把 " + S.chips + " 道推过去。地猴数了数，抬眼看你，让开了半条路。「下次朔日，还来。」";
+  } else if (broke || S.chips < 1){
+    hero.textContent = "被留下了";
+    sub.textContent = "你连底注都凑不齐。牌桌被收走，灯灭了一盏。地猴没再看你——它知道你没资格再看牌。";
+  } else {
+    hero.textContent = "被留下了";
+    sub.textContent = "八轮打完，你手上 " + S.chips + " 道，赎身线 " + finalBail + " 道。差 " + (finalBail - S.chips) + " 道。地猴把牌收拢：「差一点，也是差。」";
+  }
+
+  var rows = "";
+  rows += '<div class="st-row"><span>胜 / 负 / 和</span><b>' + S.stats.win + " / " + S.stats.lose + " / " + S.stats.tie + '</b></div>';
+  rows += '<div class="st-row"><span>最大单轮收益</span><b>' + (S.stats.maxGain > 0 ? "+" + S.stats.maxGain : "0") + ' 道</b></div>';
+  rows += '<div class="st-row"><span>被你弃掉的真诈唬</span><b>' + S.stats.bluff + ' 次</b></div>';
+  rows += '<div class="st-row"><span>牌局结束手上</span><b>' + Math.max(0, S.chips) + ' 道 / 线 ' + finalBail + ' 道</b></div>';
+  rows += '<div class="st-note">「被你弃掉的真诈唬」＝他下注或加注时手里的牌其实比你小，而你弃了牌。这项只在整局结束后统计，对局中不提示。</div>';
+  $("o-stats").innerHTML = rows;
+
+  log(win ? "结局：活着离场，手上 " + S.chips + " 道。" : "结局：被留下了，手上 " + Math.max(0, S.chips) + " 道。", "hi");
+  render(); renderActions();
+  showOv("ov-over");
+}
+
+/* ---------- 开始 / 重开 ---------- */
+function setDiff(d){
+  S.diff = d;
+  $("d-easy").classList.toggle("on", d === "easy");
+  $("d-hard").classList.toggle("on", d === "hard");
+}
+function bind(){
+  $("d-easy").addEventListener("click", function(){ setDiff("easy"); });
+  $("d-hard").addEventListener("click", function(){ setDiff("hard"); });
+  $("btn-start").addEventListener("click", startGame);
+  $("btn-rules-start").addEventListener("click", function(){ showOv("ov-rules"); });
+  $("btn-close-rules").addEventListener("click", function(){ hideOv("ov-rules"); });
+  $("btn-next").addEventListener("click", continueRound);
+  $("btn-again").addEventListener("click", startGame);
+  $("btn-change").addEventListener("click", function(){
+    S.token++;
+    hideAll();
+    showOv("ov-start");
+  });
+  $("btn-rules-start").addEventListener("click", function(e){ e.stopPropagation(); });
+}
+function buildPtTable(){
+  var g = $("pt-table"), html = "";
+  var list = CARDS.slice().sort(function(a, b){ return a.pt - b.pt || a.nm.localeCompare(b.nm); });
+  for (var i = 0; i < list.length; i++){
+    html += '<span>' + list[i].nm + '（' + list[i].m + '/' + list[i].d + '）<b>' + list[i].pt + '</b></span>';
+  }
+  g.innerHTML = html;
+}
+
+/* ---------- 启动 ---------- */
+bind();
+buildPtTable();
+setDiff("easy");
+S.chips = CFG.startChips - CFG.entry;
+$("h-chips").setAttribute("data-v", S.chips);
+render();
+renderActions();
+})();
+</script>
+</body>
+</html>
